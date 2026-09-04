@@ -154,9 +154,22 @@
   --st-content-background-color-warning-subtle: #fef7f2;
   --st-content-background-color-warning-surface: #fffbf8;
 
-  // ── Action (точечно — только то, что реально используется) ──────────────
+  // ── Action / Interaction ─────────────────────────────────────────────────
+  // Группа состояний интерактивных элементов. Значения взяты из макета
+  // «Концепт А Модальный» (Figma → Exploring Checkout), где они приходят
+  // готовыми переменными — то есть это реальные имена узлов ДС, а не догадки.
   // Мягкая подложка бренд-цвета: подсветка выбранной карточки/кнопки.
   --st-action-background-color-primary-subtle: #fdc9c240;
+  --st-action-background-color-primary-solid-normal: #f36355;
+  --st-action-background-color-positive-normal: #6fac45;
+  --st-action-background-color-positive-subtle-normal: #c7e1b940;
+  --st-action-background-color-neutral-ghost-normal: #fff0;
+  --st-action-foreground-color-positive-normal: #54941e;
+  --st-action-foreground-color-neutral-normal: #091620cc;
+  --st-action-foreground-color-onprimary-normal: #ffffffd6;
+  --st-action-fg-color-invert-normal: #fff;
+  --st-interaction-background-color-ghost-normal: #fff0;
+  --st-interaction-border-color-neutral-normal: #d1d8dd;
 
   // ── Asemantic (8 именованных палитр) ─────────────────────────────────────
   --st-asemantic-foreground-color-pistachio-primary: #04721c;
@@ -318,6 +331,9 @@
     --st-content-background-color-warning-surface: #13110f;
 
     // ── Action ───────────────────────────────────────────────────────────
+    // Тёмные значения есть только у этого токена — остальные action/interaction
+    // пришли из макета прототипа, где тёмной темы нет. Не выдумываем: пока
+    // они остаются светлыми и в тёмной теме.
     --st-action-background-color-primary-subtle: #ae200c40;
 
     // ── Asemantic (8 палитр) ────────────────────────────────────────────
