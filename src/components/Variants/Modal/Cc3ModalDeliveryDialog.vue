@@ -137,11 +137,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
 <template>
   <Teleport to="body">
-    <div class="cc3-modal-delivery-dialog" @keydown="onOverlayKeydown">
-      <div class="cc3-modal-delivery-dialog__overlay" @click="$emit('close')" />
-
-      <div class="cc3-modal-delivery-dialog__sheet" role="dialog" aria-modal="true">
-        <div class="cc3-modal-delivery-dialog__header">
+    <div
+      class="cc3-modal-delivery-dialog"
+      role="dialog"
+      aria-modal="true"
+      @keydown="onOverlayKeydown"
+    >
+      <div class="cc3-modal-delivery-dialog__header">
           <button
             v-if="step !== 'search'"
             type="button"
@@ -192,7 +194,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :center="defaultMapCenter"
                 :zoom="12"
                 :markers="[{ id: 'city', lat: defaultMapCenter.lat, lng: defaultMapCenter.lng }]"
-                :height="220"
+                :height="380"
               >
                 <template #marker>
                   <Cc3MapPin variant="address" icon="delivery-truck" />
@@ -204,7 +206,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :center="defaultMapCenter"
                 :zoom="12"
                 :markers="pickupMapMarkers"
-                :height="220"
+                :height="400"
               >
                 <template #marker="{ marker }">
                   <Cc3MapPin
@@ -427,42 +429,29 @@ function onOverlayKeydown(event: KeyboardEvent) {
           </button>
         </div>
       </div>
-    </div>
   </Teleport>
 </template>
 
 <style lang="scss">
+// Во макете это не боттом-шит, а полноэкранная страница-модалка
+// (Figma-фрейм "Mobile/popup" 375×812 — во весь мобильный вьюпорт,
+// без затемнения и скруглений).
 .cc3-modal-delivery-dialog {
   position: fixed;
   inset: 0;
   z-index: 100;
 
   display: flex;
-  align-items: flex-end;
-  justify-content: center;
+  flex-direction: column;
 
-  &__overlay {
-    position: fixed;
-    inset: 0;
+  width: 100%;
+  max-width: 375px;
+  height: 100%;
+  margin: 0 auto;
 
-    background-color: rgb(16 24 40 / 55%);
-  }
+  overflow-y: auto;
 
-  &__sheet {
-    position: relative;
-
-    display: flex;
-    flex-direction: column;
-
-    width: 100%;
-    max-width: 375px;
-    max-height: 92vh;
-
-    overflow-y: auto;
-
-    background-color: var(--st-content-background-color-default-solid-normal);
-    border-radius: var(--st-global-radius-2xl) var(--st-global-radius-2xl) 0 0;
-  }
+  background-color: var(--st-content-background-color-default-solid-normal);
 
   &__header {
     position: sticky;
@@ -511,6 +500,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
   &__body {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-none);
 
