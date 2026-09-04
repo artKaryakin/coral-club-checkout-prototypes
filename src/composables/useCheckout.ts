@@ -6,6 +6,8 @@ import dSprayImg from '@/assets/products/d-spray.png'
 import ultimateMaxImg from '@/assets/products/ultimate-max.png'
 import { formatDecimal, formatPrice, formatPriceRounded } from '@/utils/formatPrice'
 
+import { useVariant } from './useVariant'
+
 export type DeliveryMethod = 'courier' | 'pickup'
 
 export type PickupProvider = 'cdek' | 'office' | 'fivepost'
@@ -218,6 +220,9 @@ const pickupPoints: PickupPoint[] = [
 // Профили адресной книги — заглушка, в реальном проекте приходят из API
 // (cc3-library-user, судя по документации ДС). Данные повторяют карточки
 // из QA-аккаунта: те же ФИО и адреса, что и в остальных сценариях чекаута.
+//
+// Это полный список «как у вернувшегося пользователя». Что из него реально
+// доступно, решает профиль прототипа — см. savedAddressBookEntries ниже.
 const addressBookEntries: AddressBookEntry[] = [
   {
     id: 'book-courier-berezovoy',
@@ -404,6 +409,17 @@ const isSummaryDetailsOpen = ref(false)
 const promoCode = ref('')
 
 export function useCheckout() {
+  const { hasAddressBook } = useVariant()
+
+  /**
+   * Сохранённые адреса есть только в сценарии повторного входа. У нового
+   * пользователя список пустой — значит, нет ни адресной книги, ни выбора
+   * из сохранённого, только ручной ввод.
+   */
+  const savedAddressBookEntries = computed(() =>
+    hasAddressBook.value ? addressBookEntries : [],
+  )
+
   const selectedPickupPoint = computed(() =>
     pickupPoints.find((point) => point.id === selectedPickupPointId.value),
   )
@@ -593,7 +609,8 @@ export function useCheckout() {
     deliveryAddress,
 
     isAddressBookOpen,
-    addressBookEntries,
+    savedAddressBookEntries,
+    hasAddressBook,
     applyAddressBookEntry,
     clearRecipientAndAddress,
 

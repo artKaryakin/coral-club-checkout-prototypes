@@ -11,7 +11,9 @@ type AddressMode = 'saved' | 'new'
 // В реальном проекте режим влияет на источник данных получателя и адреса.
 const mode = ref<AddressMode>('saved')
 
-const { clearRecipientAndAddress } = useCheckout()
+// У нового пользователя нет сохранённых адресов, поэтому и переключаться
+// не между чем: весь блок скрывается, остаётся обычный ручной ввод.
+const { clearRecipientAndAddress, hasAddressBook } = useCheckout()
 
 const isModalOpen = ref(false)
 
@@ -28,7 +30,7 @@ function startNewAddress() {
 </script>
 
 <template>
-  <div class="cc3-checkout-address-tabs">
+  <div v-if="hasAddressBook" class="cc3-checkout-address-tabs">
     <button
       type="button"
       class="cc3-checkout-address-tabs__button cc3-checkout-address-tabs__button--secondary"

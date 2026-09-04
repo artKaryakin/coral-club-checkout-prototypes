@@ -13,13 +13,13 @@ const emit = defineEmits<{
   newAddress: []
 }>()
 
-const { addressBookEntries, applyAddressBookEntry } = useCheckout()
+const { savedAddressBookEntries, applyAddressBookEntry } = useCheckout()
 
 const search = ref('')
 const highlightedId = ref<string>()
 
 const entries = computed(() =>
-  addressBookEntries.map((entry) => ({
+  savedAddressBookEntries.value.map((entry) => ({
     ...entry,
     title: deliveryMethodLabels[entry.method],
     priceFormat: formatPriceRounded(entry.price),
