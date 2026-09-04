@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import Cc3PrototypeIndex from '@/components/Cc3PrototypeIndex.vue'
 import Cc3Checkout from '@/components/Checkout/Cc3Checkout.vue'
+import Cc3ModalCheckout from '@/components/Variants/Modal/Cc3ModalCheckout.vue'
 import { useVariant } from '@/composables/useVariant'
 
-// Без варианта в адресе показываем список сценариев, иначе — сам чекаут.
-const { route } = useVariant()
+// Без варианта в адресе показываем список сценариев. С вариантом —
+// свой корневой компонент на каждый прототип (inline пока не готов,
+// временно показывает прод-версию).
+const { route, isModal } = useVariant()
 </script>
 
 <template>
-  <Cc3Checkout v-if="route" />
+  <Cc3ModalCheckout v-if="isModal" />
+  <Cc3Checkout v-else-if="route" />
   <Cc3PrototypeIndex v-else />
 </template>

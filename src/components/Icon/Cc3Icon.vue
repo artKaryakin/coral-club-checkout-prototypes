@@ -25,6 +25,9 @@ type IconName =
   | 'eye-off'
   | 'trash'
   | 'x-md'
+  | 'menu-01'
+  | 'bank'
+  | 'shopping-cart-01'
 
 type Props = {
   name: IconName
@@ -153,6 +156,29 @@ withDefaults(defineProps<Props>(), {
     <template v-else-if="name === 'x-md'">
       <line x1="6" y1="6" x2="18" y2="18" />
       <line x1="18" y1="6" x2="6" y2="18" />
+    </template>
+
+    <template v-else-if="name === 'menu-01'">
+      <line x1="4" y1="7" x2="20" y2="7" />
+      <line x1="4" y1="12" x2="20" y2="12" />
+      <line x1="4" y1="17" x2="20" y2="17" />
+    </template>
+
+    <template v-else-if="name === 'bank'">
+      <path d="M3 10.5 12 5l9 5.5" />
+      <line x1="3" y1="10.5" x2="21" y2="10.5" />
+      <line x1="5" y1="10.5" x2="5" y2="18.5" />
+      <line x1="10" y1="10.5" x2="10" y2="18.5" />
+      <line x1="14" y1="10.5" x2="14" y2="18.5" />
+      <line x1="19" y1="10.5" x2="19" y2="18.5" />
+      <line x1="3" y1="18.5" x2="21" y2="18.5" />
+      <line x1="2" y1="21.5" x2="22" y2="21.5" />
+    </template>
+
+    <template v-else-if="name === 'shopping-cart-01'">
+      <path d="M3 4h2l2.2 11.4a2 2 0 0 0 2 1.6h7.7a2 2 0 0 0 2-1.6L20.5 8H6" />
+      <circle cx="9.5" cy="20" r="1.3" />
+      <circle cx="17" cy="20" r="1.3" />
     </template>
   </svg>
 </template>
