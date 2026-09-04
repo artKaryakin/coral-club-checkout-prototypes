@@ -1,0 +1,170 @@
+# Правила разработки — Coral Club
+
+Свод конвенций дизайн-системы Coral Club.
+Первоисточник: <https://storybook.coralclub.online> → Руководство → Рекомендации.
+При расхождении этого файла со Storybook — прав Storybook.
+
+## Сторонние библиотеки
+
+**Нельзя подключать никакие сторонние библиотеки без разрешения.**
+
+## Vue
+
+- Только **Vue 3**. Обязательно **Composition API** + `<script setup>`.
+- Обязательно соблюдение официального style guide от команды Vue.
+
+### Именование компонентов
+
+`Cc3ProjectName[Sub1][Sub2]...`, где `Cc3` — версия сайта (статично),
+`Project` — название проекта, `Name` — название компонента.
+
+Пример: `Cc3ChartSvgTooltip.vue`, `Cc3ChartSvgTooltipItem.vue`.
+
+Компоненты группируются по папкам; имя компонента обязано содержать имя папки:
+
+```
+Line/
+  Cc3ChartLine.vue
+  Cc3ChartLineData.vue
+Svg/
+  Tooltip/
+    Cc3ChartSvgTooltip.vue
+    Cc3ChartSvgTooltipItem.vue
+  Cc3ChartSvg.vue
+Cc3Chart.vue
+```
+
+### Разделение компонента
+
+- Один компонент — одна задача. Никаких «мега-компонентов».
+- Любой повторяющийся код выносится в отдельный компонент.
+
+### Чистый шаблон
+
+В `<template>` **запрещены**: вызовы функций, любые вычисления, любые стили.
+Нужно что-то вызвать — выносите в `computed` или в под-компонент.
+
+## Стили
+
+Только **SCSS**. **TailwindCSS запрещён.**
+
+**Запрещено менять стили компонентов UI.** Если дизайн не совпадает со стилями
+UI-компонента — писать тимлиду, а не переопределять.
+
+### Имя класса = имя компонента
+
+```vue
+<!-- Cc3ChartSvg.vue -->
+<template>
+  <div class="cc3-chart-svg cc3-chart-svg--size--sm cc3-chart-svg--full">
+    <div class="cc3-chart-svg__label"></div>
+  </div>
+</template>
+```
+
+### Токены — обязательны
+
+Все цвета, размеры, отступы, округления, тени, фон — только через переменные
+токенов. Имена токенов в CSS совпадают с именами в Figma.
+
+```scss
+// Плохо
+padding: 6px;
+color: var(#8e9aa4);
+
+// Хорошо
+padding: var(--st-global-distance-space-inset-xl);
+color: var(--st-content-foreground-color-neutral-tetriary);
+```
+
+Если дизайнер не использовал токен — подобрать соответствующий токен из списка.
+
+### Палитры
+
+Если элемент бывает в разных цветах — использовать палитровую систему,
+а не отдельный класс на каждый цвет:
+
+```vue
+<template>
+  <div class="cc3-demo c2 c2-palette--[название цвета из ДС]"></div>
+</template>
+
+<style lang="scss">
+.cc3-demo {
+  @include paletteColor(var(--st-asemantic-foreground-color-indigo-secondary));
+  @include paletteBackground(var(--st-asemantic-background-color-indigo-subtile));
+}
+</style>
+```
+
+### Шрифты
+
+Через миксин `initByLink('?font.[название шрифта]')`. Имя шрифта совпадает
+с Figma, только `/` заменяется на `.`:
+
+```scss
+// Figma: text/label/md
+@include initByLink('?font.label.md');
+```
+
+> Миксин приходит из пакета UI. До его подключения шрифты задаются вручную.
+
+### Особенности плагина ДС
+
+- **Цвета.** Тема (светлая/тёмная) подставляется автоматически, но только для
+  чисто цветовых свойств. Для `background`, `border` использовать отдельные
+  свойства: `background-color`, `border-color`.
+- **LTR/RTL.** Адаптируется автоматически. Учитывать только иконки со стрелками:
+  для разворота использовать `dir=true` у `C2Icon`.
+
+### Адаптив
+
+Mobile-first: сначала мобильная, потом планшет, потом десктоп.
+**`@media` напрямую запрещён — только через `mediaMinWidth`.**
+
+```scss
+@include mediaMinWidth('md') {
+  // ...
+}
+```
+
+Доступные размеры: `sm` 640px, `md` 768px, `lg` 1024px, `xl` 1280px,
+`2xl` 1536px, `3xl` 1920px.
+
+### Порядок свойств
+
+Свойства группируются по смыслу, группы разделяются пустой строкой.
+Порядок самих групп не важен. **Сортировка по алфавиту запрещена.**
+
+```scss
+// Хорошо
+align-items: center;
+gap: var(--st-global-distance-space-inset-md);
+z-index: 4;
+
+padding: var(--st-global-distance-space-inset-xl);
+width: 100%;
+
+color: var(--st-content-foreground-color-neutral-tetriary);
+background-color: var(--st-content-background-color-neutral-primary);
+opacity: 0.32;
+```
+
+> Поэтому в `.stylelintrc.json` отключено `declaration-empty-line-before`
+> и не подключён ни один плагин сортировки свойств.
+
+## Локальное окружение
+
+- Node зафиксирован в `.nvmrc`, ставится через nvm.
+- `npm run dev` — Vite на 5173, `npm run storybook` — Storybook на 6006.
+- `src/styles/core.scss` автоматически доступен во всех `<style lang="scss">`
+  (см. `vite.config.ts` → `css.preprocessorOptions.scss.additionalData`),
+  отдельный `@use` в компонентах не нужен.
+- Перед коммитом: `npm run type-check`, `npm run lint`, `npm run lint:style`.
+
+## Дизайн-референсы
+
+Визуальные материалы (скрины макетов, шрифтов, цветов, блоков) — в
+`design-references/`. Это справочный материал, не код: правила использования,
+что можно менять по референсу и что нельзя (архитектура, состояние, механика
+checkout) — в [design-references/README.md](design-references/README.md).

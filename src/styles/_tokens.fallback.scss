@@ -1,0 +1,405 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// ЗНАЧЕНИЯ ТОКЕНОВ.
+//
+// Настоящие токены `--st-*` приходят из пакета UI дизайн-системы — этот файл
+// подставляет их до подключения приватного пакета. Но, в отличие от первой
+// версии (там были угаданные placeholder-цвета), значения ниже — НАСТОЯЩИЕ,
+// перенесены вручную из Figma:
+// design-references/tokens/colors/ (файл «Variables (Master)», коллекция
+// `web`, 294 переменные — цвета, отступы, радиусы).
+//
+// Имена переменных дословно повторяют путь узла в Figma
+// (st/content/foreground/color/neutral/primary → --st-content-foreground-color-neutral-primary),
+// чтобы подключение настоящего пакета свелось к удалению этого файла.
+//
+// Перенесены группы: content, global/distance/space, selectable/borderRadius,
+// asemantic (все 8 палитр). Группы action и interaction (состояния
+// hover/active/select, 89+7 переменных) в Figma тоже сфотографированы,
+// но здесь не перенесены — пока в проекте нет компонентов, которым нужны
+// отдельные токены на каждое состояние. Кроме одной: action/background/color/
+// primary/subtle — она нужна для подсветки выбранных карточек, взята точечно.
+// ─────────────────────────────────────────────────────────────────────────────
+:root {
+  // ── Global / Distance / Space ────────────────────────────────────────────
+  // В Figma inset/inline/stack — три группы, ссылающиеся на одну и ту же шкалу.
+  --st-global-distance-space-inset-none: 0px;
+  --st-global-distance-space-inset-x: 2px;
+  --st-global-distance-space-inset-xs: 4px;
+  --st-global-distance-space-inset-sm: 6px;
+  --st-global-distance-space-inset-md: 8px;
+  --st-global-distance-space-inset-lg: 10px;
+  --st-global-distance-space-inset-xl: 12px;
+  --st-global-distance-space-inset-2xl: 16px;
+  --st-global-distance-space-inset-3xl: 20px;
+  --st-global-distance-space-inset-4xl: 24px;
+  --st-global-distance-space-inset-5xl: 28px;
+  --st-global-distance-space-inset-6xl: 32px;
+  --st-global-distance-space-inset-7xl: 36px;
+  --st-global-distance-space-inset-8xl: 40px;
+  --st-global-distance-space-inset-9xl: 48px;
+  --st-global-distance-space-inline-none: var(--st-global-distance-space-inset-none);
+  --st-global-distance-space-inline-x: var(--st-global-distance-space-inset-x);
+  --st-global-distance-space-inline-xs: var(--st-global-distance-space-inset-xs);
+  --st-global-distance-space-inline-sm: var(--st-global-distance-space-inset-sm);
+  --st-global-distance-space-inline-md: var(--st-global-distance-space-inset-md);
+  --st-global-distance-space-inline-lg: var(--st-global-distance-space-inset-lg);
+  --st-global-distance-space-inline-xl: var(--st-global-distance-space-inset-xl);
+  --st-global-distance-space-inline-2xl: var(--st-global-distance-space-inset-2xl);
+  --st-global-distance-space-inline-3xl: var(--st-global-distance-space-inset-3xl);
+  --st-global-distance-space-stack-none: var(--st-global-distance-space-inset-none);
+  --st-global-distance-space-stack-x: var(--st-global-distance-space-inset-x);
+  --st-global-distance-space-stack-xs: var(--st-global-distance-space-inset-xs);
+  --st-global-distance-space-stack-sm: var(--st-global-distance-space-inset-sm);
+  --st-global-distance-space-stack-md: var(--st-global-distance-space-inset-md);
+  --st-global-distance-space-stack-lg: var(--st-global-distance-space-inset-lg);
+  --st-global-distance-space-stack-xl: var(--st-global-distance-space-inset-xl);
+  --st-global-distance-space-stack-2xl: var(--st-global-distance-space-inset-2xl);
+  --st-global-distance-space-stack-3xl: var(--st-global-distance-space-inset-3xl);
+
+  // ── Selectable / Border Radius ───────────────────────────────────────────
+  // Тоже ссылается на шкалу distance/space, плюс своё значение pill.
+  --st-global-radius-none: var(--st-global-distance-space-inset-none);
+  --st-global-radius-x: var(--st-global-distance-space-inset-x);
+  --st-global-radius-xs: var(--st-global-distance-space-inset-xs);
+  --st-global-radius-sm: var(--st-global-distance-space-inset-sm);
+  --st-global-radius-md: var(--st-global-distance-space-inset-md);
+  --st-global-radius-lg: var(--st-global-distance-space-inset-lg);
+  --st-global-radius-xl: var(--st-global-distance-space-inset-xl);
+  --st-global-radius-2xl: var(--st-global-distance-space-inset-2xl);
+  --st-global-radius-pill: 160px;
+
+  // ── Content / Background — приложенческие алиасы ─────────────────────────
+  // «neutral-primary/secondary» — не настоящие имена узлов Figma (там нет
+  // такой пары в группе background/neutral), это app-уровневое сокращение:
+  // сплошной белый фон карточек / мягкий подложечный фон страницы.
+  // Ссылаются на реальные токены, чтобы не плодить очередные угаданные цвета.
+  --st-content-background-color-neutral-primary: var(--st-content-background-color-default-solid-normal);
+  --st-content-background-color-neutral-secondary: var(--st-content-background-color-neutral-onsubtle);
+  --st-content-border-color-neutral-primary: var(--st-content-border-color-neutral-implicit);
+  --st-content-border-color-neutral-secondary: var(--st-content-border-color-neutral-onsubtle);
+
+  // ── Content / Foreground ─────────────────────────────────────────────────
+  --st-content-foreground-color-neutral-primary: #39444c;
+  --st-content-foreground-color-neutral-secondary: #75828b;
+  --st-content-foreground-color-neutral-tetriary: #8e9aa4;
+  --st-content-foreground-color-neutral-disable: #0f355257;
+  --st-content-foreground-color-neutral-invert-primary: #fffffff0;
+  --st-content-foreground-color-neutral-invert-secondary: #ffffffd6;
+  --st-content-foreground-color-neutral-invert-tetriary: #ffffffbd;
+  --st-content-foreground-color-info-primary: #534bb4;
+  --st-content-foreground-color-info-secondary: #726ce7;
+  --st-content-foreground-color-positive-primary: #396e00;
+  --st-content-foreground-color-positive-secondary: #54941e;
+  --st-content-foreground-color-warning-primary: #894c19;
+  --st-content-foreground-color-warning-secondary: #b86825;
+  --st-content-foreground-color-negative-primary: #a72a00;
+  --st-content-foreground-color-negative-secondary: #e03b00;
+
+  // Фирменный акцентный цвет (кнопки, ссылки, выбранные состояния).
+  // Раньше в проекте был выдуманный "asemantic coral" — реальной палитры
+  // с таким именем в Figma нет, настоящий бренд-акцент лежит здесь.
+  --st-content-foreground-color-primary-primary: #9e362c;
+  --st-content-foreground-color-primary-secondary: #d6483d;
+
+  // ── Content / Border ──────────────────────────────────────────────────────
+  --st-content-border-color-default-normal: #e5ecf1;
+  --st-content-border-color-default-invert: #fffffff0;
+  --st-content-border-color-default-alpha: #4064811f;
+  --st-content-border-color-neutral-explicit: #8e9aa4;
+  --st-content-border-color-neutral-implicit: #d1d8dd;
+  --st-content-border-color-neutral-onsubtle: #e5ecf1;
+  --st-content-border-color-neutral-disable: #acb9c3;
+  --st-content-border-color-info-explicit: #8a89f7;
+  --st-content-border-color-info-implicit: #d0d3ff;
+  --st-content-border-color-info-onsubtle: #e7e9ff;
+  --st-content-border-color-positive-explicit: #6fac45;
+  --st-content-border-color-positive-implicit: #c7e1b9;
+  --st-content-border-color-positive-onsubtle: #e3f0dc;
+  --st-content-border-color-warning-explicit: #db7d2e;
+  --st-content-border-color-warning-implicit: #f7ceb2;
+  --st-content-border-color-warning-onsubtle: #fce6d8;
+  --st-content-border-color-negative-explicit: #e03b00;
+  --st-content-border-color-negative-implicit: #ffc9bb;
+  --st-content-border-color-negative-onsubtle: #ffe4dd;
+
+  // ── Content / Background ─────────────────────────────────────────────────
+  --st-content-background-color-default-subtle-normal: #fffffff0;
+  --st-content-background-color-default-subtle-invert: #07121be6;
+  --st-content-background-color-default-solid-normal: #fff;
+  --st-content-background-color-default-solid-invert: #091219;
+  --st-content-background-color-neutral-explicit: #75828b;
+  --st-content-background-color-neutral-mute: #35516b2e;
+  --st-content-background-color-neutral-onsubtle: #4064811f;
+  --st-content-background-color-neutral-subtle: #2a84cc0d;
+  --st-content-background-color-neutral-surface: #a7b9c70a;
+  --st-content-background-color-neutral-disable: #3b6d9514;
+  --st-content-background-color-info-explicit: #726ce7;
+  --st-content-background-color-info-mute: #d9dbf8;
+  --st-content-background-color-info-onsubtle: #e7e9ff;
+  --st-content-background-color-info-subtle: #f7f8ff;
+  --st-content-background-color-info-surface: #fafbff;
+  --st-content-background-color-positive-explicit: #54941e;
+  --st-content-background-color-positive-mute: #d4e4cb;
+  --st-content-background-color-positive-onsubtle: #e3f0dc;
+  --st-content-background-color-positive-subtle: #f6faf3;
+  --st-content-background-color-positive-surface: #fafcf8;
+  --st-content-background-color-negative-explicit: #e03b00;
+  --st-content-background-color-negative-mute: #ffd2c7;
+  --st-content-background-color-negative-onsubtle: #ffe4dd;
+  --st-content-background-color-negative-subtle: #fff6f4;
+  --st-content-background-color-negative-surface: #fffaf9;
+  --st-content-background-color-warning-explicit: #db7d2e;
+  --st-content-background-color-warning-mute: #f3d8c6;
+  --st-content-background-color-warning-onsubtle: #fce6d8;
+  --st-content-background-color-warning-subtle: #fef7f2;
+  --st-content-background-color-warning-surface: #fffbf8;
+
+  // ── Action (точечно — только то, что реально используется) ──────────────
+  // Мягкая подложка бренд-цвета: подсветка выбранной карточки/кнопки.
+  --st-action-background-color-primary-subtle: #fdc9c240;
+
+  // ── Asemantic (8 именованных палитр) ─────────────────────────────────────
+  --st-asemantic-foreground-color-pistachio-primary: #04721c;
+  --st-asemantic-foreground-color-pistachio-secondary: #279936;
+  --st-asemantic-border-color-pistachio-explicit: #3eb44a;
+  --st-asemantic-border-color-pistachio-implicit: #c0e3bf;
+  --st-asemantic-border-color-pistachio-onsubtle: #dff1df;
+  --st-asemantic-background-color-pistachio-explicit: #3eb44a;
+  --st-asemantic-background-color-pistachio-mute: #3cb44b40;
+  --st-asemantic-background-color-pistachio-onsubtle: #87cb8940;
+  --st-asemantic-background-color-pistachio-subtile: #cfe5cf40;
+  --st-asemantic-background-color-pistachio-surface: #ebf6eb40;
+  --st-asemantic-foreground-color-mint-primary: #006f54;
+  --st-asemantic-foreground-color-mint-secondary: #009673;
+  --st-asemantic-border-color-mint-explicit: #00b289;
+  --st-asemantic-border-color-mint-implicit: #b1e5d0;
+  --st-asemantic-border-color-mint-onsubtle: #d8f2e7;
+  --st-asemantic-background-color-mint-explicit: #00b289;
+  --st-asemantic-background-color-mint-mute: #05b28840;
+  --st-asemantic-background-color-mint-onsubtle: #61cfaa40;
+  --st-asemantic-background-color-mint-subtile: #c6e7da40;
+  --st-asemantic-background-color-mint-surface: #e7f6f040;
+  --st-asemantic-foreground-color-jade-primary: #006b70;
+  --st-asemantic-foreground-color-jade-secondary: #009298;
+  --st-asemantic-border-color-jade-explicit: #00adb4;
+  --st-asemantic-border-color-jade-implicit: #a9e4e7;
+  --st-asemantic-border-color-jade-onsubtle: #d5f2f3;
+  --st-asemantic-background-color-jade-explicit: #00adb4;
+  --st-asemantic-background-color-jade-mute: #00adb440;
+  --st-asemantic-background-color-jade-onsubtle: #45cdd440;
+  --st-asemantic-background-color-jade-subtile: #c1e6e840;
+  --st-asemantic-background-color-jade-surface: #e5f6f740;
+  --st-asemantic-foreground-color-teal-primary: #006980;
+  --st-asemantic-foreground-color-teal-secondary: #008ead;
+  --st-asemantic-border-color-teal-explicit: #00a9cd;
+  --st-asemantic-border-color-teal-implicit: #abe1f3;
+  --st-asemantic-border-color-teal-onsubtle: #d6f0f9;
+  --st-asemantic-background-color-teal-explicit: #00a9cd;
+  --st-asemantic-background-color-teal-mute: #00a9cd40;
+  --st-asemantic-background-color-teal-onsubtle: #52c8ea40;
+  --st-asemantic-background-color-teal-subtile: #c3e5f040;
+  --st-asemantic-background-color-teal-surface: #e6f5fb40;
+  --st-asemantic-foreground-color-celestial-primary: #006495;
+  --st-asemantic-foreground-color-celestial-secondary: #0088c9;
+  --st-asemantic-border-color-celestial-explicit: #00a2ee;
+  --st-asemantic-border-color-celestial-implicit: #b4defc;
+  --st-asemantic-border-color-celestial-onsubtle: #daeefe;
+  --st-asemantic-background-color-celestial-explicit: #00a2ee;
+  --st-asemantic-background-color-celestial-mute: #03a2ee40;
+  --st-asemantic-background-color-celestial-onsubtle: #6dc1f940;
+  --st-asemantic-background-color-celestial-subtile: #c8e2f640;
+  --st-asemantic-background-color-celestial-surface: #e8f4fd40;
+  --st-asemantic-foreground-color-indigo-primary: #6d41a9;
+  --st-asemantic-foreground-color-indigo-secondary: #9260d9;
+  --st-asemantic-border-color-indigo-explicit: #ab79f5;
+  --st-asemantic-border-color-indigo-implicit: #ddcffa;
+  --st-asemantic-border-color-indigo-onsubtle: #eee7fd;
+  --st-asemantic-background-color-indigo-explicit: #ab79f5;
+  --st-asemantic-background-color-indigo-mute: #ab79f540;
+  --st-asemantic-background-color-indigo-onsubtle: #c2a6f640;
+  --st-asemantic-background-color-indigo-subtile: #e2d9f540;
+  --st-asemantic-background-color-indigo-surface: #f4f0fd40;
+  --st-asemantic-foreground-color-orchid-primary: #8d3388;
+  --st-asemantic-foreground-color-orchid-secondary: #b84fb2;
+  --st-asemantic-border-color-orchid-explicit: #d469cc;
+  --st-asemantic-border-color-orchid-implicit: #efcaeb;
+  --st-asemantic-border-color-orchid-onsubtle: #f7e4f5;
+  --st-asemantic-background-color-orchid-explicit: #d469cc;
+  --st-asemantic-background-color-orchid-mute: #d369cd40;
+  --st-asemantic-background-color-orchid-onsubtle: #e19cda40;
+  --st-asemantic-background-color-orchid-subtile: #eed5eb40;
+  --st-asemantic-background-color-orchid-surface: #f9eef840;
+  --st-asemantic-foreground-color-cerise-primary: #a32748;
+  --st-asemantic-foreground-color-cerise-secondary: #d53b62;
+  --st-asemantic-border-color-cerise-explicit: #f15f7e;
+  --st-asemantic-border-color-cerise-implicit: #fcc8ce;
+  --st-asemantic-border-color-cerise-onsubtle: #ffe3e6;
+  --st-asemantic-background-color-cerise-explicit: #f15f7e;
+  --st-asemantic-background-color-cerise-mute: #f15f7e40;
+  --st-asemantic-background-color-cerise-onsubtle: #f798a640;
+  --st-asemantic-background-color-cerise-subtile: #f7d4d840;
+  --st-asemantic-background-color-cerise-surface: #feedef40;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    // Distance/space и radius от темы не зависят — не переопределяем.
+
+    // ── Content / Foreground ─────────────────────────────────────────────
+    --st-content-foreground-color-neutral-primary: #ffffffbd;
+    --st-content-foreground-color-neutral-secondary: #ffffff80;
+    --st-content-foreground-color-neutral-tetriary: #fff6;
+    --st-content-foreground-color-neutral-disable: #ffffff47;
+    --st-content-foreground-color-neutral-invert-primary: #424242;
+    --st-content-foreground-color-neutral-invert-secondary: #808080;
+    --st-content-foreground-color-neutral-invert-tetriary: #989898;
+    --st-content-foreground-color-info-primary: #534bb4;
+    --st-content-foreground-color-info-secondary: #726ce7;
+    --st-content-foreground-color-positive-primary: #396e00;
+    --st-content-foreground-color-positive-secondary: #54941e;
+    --st-content-foreground-color-warning-primary: #894c19;
+    --st-content-foreground-color-warning-secondary: #b86825;
+    --st-content-foreground-color-negative-primary: #a72a00;
+    --st-content-foreground-color-negative-secondary: #e03b00;
+    --st-content-foreground-color-primary-primary: #9e362c;
+    --st-content-foreground-color-primary-secondary: #d6483d;
+
+    // ── Content / Border ────────────────────────────────────────────────
+    --st-content-border-color-default-normal: #1c1c1c;
+    --st-content-border-color-default-invert: #000000f0;
+    --st-content-border-color-default-alpha: #ffffff14;
+    --st-content-border-color-neutral-explicit: #5f5f5f;
+    --st-content-border-color-neutral-implicit: #2a2a2a;
+    --st-content-border-color-neutral-onsubtle: #1c1c1c;
+    --st-content-border-color-neutral-disable: #171717;
+    --st-content-border-color-info-explicit: #544db5;
+    --st-content-border-color-info-implicit: #262648;
+    --st-content-border-color-info-onsubtle: #1a1a2a;
+    --st-content-border-color-positive-explicit: #3a6f00;
+    --st-content-border-color-positive-implicit: #1d3110;
+    --st-content-border-color-positive-onsubtle: #161f11;
+    --st-content-border-color-warning-explicit: #904a00;
+    --st-content-border-color-warning-implicit: #402208;
+    --st-content-border-color-warning-onsubtle: #27180e;
+    --st-content-border-color-negative-explicit: #a33416;
+    --st-content-border-color-negative-implicit: #461d13;
+    --st-content-border-color-negative-onsubtle: #291712;
+
+    // ── Content / Background ───────────────────────────────────────────
+    --st-content-background-color-default-subtle-normal: #000000f0;
+    --st-content-background-color-default-subtle-invert: #ffffffd6;
+    --st-content-background-color-default-solid-normal: #000;
+    --st-content-background-color-default-solid-invert: #fffffff0;
+    --st-content-background-color-neutral-explicit: #5f5f5f;
+    --st-content-background-color-neutral-mute: #252525;
+    --st-content-background-color-neutral-onsubtle: #1c1c1c;
+    --st-content-background-color-neutral-subtle: #131313;
+    --st-content-background-color-neutral-surface: #111;
+    --st-content-background-color-neutral-disable: #ffffff0d;
+    --st-content-background-color-info-explicit: #726ce7;
+    --st-content-background-color-info-mute: #232338;
+    --st-content-background-color-info-onsubtle: #1a1a2a;
+    --st-content-background-color-info-subtle: #121317;
+    --st-content-background-color-info-surface: #101114;
+    --st-content-background-color-positive-explicit: #54941e;
+    --st-content-background-color-positive-mute: #1e2a16;
+    --st-content-background-color-positive-onsubtle: #161f11;
+    --st-content-background-color-positive-subtle: #11140f;
+    --st-content-background-color-positive-surface: #10120f;
+    --st-content-background-color-negative-explicit: #e03b00;
+    --st-content-background-color-negative-mute: #3b1b13;
+    --st-content-background-color-negative-onsubtle: #291712;
+    --st-content-background-color-negative-subtle: #171210;
+    --st-content-background-color-negative-surface: #13100f;
+    --st-content-background-color-warning-explicit: #db7d2e;
+    --st-content-background-color-warning-mute: #342012;
+    --st-content-background-color-warning-onsubtle: #27180e;
+    --st-content-background-color-warning-subtle: #17120f;
+    --st-content-background-color-warning-surface: #13110f;
+
+    // ── Action ───────────────────────────────────────────────────────────
+    --st-action-background-color-primary-subtle: #ae200c40;
+
+    // ── Asemantic (8 палитр) ────────────────────────────────────────────
+    --st-asemantic-foreground-color-pistachio-primary: #56b15c;
+    --st-asemantic-foreground-color-pistachio-secondary: #178f2b;
+    --st-asemantic-border-color-pistachio-explicit: #00741b;
+    --st-asemantic-border-color-pistachio-implicit: #153216;
+    --st-asemantic-border-color-pistachio-onsubtle: #132013;
+    --st-asemantic-background-color-pistachio-explicit: #00741b;
+    --st-asemantic-background-color-pistachio-mute: #192a1a;
+    --st-asemantic-background-color-pistachio-onsubtle: #132013;
+    --st-asemantic-background-color-pistachio-subtile: #111410;
+    --st-asemantic-background-color-pistachio-surface: #101210;
+    --st-asemantic-foreground-color-mint-primary: #55ad8f;
+    --st-asemantic-foreground-color-mint-secondary: #008c6b;
+    --st-asemantic-border-color-mint-explicit: #007156;
+    --st-asemantic-border-color-mint-implicit: #003325;
+    --st-asemantic-border-color-mint-onsubtle: #0c2119;
+    --st-asemantic-background-color-mint-explicit: #007156;
+    --st-asemantic-background-color-mint-mute: #0f2c22;
+    --st-asemantic-background-color-mint-onsubtle: #0c2119;
+    --st-asemantic-background-color-mint-subtile: #0e1512;
+    --st-asemantic-background-color-mint-surface: #0f1211;
+    --st-asemantic-foreground-color-jade-primary: #55a9ae;
+    --st-asemantic-foreground-color-jade-secondary: #00878d;
+    --st-asemantic-border-color-jade-explicit: #006d72;
+    --st-asemantic-border-color-jade-implicit: #003234;
+    --st-asemantic-border-color-jade-onsubtle: #082022;
+    --st-asemantic-background-color-jade-explicit: #006d72;
+    --st-asemantic-background-color-jade-mute: #092b2d;
+    --st-asemantic-background-color-jade-onsubtle: #082022;
+    --st-asemantic-background-color-jade-subtile: #0e1515;
+    --st-asemantic-background-color-jade-surface: #0e1212;
+    --st-asemantic-foreground-color-teal-primary: #54a6bf;
+    --st-asemantic-foreground-color-teal-secondary: #0084a1;
+    --st-asemantic-border-color-teal-explicit: #006a82;
+    --st-asemantic-border-color-teal-implicit: #00303c;
+    --st-asemantic-border-color-teal-onsubtle: #0a1f26;
+    --st-asemantic-background-color-teal-explicit: #006a82;
+    --st-asemantic-background-color-teal-mute: #0b2a32;
+    --st-asemantic-background-color-teal-onsubtle: #0a1f26;
+    --st-asemantic-background-color-teal-subtile: #0f1416;
+    --st-asemantic-background-color-teal-surface: #0e1213;
+    --st-asemantic-foreground-color-celestial-primary: #53a2d7;
+    --st-asemantic-foreground-color-celestial-secondary: #007fbb;
+    --st-asemantic-border-color-celestial-explicit: #006698;
+    --st-asemantic-border-color-celestial-implicit: #052e45;
+    --st-asemantic-border-color-celestial-onsubtle: #0f1e29;
+    --st-asemantic-background-color-celestial-explicit: #006698;
+    --st-asemantic-background-color-celestial-mute: #132837;
+    --st-asemantic-background-color-celestial-onsubtle: #0f1e29;
+    --st-asemantic-background-color-celestial-subtile: #101417;
+    --st-asemantic-background-color-celestial-surface: #0f1113;
+    --st-asemantic-foreground-color-indigo-primary: #a97fed;
+    --st-asemantic-foreground-color-indigo-secondary: #8956cf;
+    --st-asemantic-border-color-indigo-explicit: #723cb4;
+    --st-asemantic-border-color-indigo-implicit: #2f2344;
+    --st-asemantic-border-color-indigo-onsubtle: #1e1928;
+    --st-asemantic-background-color-indigo-explicit: #723cb4;
+    --st-asemantic-background-color-indigo-mute: #282136;
+    --st-asemantic-background-color-indigo-onsubtle: #1e1928;
+    --st-asemantic-background-color-indigo-subtile: #141217;
+    --st-asemantic-background-color-indigo-surface: #121014;
+    --st-asemantic-foreground-color-orchid-primary: #cf71c8;
+    --st-asemantic-foreground-color-orchid-secondary: #ae45a8;
+    --st-asemantic-border-color-orchid-explicit: #942b8e;
+    --st-asemantic-border-color-orchid-implicit: #3b1f39;
+    --st-asemantic-border-color-orchid-onsubtle: #241723;
+    --st-asemantic-background-color-orchid-explicit: #942b8e;
+    --st-asemantic-background-color-orchid-mute: #311e2f;
+    --st-asemantic-background-color-orchid-onsubtle: #241723;
+    --st-asemantic-background-color-orchid-subtile: #151216;
+    --st-asemantic-background-color-orchid-surface: #131012;
+    --st-asemantic-foreground-color-cerise-primary: #ea6982;
+    --st-asemantic-foreground-color-cerise-secondary: #cd325b;
+    --st-asemantic-border-color-cerise-explicit: #ac1847;
+    --st-asemantic-border-color-cerise-implicit: #431d23;
+    --st-asemantic-border-color-cerise-onsubtle: #291619;
+    --st-asemantic-background-color-cerise-explicit: #ac1847;
+    --st-asemantic-background-color-cerise-mute: #361d21;
+    --st-asemantic-background-color-cerise-onsubtle: #291619;
+    --st-asemantic-background-color-cerise-subtile: #171112;
+    --st-asemantic-background-color-cerise-surface: #131010;
+  }
+}

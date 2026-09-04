@@ -1,0 +1,14 @@
+node_modules/
+dist/
+dist-ssr/
+storybook-static/
+*.local
+.DS_Store
+.vite/
+*.tsbuildinfo
+
+# Токены приватного реестра — никогда не коммитить
+.npmrc.local
+.env
+.env.*
+!.env.example

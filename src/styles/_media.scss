@@ -1,0 +1,16 @@
+@use 'sass:map';
+@use 'breakpoints' as *;
+
+/// Адаптив идёт mobile-first: сначала мобильная версия, затем планшет, затем десктоп.
+/// Использовать @media напрямую запрещено — только через этот миксин.
+///
+/// @include mediaMinWidth('md') { ... }
+@mixin mediaMinWidth($name) {
+  @if not map.has-key($breakpoints, $name) {
+    @error 'Неизвестный брейкпоинт «#{$name}». Доступны: #{map.keys($breakpoints)}.';
+  }
+
+  @media screen and (min-width: map.get($breakpoints, $name)) {
+    @content;
+  }
+}

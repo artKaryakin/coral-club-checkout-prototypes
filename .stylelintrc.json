@@ -1,0 +1,12 @@
+{
+  "extends": ["stylelint-config-standard-scss", "stylelint-config-recommended-vue/scss"],
+  "rules": {
+    "selector-class-pattern": null,
+    "scss/at-mixin-pattern": null,
+    "custom-property-pattern": null,
+    "no-descending-specificity": null,
+    "scss/comment-no-empty": null,
+
+    "declaration-empty-line-before": null
+  }
+}

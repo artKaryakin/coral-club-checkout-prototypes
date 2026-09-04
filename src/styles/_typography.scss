@@ -1,0 +1,108 @@
+@use 'sass:map';
+
+/// Типографическая шкала — источник: design-references/tokens/typography/
+/// (скрин со шкалой Inter, добавлен вручную, файл под именем на её усмотрение).
+///
+/// ВНИМАНИЕ: заглушка вместо миксина `initByLink('?font.[название]')` из пакета
+/// UI (см. CLAUDE.md → Стили → «Шрифты»). Названия здесь совпадают с именами
+/// стилей из референса (`/` → `-`), чтобы замена на реальный миксин была
+/// формальностью: `@include font('label-md')` → `@include initByLink('?font.label.md')`.
+///
+/// В шкале всего 3 начертания: Regular 400 (body), Medium 500 (label,
+/// strikethrough), Semi Bold 600 (heading, display) — жирного 700 нет.
+$font-styles: (
+  'label-xxs': (
+    weight: 500,
+    size: 12px,
+    line-height: 16px,
+  ),
+  'label-xs': (
+    weight: 500,
+    size: 13px,
+    line-height: 16px,
+  ),
+  'label-sm': (
+    weight: 500,
+    size: 14px,
+    line-height: 16px,
+  ),
+  'label-md': (
+    weight: 500,
+    size: 16px,
+    line-height: 20px,
+  ),
+  'label-lg': (
+    weight: 500,
+    size: 18px,
+    line-height: 24px,
+  ),
+  'body-xs': (
+    weight: 400,
+    size: 13px,
+    line-height: 20px,
+  ),
+  'body-sm': (
+    weight: 400,
+    size: 14px,
+    line-height: 20px,
+  ),
+  'body-md': (
+    weight: 400,
+    size: 16px,
+    line-height: 24px,
+  ),
+  'body-lg': (
+    weight: 400,
+    size: 18px,
+    line-height: 28px,
+  ),
+  'heading-xxs': (
+    weight: 600,
+    size: 20px,
+    line-height: 28px,
+  ),
+  'heading-xs': (
+    weight: 600,
+    size: 24px,
+    line-height: 32px,
+  ),
+  'heading-md': (
+    weight: 600,
+    size: 32px,
+    line-height: 40px,
+  ),
+  'strikethrough-xs': (
+    weight: 500,
+    size: 13px,
+    line-height: 16px,
+    decoration: line-through,
+  ),
+  'strikethrough-sm': (
+    weight: 500,
+    size: 14px,
+    line-height: 16px,
+    decoration: line-through,
+  ),
+  'display-xl': (
+    weight: 600,
+    size: 88px,
+    line-height: 88px,
+  ),
+);
+
+/// @include font('label-md');
+@mixin font($name) {
+  $style: map.get($font-styles, $name);
+
+  @if not $style {
+    @error 'Неизвестный типографический стиль «#{$name}». Доступны: #{map.keys($font-styles)}.';
+  }
+
+  font-weight: map.get($style, weight);
+  font-size: map.get($style, size);
+  line-height: map.get($style, line-height);
+
+  @if map.has-key($style, decoration) {
+    text-decoration: map.get($style, decoration);
+  }
+}
