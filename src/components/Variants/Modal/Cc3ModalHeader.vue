@@ -24,7 +24,6 @@ defineProps<{ cartCount: number }>()
 
       <span class="cc3-modal-header__avatar">
         <img :src="userPhoto" alt="" class="cc3-modal-header__avatar-img" />
-        <span class="cc3-modal-header__avatar-dot" aria-hidden="true" />
       </span>
 
       <span class="cc3-modal-header__cart">
@@ -108,19 +107,6 @@ defineProps<{ cartCount: number }>()
     background-color: var(--st-content-background-color-neutral-subtle);
     border-radius: var(--st-global-radius-pill);
     object-fit: cover;
-  }
-
-  &__avatar-dot {
-    position: absolute;
-    right: -1px;
-    bottom: -1px;
-
-    width: 8px;
-    height: 8px;
-
-    background-color: var(--st-action-background-color-primary-solid-normal);
-    border: 2px solid var(--st-action-fg-color-invert-normal);
-    border-radius: var(--st-global-radius-pill);
   }
 
   &__cart {
