@@ -3,10 +3,10 @@ import { ref } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
-// Полноценная модалка «Delivery information» (карта, Courier/Pickup,
-// форма адреса) — следующий шаг, пока не построена. Здесь заглушка:
-// кнопка сразу подставляет демо-адрес, чтобы показать оба состояния
-// блока — пустое и заполненное.
+import Cc3ModalDeliveryDialog from './Cc3ModalDeliveryDialog.vue'
+
+// Даты/время после подтверждения — демо-подстановка, реального выбора слота
+// пока нет ни в модалке, ни в этом блоке.
 type DateChip = { label: string; value: string }
 type TimeChip = { label: string; value: string }
 
@@ -22,15 +22,17 @@ const timeChips: TimeChip[] = [
 ]
 
 const isFilled = ref(false)
+const isDialogOpen = ref(false)
 const selectedDate = ref(dateChips[0].value)
 const selectedTime = ref(timeChips[0].value)
 
-function addDeliveryAddress() {
-  isFilled.value = true
+function openDialog() {
+  isDialogOpen.value = true
 }
 
-function changeDeliveryAddress() {
-  isFilled.value = false
+function onConfirm() {
+  isFilled.value = true
+  isDialogOpen.value = false
 }
 </script>
 
@@ -39,7 +41,7 @@ function changeDeliveryAddress() {
     <h2 class="cc3-modal-delivery__title">Delivery</h2>
 
     <div v-if="!isFilled" class="cc3-modal-delivery__empty">
-      <button type="button" class="cc3-modal-delivery__add" @click="addDeliveryAddress">
+      <button type="button" class="cc3-modal-delivery__add" @click="openDialog">
         <Cc3Icon name="plus-md" :size="24" />
         Add delivery address
       </button>
@@ -48,9 +50,7 @@ function changeDeliveryAddress() {
     <div v-else class="cc3-modal-delivery__filled">
       <div class="cc3-modal-delivery__row">
         <span class="cc3-modal-delivery__method">Courier</span>
-        <button type="button" class="cc3-modal-delivery__change" @click="changeDeliveryAddress">
-          Change
-        </button>
+        <button type="button" class="cc3-modal-delivery__change" @click="openDialog">Change</button>
       </div>
 
       <div class="cc3-modal-delivery__info">
@@ -88,6 +88,12 @@ function changeDeliveryAddress() {
         </button>
       </div>
     </div>
+
+    <Cc3ModalDeliveryDialog
+      v-if="isDialogOpen"
+      @close="isDialogOpen = false"
+      @confirm="onConfirm"
+    />
   </section>
 </template>
 
