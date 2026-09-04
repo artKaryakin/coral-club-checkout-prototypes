@@ -626,12 +626,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   &__radio {
-    flex-shrink: 0;
-
-    width: 24px;
-    height: 24px;
-
-    accent-color: var(--st-action-background-color-positive-normal);
+    @include cc3-modal-check-control;
   }
 
   &__chips {

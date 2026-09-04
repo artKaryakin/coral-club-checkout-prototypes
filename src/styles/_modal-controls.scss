@@ -1,0 +1,30 @@
+// Кастомный вид radio/checkbox для модального прототипа.
+//
+// Нативные контролы на разных браузерах/ОС рисуются по-разному —
+// на Safari/macOS вместо чистого accent-color появлялось тёмное кольцо
+// вокруг выбранного элемента даже с color-scheme: light (WebKit всё равно
+// подмешивает системную тему в отрисовку виджета). Раз для прототипа
+// важно, чтобы у всех тестировщиков выглядело одинаково, здесь полностью
+// свой вид через appearance: none — не зависит от браузера/ОС.
+@mixin cc3-modal-check-control {
+  appearance: none;
+
+  flex-shrink: 0;
+
+  width: 24px;
+  height: 24px;
+
+  background-color: var(--st-interaction-background-color-ghost-normal);
+  border: 2px solid var(--st-interaction-border-color-neutral-normal);
+  border-radius: var(--st-global-radius-sm);
+  cursor: pointer;
+
+  &:checked {
+    background-color: var(--st-action-background-color-positive-normal);
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='5 12.5 10 17.5 19 6.5'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 16px 16px;
+    border-color: var(--st-action-background-color-positive-normal);
+  }
+}
