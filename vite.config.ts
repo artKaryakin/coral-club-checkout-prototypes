@@ -26,7 +26,9 @@ export default defineConfig({
   },
 
   server: {
-    host: '127.0.0.1',
+    // true — слушает на всех сетевых интерфейсах, не только localhost,
+    // чтобы стенд был виден с телефона в той же Wi-Fi сети.
+    host: true,
     port: 5173,
     strictPort: false,
     open: false,
