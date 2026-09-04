@@ -472,11 +472,16 @@ export function useCheckout() {
   const summary = computed(() => ({
     itemsCount: order.itemsCount,
     itemsTotalFormat: formatPrice(order.itemsTotal),
+    itemsTotalFormatRounded: formatPriceRounded(order.itemsTotal),
     points: order.points,
     walletUsedFormat:
       walletAppliedAmount.value > 0 ? formatDecimal(walletAppliedAmount.value) : undefined,
+    walletUsedFormatRounded:
+      walletAppliedAmount.value > 0 ? formatPriceRounded(walletAppliedAmount.value) : undefined,
     deliveryFormat: formatPrice(order.delivery),
+    deliveryFormatRounded: formatPriceRounded(order.delivery),
     totalFormat: formatPrice(Math.max(0, order.total - walletAppliedAmount.value)),
+    totalFormatRounded: formatPriceRounded(Math.max(0, order.total - walletAppliedAmount.value)),
     pickupCode: isPickup.value ? selectedPickupPoint.value?.code : undefined,
   }))
 

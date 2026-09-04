@@ -112,8 +112,8 @@ defineProps<{ cartCount: number }>()
 
   &__avatar-dot {
     position: absolute;
-    top: -1px;
     right: -1px;
+    bottom: -1px;
 
     width: 8px;
     height: 8px;

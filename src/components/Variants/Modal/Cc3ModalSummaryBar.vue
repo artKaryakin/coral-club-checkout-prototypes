@@ -21,7 +21,7 @@ const { summary, isSummaryDetailsOpen } = useCheckout()
       />
     </span>
 
-    <span class="cc3-modal-summary-bar__total">{{ summary.totalFormat }}</span>
+    <span class="cc3-modal-summary-bar__total">{{ summary.totalFormatRounded }}</span>
   </button>
 </template>
 

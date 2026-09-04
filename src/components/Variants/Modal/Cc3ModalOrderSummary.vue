@@ -39,25 +39,25 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
     <dl class="cc3-modal-order-summary__rows">
       <div class="cc3-modal-order-summary__row">
         <dt>Subtotal ({{ summary.itemsCount }})</dt>
-        <dd>{{ summary.itemsTotalFormat }}</dd>
+        <dd>{{ summary.itemsTotalFormatRounded }}</dd>
       </div>
 
       <div class="cc3-modal-order-summary__row">
         <dt>Shipping</dt>
-        <dd>{{ summary.deliveryFormat }}</dd>
+        <dd>{{ summary.deliveryFormatRounded }}</dd>
       </div>
 
       <div
-        v-if="summary.walletUsedFormat"
+        v-if="summary.walletUsedFormatRounded"
         class="cc3-modal-order-summary__row cc3-modal-order-summary__row--positive"
       >
         <dt>Coral Wallet</dt>
-        <dd>-{{ summary.walletUsedFormat }}</dd>
+        <dd>-{{ summary.walletUsedFormatRounded }}</dd>
       </div>
 
       <div class="cc3-modal-order-summary__row cc3-modal-order-summary__row--total">
         <dt>Total:</dt>
-        <dd>{{ summary.totalFormat }}</dd>
+        <dd>{{ summary.totalFormatRounded }}</dd>
       </div>
     </dl>
 
