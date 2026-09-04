@@ -27,6 +27,15 @@ const { summary } = useCheckout()
 
 <style lang="scss">
 .cc3-modal-checkout {
+  // Этот прототип по макету только светлый (тёмного варианта в Figma
+  // нет), в отличие от прода: color-scheme отвечает за нативные
+  // radio/checkbox/select, а миксин переприменяет светлые значения
+  // токенов ДС — на некоторых браузерах при системной тёмной теме
+  // иначе темнеет и весь фон (токены реагируют на неё для прода).
+  color-scheme: light;
+
+  @include cc3-light-tokens;
+
   display: flex;
   flex-direction: column;
 

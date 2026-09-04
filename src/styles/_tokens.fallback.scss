@@ -19,7 +19,7 @@
 // отдельные токены на каждое состояние. Кроме одной: action/background/color/
 // primary/subtle — она нужна для подсветки выбранных карточек, взята точечно.
 // ─────────────────────────────────────────────────────────────────────────────
-:root {
+@mixin cc3-light-tokens {
   // ── Global / Distance / Space ────────────────────────────────────────────
   // В Figma inset/inline/stack — три группы, ссылающиеся на одну и ту же шкалу.
   --st-global-distance-space-inset-none: 0px;
@@ -253,6 +253,10 @@
   --st-asemantic-background-color-cerise-onsubtle: #f798a640;
   --st-asemantic-background-color-cerise-subtile: #f7d4d840;
   --st-asemantic-background-color-cerise-surface: #feedef40;
+}
+
+:root {
+  @include cc3-light-tokens;
 }
 
 @media (prefers-color-scheme: dark) {

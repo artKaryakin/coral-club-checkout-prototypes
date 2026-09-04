@@ -437,6 +437,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
 // (Figma-фрейм "Mobile/popup" 375×812 — во весь мобильный вьюпорт,
 // без затемнения и скруглений).
 .cc3-modal-delivery-dialog {
+  // Teleport выносит модалку в body, вне .cc3-modal-checkout — цветовая
+  // схема и токены не наследуются, повторяем те же объявления.
+  color-scheme: light;
+
+  @include cc3-light-tokens;
+
   position: fixed;
   inset: 0;
   z-index: 100;
