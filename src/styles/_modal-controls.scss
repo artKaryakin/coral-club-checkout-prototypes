@@ -11,12 +11,15 @@
 
   flex-shrink: 0;
 
+  margin: 0;
+  padding: 0;
   width: 24px;
   height: 24px;
 
   background-color: var(--st-interaction-background-color-ghost-normal);
   border: 2px solid var(--st-interaction-border-color-neutral-normal);
   border-radius: var(--st-global-radius-sm);
+  outline: none;
   cursor: pointer;
 
   &:checked {
@@ -25,6 +28,38 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: 16px 16px;
+    border-color: var(--st-action-background-color-positive-normal);
+  }
+}
+
+// Круглый радио — отдельно от квадратной галочки: по референсу для выбора
+// одного варианта из списка (способ доставки) нужен классический кружок
+// с точкой внутри, а не квадратик с чекмарком.
+@mixin cc3-modal-radio-control {
+  appearance: none;
+
+  flex-shrink: 0;
+
+  margin: 0;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+
+  background-color: var(--st-content-background-color-default-solid-normal);
+  background-repeat: no-repeat;
+  background-position: center;
+  border: 2px solid var(--st-interaction-border-color-neutral-normal);
+  border-radius: var(--st-global-radius-pill);
+  outline: none;
+  cursor: pointer;
+
+  &:checked {
+    background-color: var(--st-action-background-color-positive-normal);
+    background-image: radial-gradient(
+      circle,
+      var(--st-content-background-color-default-solid-normal) 0 4px,
+      transparent 4px
+    );
     border-color: var(--st-action-background-color-positive-normal);
   }
 }

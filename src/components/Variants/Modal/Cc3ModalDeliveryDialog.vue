@@ -368,7 +368,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
             <label class="cc3-modal-delivery-dialog__favorite">
               <span>Mark as favorite address</span>
-              <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__radio" />
+              <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
           </template>
 
@@ -404,7 +404,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
             <label class="cc3-modal-delivery-dialog__favorite">
               <span>Mark as favorite address</span>
-              <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__radio" />
+              <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
 
             <button type="button" class="cc3-modal-delivery-dialog__add-recipient">
@@ -626,6 +626,10 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   &__radio {
+    @include cc3-modal-radio-control;
+  }
+
+  &__checkbox {
     @include cc3-modal-check-control;
   }
 
