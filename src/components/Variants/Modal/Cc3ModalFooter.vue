@@ -133,6 +133,12 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
   }
 
   &__logo {
+    // SVG-ассет сохранён с preserveAspectRatio="none" — сам растягивается
+    // под любые размеры img. Без align-self он ещё и растягивается по
+    // ширине контейнера (это flex-item в колонке, где stretch — дефолт).
+    align-self: flex-start;
+
+    width: auto;
     height: 28px;
   }
 
