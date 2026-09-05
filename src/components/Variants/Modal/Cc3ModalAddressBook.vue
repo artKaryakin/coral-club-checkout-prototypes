@@ -1,0 +1,342 @@
+<script setup lang="ts">
+import { ref } from 'vue'
+
+import Cc3InputField from '@/components/Field/Cc3InputField.vue'
+import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+
+import type { DeliveryProfile, DeliveryProfileMethod } from './deliveryProfile'
+
+defineProps<{
+  entries: DeliveryProfile[]
+  selectedId?: string
+}>()
+
+const emit = defineEmits<{
+  close: []
+  select: [id: string]
+  edit: [id: string]
+  add: []
+}>()
+
+type FilterId = 'all' | DeliveryProfileMethod
+
+const filters: { id: FilterId; label: string }[] = [
+  { id: 'all', label: 'All' },
+  { id: 'courier', label: 'Courier' },
+  { id: 'pickup', label: 'Pickup' },
+]
+
+const activeFilter = ref<FilterId>('all')
+const search = ref('')
+
+function matchesEntry(entry: DeliveryProfile) {
+  const byFilter = activeFilter.value === 'all' || entry.method === activeFilter.value
+
+  const query = search.value.trim().toLowerCase()
+  const byQuery =
+    query.length === 0 ||
+    entry.name.toLowerCase().includes(query) ||
+    entry.addressLine.toLowerCase().includes(query)
+
+  return byFilter && byQuery
+}
+
+function onOverlayKeydown(event: KeyboardEvent) {
+  if (event.key === 'Escape') {
+    emit('close')
+  }
+}
+</script>
+
+<template>
+  <Teleport to="body">
+    <div class="cc3-modal-address-book" role="dialog" aria-modal="true" @keydown="onOverlayKeydown">
+      <div class="cc3-modal-address-book__header">
+        <span class="cc3-modal-address-book__spacer" />
+        <h2 class="cc3-modal-address-book__title">Delivery Profiles</h2>
+        <button
+          type="button"
+          class="cc3-modal-address-book__close"
+          aria-label="Close"
+          @click="$emit('close')"
+        >
+          <Cc3Icon name="x-md" :size="24" />
+        </button>
+      </div>
+
+      <div class="cc3-modal-address-book__body">
+        <button type="button" class="cc3-modal-address-book__add" @click="$emit('add')">
+          <Cc3Icon name="plus-md" :size="24" />
+          Add delivery address
+        </button>
+
+        <div class="cc3-modal-address-book__field">
+          <Cc3InputField v-model="search" type="text" placeholder="Search by name, address" />
+        </div>
+
+        <div class="cc3-modal-address-book__chips">
+          <button
+            v-for="filter in filters"
+            :key="filter.id"
+            type="button"
+            class="cc3-modal-address-book__chip"
+            :class="{ 'cc3-modal-address-book__chip--active': activeFilter === filter.id }"
+            @click="activeFilter = filter.id"
+          >
+            {{ filter.label }}
+          </button>
+        </div>
+
+        <div class="cc3-modal-address-book__list">
+          <template v-for="entry in entries" :key="entry.id">
+            <div
+              v-if="matchesEntry(entry)"
+              class="cc3-modal-address-book__card"
+              :class="{ 'cc3-modal-address-book__card--selected': entry.id === selectedId }"
+              role="button"
+              tabindex="0"
+              @click="$emit('select', entry.id)"
+              @keydown.enter="$emit('select', entry.id)"
+              @keydown.space.prevent="$emit('select', entry.id)"
+            >
+              <span class="cc3-modal-address-book__card-main">
+                <span class="cc3-modal-address-book__card-type">{{ entry.typeLabel }}</span>
+
+                <span class="cc3-modal-address-book__card-name">
+                  <Cc3Icon
+                    v-if="entry.isFavorite"
+                    name="heart"
+                    :size="16"
+                    class="cc3-modal-address-book__card-heart"
+                  />
+                  {{ entry.name }}
+                </span>
+
+                <span class="cc3-modal-address-book__card-address">{{ entry.addressLine }}</span>
+                <span class="cc3-modal-address-book__card-price">{{ entry.priceLabel }}</span>
+              </span>
+
+              <button
+                type="button"
+                class="cc3-modal-address-book__card-edit"
+                aria-label="Edit"
+                @click.stop="$emit('edit', entry.id)"
+              >
+                <Cc3Icon name="edit-01" :size="24" />
+              </button>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </Teleport>
+</template>
+
+<style lang="scss">
+.cc3-modal-address-book {
+  // Teleport выносит модалку в body, вне .cc3-modal-checkout — цветовая
+  // схема и токены не наследуются, повторяем те же объявления, что и
+  // в Cc3ModalDeliveryDialog.
+  color-scheme: light;
+
+  @include cc3-light-tokens;
+
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-width: 375px;
+  height: 100%;
+  margin: 0 auto;
+
+  overflow-y: auto;
+
+  background-color: var(--st-content-background-color-default-solid-normal);
+
+  &__header {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl)
+      var(--st-global-distance-space-inset-xl);
+
+    background-color: var(--st-content-background-color-default-solid-normal);
+  }
+
+  &__spacer {
+    width: 24px;
+  }
+
+  &__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 0;
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+
+  &__title {
+    margin: 0;
+
+    @include font('label-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
+  }
+
+  &__add {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--st-global-distance-space-inline-sm);
+
+    margin: var(--st-global-distance-space-inset-md) 0 var(--st-global-distance-space-inset-4xl);
+    padding: var(--st-global-distance-space-inset-xl);
+    width: 100%;
+
+    @include font('label-md');
+
+    color: var(--st-action-foreground-color-positive-normal);
+    background-color: var(--st-action-background-color-positive-subtle-normal);
+    border: none;
+    border-radius: var(--st-global-radius-lg);
+    cursor: pointer;
+  }
+
+  &__field {
+    padding-bottom: var(--st-global-distance-space-inset-sm);
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--st-global-distance-space-inset-md);
+
+    padding: var(--st-global-distance-space-inset-sm) 0;
+  }
+
+  &__chip {
+    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-xl);
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 1px solid var(--st-content-border-color-neutral-implicit);
+    border-radius: var(--st-global-radius-pill);
+    cursor: pointer;
+
+    &--active {
+      color: var(--st-action-foreground-color-positive-normal);
+      border-color: var(--st-action-foreground-color-positive-normal);
+    }
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-md);
+
+    padding-top: var(--st-global-distance-space-inset-sm);
+  }
+
+  &__card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--st-global-distance-space-inset-sm);
+
+    padding: 0 var(--st-global-distance-space-inset-2xl);
+    width: 100%;
+
+    text-align: left;
+
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 2px solid var(--st-content-border-color-neutral-implicit);
+    border-radius: var(--st-global-radius-2xl);
+    cursor: pointer;
+
+    &--selected {
+      border-color: var(--st-action-foreground-color-positive-normal);
+    }
+  }
+
+  &__card-main {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    min-width: 0;
+    padding: var(--st-global-distance-space-inset-lg) 0;
+  }
+
+  &__card-type {
+    @include font('label-xs');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+  }
+
+  &__card-name {
+    display: flex;
+    align-items: center;
+    gap: var(--st-global-distance-space-inline-xs);
+
+    @include font('body-md');
+    font-weight: 700;
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__card-heart {
+    flex-shrink: 0;
+
+    color: var(--st-content-foreground-color-positive-secondary);
+  }
+
+  &__card-address {
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__card-price {
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+  }
+
+  &__card-edit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    padding: var(--st-global-distance-space-inset-xl) 0;
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
+}
+</style>

@@ -8,19 +8,44 @@ import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import { defaultMapCenter, useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
+import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
+import type { DeliveryProfile } from './deliveryProfile'
+
 type Method = 'courier' | 'pickup'
 type Step = 'search' | 'address-form' | 'pickup-detail'
 
+const props = defineProps<{
+  /**
+   * Если передан — диалог открывается сразу на нужном шаге редактирования
+   * этого профиля (адрес для courier, карточка пункта для pickup), а не
+   * с поиска. Используется кнопкой-карандашом в адресной книге.
+   */
+  editProfile?: DeliveryProfile
+}>()
+
 const emit = defineEmits<{
   close: []
-  confirm: []
+  confirm: [profile: DeliveryProfile]
+  delete: [id: string]
 }>()
 
 const { pickupPointsFormat, pickupProviders, togglePickupProvider } = useCheckout()
 
-const method = ref<Method>('courier')
-const step = ref<Step>('search')
-const citySearch = ref('Khoroshevskoye Sh., Moscow, Russia')
+function initialStep(): Step {
+  if (!props.editProfile) {
+    return 'search'
+  }
+
+  return props.editProfile.method === 'courier' ? 'address-form' : 'pickup-detail'
+}
+
+const method = ref<Method>(props.editProfile?.method ?? 'courier')
+const step = ref<Step>(initialStep())
+const citySearch = ref(
+  props.editProfile?.method === 'courier'
+    ? props.editProfile.addressLine
+    : 'Khoroshevskoye Sh., Moscow, Russia',
+)
 
 // Варианты курьерской доставки — копия и цены из макета. Не то же самое,
 // что Cc3CheckoutDeliveryVariant в проде: там другой текст и это
@@ -40,7 +65,7 @@ const selectedCourierVariant = ref('standard')
 
 const providerFilters: { id: PickupProvider | 'all'; label: string }[] = [
   { id: 'all', label: 'All' },
-  { id: 'office', label: 'Company Office' },
+  { id: 'office', label: 'Office' },
   { id: 'cdek', label: 'SDEK' },
 ]
 
@@ -79,6 +104,43 @@ const activePickupPointPriceFormatRounded = computed(() =>
   activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
 )
 
+type PickupDetailView = {
+  title: string
+  address: string
+  priceLabel: string
+  note?: string
+  phone?: string
+}
+
+/**
+ * Данные для шага pickup-detail. При редактировании профиля из адресной
+ * книги (editProfile) берём их прямо из карточки — она может не совпадать
+ * ни с одним реальным пунктом из pickupPointsFormat (id пункта в профиле
+ * не хранится), поэтому часы работы и «как пройти» из фикстуры тут не
+ * подходят и просто не показываются.
+ */
+const pickupDetailView = computed<PickupDetailView | undefined>(() => {
+  if (props.editProfile && props.editProfile.method === 'pickup') {
+    return {
+      title: props.editProfile.typeLabel,
+      address: props.editProfile.addressLine,
+      priceLabel: props.editProfile.priceLabel,
+    }
+  }
+
+  if (!activePickupPoint.value) {
+    return undefined
+  }
+
+  return {
+    title: `${pickupProviderName[activePickupPoint.value.provider]} pickup point`,
+    address: activePickupPoint.value.address,
+    priceLabel: `2-3 business days, ${activePickupPointPriceFormatRounded.value}`,
+    note: activePickupPoint.value.note,
+    phone: activePickupPoint.value.phone,
+  }
+})
+
 // Короткая подпись внутри метки на карте.
 const pickupProviderPinLabel: Record<PickupProvider, string> = {
   cdek: 'CDEK',
@@ -89,7 +151,7 @@ const pickupProviderPinLabel: Record<PickupProvider, string> = {
 // Полное название службы — для заголовка карточки пункта.
 const pickupProviderName: Record<PickupProvider, string> = {
   cdek: 'CDEK',
-  office: 'Company Office',
+  office: 'Office',
   fivepost: '5Post',
 }
 
@@ -105,16 +167,18 @@ const pickupMapMarkers = computed(() =>
 
 // Данные формы — демо, в общее состояние useCheckout не пишутся, чтобы
 // не задевать прод (там свои recipient/deliveryAddress с другой формой).
-const recipientName = ref('Ignat Ignatov')
-const recipientPhone = ref('(961) 12-34-567')
-const recipientEmail = ref('test@gmail.com')
+const recipientName = ref(props.editProfile?.name ?? 'Ignat Ignatov')
+const recipientPhone = ref(props.editProfile?.phone ?? '(961) 12-34-567')
+const recipientEmail = ref(props.editProfile?.email ?? 'test@gmail.com')
 const houseNumber = ref('12')
 const apartment = ref('')
 const floor = ref('')
 const entrance = ref('')
 const intercom = ref('')
 const indexCode = ref('123007')
-const isFavorite = ref(true)
+const isFavorite = ref(props.editProfile?.isFavorite ?? true)
+const isRecipientVisible = ref(false)
+const isDeleteConfirmOpen = ref(false)
 
 function continueFromSearch() {
   step.value = method.value === 'courier' ? 'address-form' : 'pickup-detail'
@@ -124,8 +188,48 @@ function back() {
   step.value = 'search'
 }
 
+const confirmedProfile = computed<DeliveryProfile>(() => {
+  const id = props.editProfile?.id ?? `profile-${Date.now()}`
+
+  if (method.value === 'courier') {
+    const variant = courierVariants.find((item) => item.id === selectedCourierVariant.value)
+
+    return {
+      id,
+      method: 'courier',
+      typeLabel: 'Courier',
+      name: recipientName.value,
+      addressLine: [citySearch.value, houseNumber.value].filter(Boolean).join(', '),
+      priceLabel: variant?.title ?? '',
+      isFavorite: isFavorite.value,
+      phone: recipientPhone.value,
+      email: recipientEmail.value,
+    }
+  }
+
+  return {
+    id,
+    method: 'pickup',
+    typeLabel: pickupDetailView.value?.title ?? 'Pickup',
+    name: recipientName.value,
+    addressLine: pickupDetailView.value?.address ?? '',
+    priceLabel: pickupDetailView.value?.priceLabel ?? '',
+    isFavorite: isFavorite.value,
+    phone: recipientPhone.value,
+    email: recipientEmail.value,
+  }
+})
+
 function confirm() {
-  emit('confirm')
+  emit('confirm', confirmedProfile.value)
+}
+
+function deleteProfile() {
+  isDeleteConfirmOpen.value = false
+
+  if (props.editProfile) {
+    emit('delete', props.editProfile.id)
+  }
 }
 
 function onOverlayKeydown(event: KeyboardEvent) {
@@ -192,7 +296,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <Cc3Map
                 v-if="method === 'courier'"
                 :center="defaultMapCenter"
-                :zoom="12"
+                :zoom="14"
                 :markers="[{ id: 'city', lat: defaultMapCenter.lat, lng: defaultMapCenter.lng }]"
                 :height="380"
               >
@@ -204,9 +308,9 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <Cc3Map
                 v-else
                 :center="defaultMapCenter"
-                :zoom="12"
+                :zoom="9"
                 :markers="pickupMapMarkers"
-                :height="400"
+                :height="380"
               >
                 <template #marker="{ marker }">
                   <Cc3MapPin
@@ -372,15 +476,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </label>
           </template>
 
-          <template v-else-if="step === 'pickup-detail' && activePickupPoint">
-            <h3 class="cc3-modal-delivery-dialog__section-title">
-              {{ pickupProviderName[activePickupPoint.provider] }} pickup point
-            </h3>
+          <template v-else-if="step === 'pickup-detail' && pickupDetailView">
+            <h3 class="cc3-modal-delivery-dialog__section-title">{{ pickupDetailView.title }}</h3>
 
             <p class="cc3-modal-delivery-dialog__detail-address">
-              {{ activePickupPoint.address }}
+              {{ pickupDetailView.address }}
               <br />
-              <strong>2-3 business days, {{ activePickupPointPriceFormatRounded }}</strong>
+              <strong>{{ pickupDetailView.priceLabel }}</strong>
             </p>
 
             <div class="cc3-modal-delivery-dialog__detail-block">
@@ -392,14 +494,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
               </p>
             </div>
 
-            <div class="cc3-modal-delivery-dialog__detail-block">
+            <div v-if="pickupDetailView.note" class="cc3-modal-delivery-dialog__detail-block">
               <p class="cc3-modal-delivery-dialog__detail-title">How to get there:</p>
-              <p class="cc3-modal-delivery-dialog__detail-text">{{ activePickupPoint.note }}</p>
+              <p class="cc3-modal-delivery-dialog__detail-text">{{ pickupDetailView.note }}</p>
             </div>
 
-            <div v-if="activePickupPoint.phone" class="cc3-modal-delivery-dialog__detail-block">
+            <div v-if="pickupDetailView.phone" class="cc3-modal-delivery-dialog__detail-block">
               <p class="cc3-modal-delivery-dialog__detail-title">Contacts:</p>
-              <p class="cc3-modal-delivery-dialog__detail-text">{{ activePickupPoint.phone }}</p>
+              <p class="cc3-modal-delivery-dialog__detail-text">{{ pickupDetailView.phone }}</p>
             </div>
 
             <label class="cc3-modal-delivery-dialog__favorite">
@@ -407,10 +509,46 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
 
-            <button type="button" class="cc3-modal-delivery-dialog__add-recipient">
+            <button
+              v-if="!isRecipientVisible"
+              type="button"
+              class="cc3-modal-delivery-dialog__add-recipient"
+              @click="isRecipientVisible = true"
+            >
               <Cc3Icon name="plus-md" :size="20" />
               Add recipient
             </button>
+
+            <Transition name="cc3-modal-delivery-dialog-recipient">
+              <div v-if="isRecipientVisible" class="cc3-modal-delivery-dialog__recipient">
+                <h3 class="cc3-modal-delivery-dialog__section-title">Recipient</h3>
+
+                <div class="cc3-modal-delivery-dialog__field">
+                  <span class="cc3-modal-delivery-dialog__label">
+                    Name and Surname <span class="cc3-modal-delivery-dialog__required">*</span>
+                  </span>
+                  <Cc3InputField v-model="recipientName" type="text" />
+                </div>
+
+                <div class="cc3-modal-delivery-dialog__field">
+                  <span class="cc3-modal-delivery-dialog__label">
+                    Phone number <span class="cc3-modal-delivery-dialog__required">*</span>
+                  </span>
+                  <Cc3InputField v-model="recipientPhone" type="tel">
+                    <template #prefix>
+                      <span class="cc3-modal-delivery-dialog__phone-prefix">+7</span>
+                    </template>
+                  </Cc3InputField>
+                </div>
+
+                <div class="cc3-modal-delivery-dialog__field">
+                  <span class="cc3-modal-delivery-dialog__label">
+                    email <span class="cc3-modal-delivery-dialog__required">*</span>
+                  </span>
+                  <Cc3InputField v-model="recipientEmail" type="email" />
+                </div>
+              </div>
+            </Transition>
           </template>
         </div>
 
@@ -424,12 +562,32 @@ function onOverlayKeydown(event: KeyboardEvent) {
             Continue
           </button>
 
+          <template v-else-if="editProfile">
+            <button type="button" class="cc3-modal-delivery-dialog__continue" @click="confirm">
+              Save
+            </button>
+            <button
+              type="button"
+              class="cc3-modal-delivery-dialog__delete"
+              @click="isDeleteConfirmOpen = true"
+            >
+              Delete
+            </button>
+          </template>
+
           <button v-else type="button" class="cc3-modal-delivery-dialog__continue" @click="confirm">
             Continue
           </button>
         </div>
       </div>
   </Teleport>
+
+  <Cc3ModalConfirmDialog
+    v-if="isDeleteConfirmOpen"
+    message="Do you want to delete this address?"
+    @confirm="deleteProfile"
+    @cancel="isDeleteConfirmOpen = false"
+  />
 </template>
 
 <style lang="scss">
@@ -550,6 +708,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
     margin: 0 calc(var(--st-global-distance-space-inset-2xl) * -1)
       var(--st-global-distance-space-inset-xl);
+
+    // Cc3Map — общий компонент (используется и в проде), по умолчанию
+    // рисует карточку с рамкой и скруглением. В этой модалке карта — на
+    // весь экран без отступов, поэтому убираем их только здесь.
+    .cc3-map {
+      border: none;
+      border-radius: 0;
+    }
   }
 
   &__field {
@@ -752,9 +918,17 @@ function onOverlayKeydown(event: KeyboardEvent) {
     cursor: pointer;
   }
 
+  &__recipient {
+    padding-top: var(--st-global-distance-space-inset-md);
+  }
+
   &__footer {
     position: sticky;
     bottom: 0;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-xl);
 
     padding: var(--st-global-distance-space-inset-2xl);
 
@@ -780,5 +954,38 @@ function onOverlayKeydown(event: KeyboardEvent) {
     border-radius: var(--st-global-radius-md);
     cursor: pointer;
   }
+
+  &__delete {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: var(--st-global-distance-space-inset-lg);
+    width: 100%;
+    height: 44px;
+
+    font-family: inherit;
+
+    @include font('label-md');
+
+    color: var(--st-action-foreground-color-neutral-normal);
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 1px solid var(--st-action-border-color-neutral-subtle-normal);
+    border-radius: var(--st-global-radius-md);
+    cursor: pointer;
+  }
+}
+
+// Плавное появление полей получателя по клику на «Add recipient» — чтобы
+// было видно, что это новые поля, а не перерисовка страницы.
+.cc3-modal-delivery-dialog-recipient-enter-active {
+  transition:
+    opacity 0.2s ease,
+    transform 0.2s ease;
+}
+
+.cc3-modal-delivery-dialog-recipient-enter-from {
+  opacity: 0;
+  transform: translateY(-8px);
 }
 </style>

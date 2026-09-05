@@ -4,7 +4,13 @@ import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
+  // На проде (GitHub Pages) прототип живёт по адресу
+  // /coral-club-checkout-prototypes/, а не в корне домена — иначе ассеты
+  // не подгрузятся. Локальный dev-сервер при этом не трогаем — там как
+  // был корень, так и остаётся.
+  base: command === 'build' ? '/coral-club-checkout-prototypes/' : '/',
+
   // Плавающая кнопка Vue DevTools мешала смотреть макет на реальных
   // устройствах — убрала плагин. При необходимости отладки компонентов
   // можно вернуть vite-plugin-vue-devtools обратно.
@@ -35,4 +41,4 @@ export default defineConfig({
     strictPort: false,
     open: false,
   },
-})
+}))

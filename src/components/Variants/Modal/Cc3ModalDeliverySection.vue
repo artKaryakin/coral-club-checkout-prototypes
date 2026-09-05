@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
+import Cc3ModalAddressBook from './Cc3ModalAddressBook.vue'
 import Cc3ModalDeliveryDialog from './Cc3ModalDeliveryDialog.vue'
+import type { DeliveryProfile } from './deliveryProfile'
 
 // Даты/время после подтверждения — демо-подстановка, реального выбора слота
 // пока нет ни в модалке, ни в этом блоке.
@@ -21,24 +23,151 @@ const timeChips: TimeChip[] = [
   { label: '1:00 PM - 12:00 AM', value: 'afternoon' },
 ]
 
-const isFilled = ref(false)
+// Адресная книга — демо-профили по макету Figma (узел 2171:41208).
+// В общее состояние useCheckout не пишутся — та же изоляция от прода,
+// что и у формы в Cc3ModalDeliveryDialog.
+const addressBookEntries = ref<DeliveryProfile[]>([
+  {
+    id: 'book-courier-ignatov',
+    method: 'courier',
+    typeLabel: 'Courier',
+    name: 'Ignat Ignatov',
+    addressLine: 'Khoroshevskoye Sh. Street 12, Tula, Tula Region, Russia, 123321',
+    priceLabel: '2-3 business days 1,349 ₽',
+    isFavorite: true,
+    phone: '(961) 12-34-567',
+    email: 'test@gmail.com',
+  },
+  {
+    id: 'book-pickup-sdek',
+    method: 'pickup',
+    typeLabel: 'SDEK Pickup Point',
+    name: 'Ignat Ignatov',
+    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
+    priceLabel: '2-3 business days, Free',
+    isFavorite: true,
+    phone: '(961) 12-34-567',
+    email: 'test@gmail.com',
+  },
+  {
+    id: 'book-courier-ivanova',
+    method: 'courier',
+    typeLabel: 'Courier',
+    name: 'Ivanova Tatyana',
+    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
+    priceLabel: '2-3 business days 1,349 ₽',
+    isFavorite: false,
+    phone: '(961) 55-67-889',
+    email: 'ivanova.tatyana@gmail.com',
+  },
+  {
+    id: 'book-pickup-office',
+    method: 'pickup',
+    typeLabel: 'Office',
+    name: 'Antonov Ilya',
+    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
+    priceLabel: '2-3 business days, Free',
+    isFavorite: false,
+    phone: '(961) 44-11-223',
+    email: 'antonov.ilya@gmail.com',
+  },
+  {
+    id: 'book-courier-antonov',
+    method: 'courier',
+    typeLabel: 'Courier',
+    name: 'Antonov Ilya',
+    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
+    priceLabel: '2-3 business days 1,349 ₽',
+    isFavorite: false,
+    phone: '(961) 44-11-223',
+    email: 'antonov.ilya@gmail.com',
+  },
+])
+
+const selectedEntryId = ref<string>()
+const editingEntryId = ref<string>()
+const isAddressBookOpen = ref(false)
 const isDialogOpen = ref(false)
 const selectedDate = ref(dateChips[0].value)
 const selectedTime = ref(timeChips[0].value)
 
+const isFilled = computed(() => selectedEntryId.value !== undefined)
+const selectedEntry = computed(() =>
+  addressBookEntries.value.find((entry) => entry.id === selectedEntryId.value),
+)
+const editingEntry = computed(() =>
+  addressBookEntries.value.find((entry) => entry.id === editingEntryId.value),
+)
+
+function openAddressBook() {
+  isAddressBookOpen.value = true
+}
+
 function openDialog() {
+  editingEntryId.value = undefined
   isDialogOpen.value = true
 }
 
-function onConfirm() {
-  isFilled.value = true
+function onSelectEntry(id: string) {
+  selectedEntryId.value = id
+  isAddressBookOpen.value = false
+}
+
+function onEditEntry(id: string) {
+  editingEntryId.value = id
+  isAddressBookOpen.value = false
+  isDialogOpen.value = true
+}
+
+function onAddNew() {
+  editingEntryId.value = undefined
+  isAddressBookOpen.value = false
+  isDialogOpen.value = true
+}
+
+function closeDialog() {
+  editingEntryId.value = undefined
   isDialogOpen.value = false
+}
+
+function onDialogConfirm(profile: DeliveryProfile) {
+  const index = addressBookEntries.value.findIndex((entry) => entry.id === profile.id)
+
+  if (index === -1) {
+    addressBookEntries.value = [profile, ...addressBookEntries.value]
+  } else {
+    addressBookEntries.value = addressBookEntries.value.map((entry) =>
+      entry.id === profile.id ? profile : entry,
+    )
+  }
+
+  selectedEntryId.value = profile.id
+  closeDialog()
+}
+
+function onDialogDelete(id: string) {
+  const wasSelected = selectedEntryId.value === id
+
+  addressBookEntries.value = addressBookEntries.value.filter((entry) => entry.id !== id)
+
+  if (wasSelected) {
+    selectedEntryId.value = undefined
+  }
+
+  closeDialog()
+
+  // Удалённый адрес был активным — не подставляем следующий сохранённый
+  // молча (риск отправить заказ не туда), а возвращаем в адресную книгу
+  // для явного выбора.
+  if (wasSelected) {
+    isAddressBookOpen.value = true
+  }
 }
 </script>
 
 <template>
   <section class="cc3-modal-delivery">
-    <h2 class="cc3-modal-delivery__title">Delivery</h2>
+    <h2 v-if="!isFilled" class="cc3-modal-delivery__title">Delivery</h2>
 
     <div v-if="!isFilled" class="cc3-modal-delivery__empty">
       <button type="button" class="cc3-modal-delivery__add" @click="openDialog">
@@ -47,52 +176,75 @@ function onConfirm() {
       </button>
     </div>
 
-    <div v-else class="cc3-modal-delivery__filled">
+    <div v-else-if="selectedEntry" class="cc3-modal-delivery__filled">
       <div class="cc3-modal-delivery__row">
-        <span class="cc3-modal-delivery__method">Courier</span>
-        <button type="button" class="cc3-modal-delivery__change" @click="openDialog">Change</button>
+        <span class="cc3-modal-delivery__method">{{ selectedEntry.typeLabel }}</span>
+        <button type="button" class="cc3-modal-delivery__change" @click="openAddressBook">
+          Change
+        </button>
       </div>
 
       <div class="cc3-modal-delivery__info">
-        <p class="cc3-modal-delivery__name">Ignat Ignatov</p>
-        <p class="cc3-modal-delivery__address">
-          Khoroshevskoye Sh. Street 12, Tula, Tula Region, Russia, 123321
+        <p class="cc3-modal-delivery__name">{{ selectedEntry.name }}</p>
+        <p class="cc3-modal-delivery__address">{{ selectedEntry.addressLine }}</p>
+      </div>
+
+      <p class="cc3-modal-delivery__price">{{ selectedEntry.priceLabel }}</p>
+
+      <template v-if="selectedEntry.method === 'courier'">
+        <div class="cc3-modal-delivery__chips">
+          <button
+            v-for="chip in dateChips"
+            :key="chip.value"
+            type="button"
+            class="cc3-modal-delivery__chip"
+            :class="{ 'cc3-modal-delivery__chip--selected': selectedDate === chip.value }"
+            @click="selectedDate = chip.value"
+          >
+            {{ chip.label }}
+          </button>
+        </div>
+
+        <div class="cc3-modal-delivery__chips">
+          <button
+            v-for="chip in timeChips"
+            :key="chip.value"
+            type="button"
+            class="cc3-modal-delivery__chip"
+            :class="{ 'cc3-modal-delivery__chip--selected': selectedTime === chip.value }"
+            @click="selectedTime = chip.value"
+          >
+            {{ chip.label }}
+          </button>
+        </div>
+      </template>
+
+      <div v-else class="cc3-modal-delivery__hours">
+        <p class="cc3-modal-delivery__hours-title">Working hours:</p>
+        <p class="cc3-modal-delivery__hours-text">
+          Mon-Fri 10:00 AM - 9:00 PM
+          <br />
+          Sat-Sun 10:00 AM - 8:00 PM
         </p>
-      </div>
-
-      <p class="cc3-modal-delivery__price">2-3 business days 1,349 ₽</p>
-
-      <div class="cc3-modal-delivery__chips">
-        <button
-          v-for="chip in dateChips"
-          :key="chip.value"
-          type="button"
-          class="cc3-modal-delivery__chip"
-          :class="{ 'cc3-modal-delivery__chip--selected': selectedDate === chip.value }"
-          @click="selectedDate = chip.value"
-        >
-          {{ chip.label }}
-        </button>
-      </div>
-
-      <div class="cc3-modal-delivery__chips">
-        <button
-          v-for="chip in timeChips"
-          :key="chip.value"
-          type="button"
-          class="cc3-modal-delivery__chip"
-          :class="{ 'cc3-modal-delivery__chip--selected': selectedTime === chip.value }"
-          @click="selectedTime = chip.value"
-        >
-          {{ chip.label }}
-        </button>
       </div>
     </div>
 
+    <Cc3ModalAddressBook
+      v-if="isAddressBookOpen"
+      :entries="addressBookEntries"
+      :selected-id="selectedEntryId"
+      @close="isAddressBookOpen = false"
+      @select="onSelectEntry"
+      @edit="onEditEntry"
+      @add="onAddNew"
+    />
+
     <Cc3ModalDeliveryDialog
       v-if="isDialogOpen"
-      @close="isDialogOpen = false"
-      @confirm="onConfirm"
+      :edit-profile="editingEntry"
+      @close="closeDialog"
+      @confirm="onDialogConfirm"
+      @delete="onDialogDelete"
     />
   </section>
 </template>
@@ -179,7 +331,8 @@ function onConfirm() {
 
   &__price {
     margin: 0;
-    padding: var(--st-global-distance-space-inset-xs) var(--st-global-distance-space-inset-2xl);
+    padding: var(--st-global-distance-space-inset-xs) var(--st-global-distance-space-inset-2xl)
+      var(--st-global-distance-space-inset-4xl);
 
     @include font('body-md');
     font-weight: 700;
@@ -193,6 +346,10 @@ function onConfirm() {
     gap: var(--st-global-distance-space-inset-md);
 
     padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-2xl);
+  }
+
+  &__price + &__chips {
+    padding-top: 0;
   }
 
   &__chip {
@@ -210,6 +367,26 @@ function onConfirm() {
       color: var(--st-action-foreground-color-positive-normal);
       border-color: var(--st-action-foreground-color-positive-normal);
     }
+  }
+
+  &__hours {
+    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
+  }
+
+  &__hours-title {
+    margin: 0 0 var(--st-global-distance-space-inset-xs);
+
+    @include font('label-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__hours-text {
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 }
 </style>
