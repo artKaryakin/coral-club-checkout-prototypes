@@ -1,5 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  selected: t('pickup.selected', { name: props.name }),
+  contacts: t('pickup.contacts'),
+  phoneLine: t('pickup.phoneLine', { phone: props.phone ?? '' }),
+  another: t('common.selectAnother'),
+}))
+
 
 type Props = {
   name: string
@@ -8,19 +20,19 @@ type Props = {
   note?: string
 }
 
-defineProps<Props>()
+const props = defineProps<Props>()
 defineEmits<{ change: [] }>()
 </script>
 
 <template>
   <div class="cc3-checkout-pickup-selected">
-    <p class="cc3-checkout-pickup-selected__name">Выбран {{ name }}</p>
+    <p class="cc3-checkout-pickup-selected__name">{{ text.selected }}</p>
 
     <p class="cc3-checkout-pickup-selected__address">{{ address }}</p>
 
     <div v-if="phone" class="cc3-checkout-pickup-selected__contacts">
-      <span class="cc3-checkout-pickup-selected__contacts-title">Контакты:</span>
-      <span class="cc3-checkout-pickup-selected__contacts-value">Телефон: {{ phone }}</span>
+      <span class="cc3-checkout-pickup-selected__contacts-title">{{ text.contacts }}</span>
+      <span class="cc3-checkout-pickup-selected__contacts-value">{{ text.phoneLine }}</span>
     </div>
 
     <p v-if="note" class="cc3-checkout-pickup-selected__note">
@@ -33,7 +45,7 @@ defineEmits<{ change: [] }>()
       class="cc3-checkout-pickup-selected__button"
       @click="$emit('change')"
     >
-      Выбрать другой
+      {{ text.another }}
     </button>
   </div>
 </template>

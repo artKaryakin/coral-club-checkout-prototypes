@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
 
 import Cc3CheckoutAddressBookModal from './Cc3CheckoutAddressBookModal.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  saved: t('checkout.tab.saved'),
+  newAddress: t('checkout.tab.new'),
+}))
+
 
 type AddressMode = 'saved' | 'new'
 
@@ -37,7 +46,7 @@ function startNewAddress() {
       @click="openAddressBook"
     >
       <Cc3Icon name="file-01" :size="24" />
-      Мои адреса
+      {{ text.saved }}
     </button>
 
     <button
@@ -46,7 +55,7 @@ function startNewAddress() {
       @click="startNewAddress"
     >
       <Cc3Icon name="plus-md" :size="24" />
-      Новый адрес доставки
+      {{ text.newAddress }}
     </button>
 
     <Cc3CheckoutAddressBookModal

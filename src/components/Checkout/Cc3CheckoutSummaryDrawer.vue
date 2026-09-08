@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
+import { computed, onBeforeUnmount, onMounted } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
 
 import Cc3CheckoutSummaryProductsList from './Cc3CheckoutSummaryProductsList.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('summary.title'),
+  close: t('common.close'),
+}))
+
 
 const { isSummaryDetailsOpen } = useCheckout()
 
@@ -28,12 +37,12 @@ onBeforeUnmount(() => document.removeEventListener('keydown', onKeydown))
 
       <div class="cc3-checkout-summary-drawer__panel" role="dialog" aria-modal="true">
         <div class="cc3-checkout-summary-drawer__header">
-          <h2 class="cc3-checkout-summary-drawer__title">Состав заказа</h2>
+          <h2 class="cc3-checkout-summary-drawer__title">{{ text.title }}</h2>
 
           <button
             type="button"
             class="cc3-checkout-summary-drawer__close"
-            aria-label="Закрыть"
+            :aria-label="text.close"
             @click="isSummaryDetailsOpen = false"
           >
             <Cc3Icon name="x-md" :size="20" />

@@ -1,5 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  edit: t('common.edit'),
+  remove: t('common.delete'),
+}))
+
 
 type Props = {
   title: string
@@ -35,7 +45,7 @@ defineEmits<{
           class="cc3-checkout-address-book-card__action"
           role="button"
           tabindex="0"
-          aria-label="Изменить"
+          :aria-label="text.edit"
           @click.stop="$emit('edit')"
           @keydown.enter.stop="$emit('edit')"
         >
@@ -46,7 +56,7 @@ defineEmits<{
           class="cc3-checkout-address-book-card__action"
           role="button"
           tabindex="0"
-          aria-label="Удалить"
+          :aria-label="text.remove"
           @click.stop="$emit('remove')"
           @keydown.enter.stop="$emit('remove')"
         >

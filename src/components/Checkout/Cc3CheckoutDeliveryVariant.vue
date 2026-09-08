@@ -1,22 +1,26 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
+import { useStand } from '@/stand/composables/useStand'
 
-type Variant = {
-  id: string
-  label: string
-}
+const { t } = useStand()
 
-const variants: Variant[] = [
-  { id: 'courier', label: 'Курьер. 1-2 дня, бесплатно' },
-  { id: 'courier-cash', label: 'Курьер с оплатой наличными, 1-2 дня, бесплатно' },
-]
+const variantKeys = ['courierFree', 'courierCash'] as const
 
-const selected = ref('courier')
+const variants = computed(() =>
+  variantKeys.map((key) => ({ id: key, label: t(`delivery.variant.${key}`) })),
+)
+
+const text = computed(() => ({
+  title: t('delivery.variants'),
+}))
+
+
+const selected = ref('courierFree')
 </script>
 
 <template>
   <fieldset class="cc3-checkout-delivery-variant">
-    <legend class="cc3-checkout-delivery-variant__title">Варианты доставки</legend>
+    <legend class="cc3-checkout-delivery-variant__title">{{ text.title }}</legend>
 
     <label
       v-for="variant in variants"

@@ -119,6 +119,7 @@ export default {
   'address.manualHint': 'Если вы не смогли найти свой адрес, то введите его вручную',
   'address.manualButton': 'Ввести вручную',
   'address.deliveryTime': 'Время доставки',
+  'address.dateSample': 'вторник, 18 августа',
   'address.deliveredTo': 'Заказ будет доставлен по адресу',
   'address.mapShow': 'Выбрать на карте',
   'address.mapHide': 'Скрыть карту',

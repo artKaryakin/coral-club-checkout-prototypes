@@ -14,6 +14,7 @@ import type { CountryCode, CountryConfig } from './types'
 export const countries: Record<CountryCode, CountryConfig> = {
   ru: {
     code: 'ru',
+    flag: '🇷🇺',
     currency: 'RUB',
     intlLocale: 'ru-RU',
     city: 'Москва, Москва',
@@ -37,6 +38,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   kz: {
     code: 'kz',
+    flag: '🇰🇿',
     currency: 'KZT',
     intlLocale: 'ru-KZ',
     city: 'Алматы',
@@ -60,6 +62,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   de: {
     code: 'de',
+    flag: '🇩🇪',
     currency: 'EUR',
     intlLocale: 'de-DE',
     city: 'Berlin',
@@ -83,6 +86,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   pl: {
     code: 'pl',
+    flag: '🇵🇱',
     currency: 'PLN',
     intlLocale: 'pl-PL',
     city: 'Warszawa',
@@ -106,6 +110,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   cz: {
     code: 'cz',
+    flag: '🇨🇿',
     currency: 'CZK',
     intlLocale: 'cs-CZ',
     city: 'Praha',
@@ -129,6 +134,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   us: {
     code: 'us',
+    flag: '🇺🇸',
     currency: 'USD',
     intlLocale: 'en-US',
     city: 'New York, NY',

@@ -1,31 +1,44 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCheckout } from '@/composables/useCheckout'
 
 import Cc3CheckoutDeliveryAddress from './Cc3CheckoutDeliveryAddress.vue'
 import Cc3CheckoutDeliveryMethodCard from './Cc3CheckoutDeliveryMethodCard.vue'
 import Cc3CheckoutDeliveryVariant from './Cc3CheckoutDeliveryVariant.vue'
 import Cc3CheckoutPickup from './Cc3CheckoutPickup.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('delivery.title'),
+  courier: t('delivery.courier.title'),
+  courierEta: t('delivery.courier.eta'),
+  pickup: t('delivery.pickup.title'),
+  pickupEta: t('delivery.pickup.eta'),
+}))
+
 
 const { deliveryMethod, isPickup } = useCheckout()
 </script>
 
 <template>
   <section class="cc3-checkout-delivery">
-    <h2 class="cc3-checkout-delivery__title">Способ получения</h2>
+    <h2 class="cc3-checkout-delivery__title">{{ text.title }}</h2>
 
     <div class="cc3-checkout-delivery__methods">
       <Cc3CheckoutDeliveryMethodCard
         icon="delivery-truck"
-        title="Доставка курьером"
-        hint="1-2 дня"
+        :title="text.courier"
+        :hint="text.courierEta"
         :selected="deliveryMethod === 'courier'"
         @select="deliveryMethod = 'courier'"
       />
 
       <Cc3CheckoutDeliveryMethodCard
         icon="delivery-package-01"
-        title="Самовывоз"
-        hint="1-3 дня"
+        :title="text.pickup"
+        :hint="text.pickupEta"
         :selected="deliveryMethod === 'pickup'"
         @select="deliveryMethod = 'pickup'"
       />

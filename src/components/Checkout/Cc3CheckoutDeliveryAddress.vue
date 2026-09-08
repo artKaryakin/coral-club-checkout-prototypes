@@ -7,6 +7,10 @@ import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
 
 // Поля-заглушки: в реальном проекте — C2Field/C2Input + карта из пакета UI.
 // deliveryAddress — общее состояние: его же читает и пишет адресная книга.
@@ -17,7 +21,9 @@ const { search, houseNumber, apartment, floor, entrance, intercom, postalCode, d
 const isMapOpen = ref(false)
 const pickedPoint = ref<MapPoint>()
 
-const mapToggleLabel = computed(() => (isMapOpen.value ? 'Скрыть карту' : 'Выбрать на карте'))
+const mapToggleLabel = computed(() =>
+  isMapOpen.value ? t('address.mapHide') : t('address.mapShow'),
+)
 
 const mapMarkers = computed(() =>
   pickedPoint.value
@@ -47,11 +53,31 @@ function toggleMap() {
 function onMapSelect(point: MapPoint) {
   pickedPoint.value = point
 }
+
+const text = computed(() => ({
+  title: t('address.title'),
+  findAddress: t('common.findAddress'),
+  placeholder: t('address.placeholder'),
+  house: t('address.house'),
+  apartment: t('address.apartment'),
+  floor: t('address.floor'),
+  entrance: t('address.entrance'),
+  intercom: t('address.intercom'),
+  postal: t('address.postal'),
+  district: t('address.district'),
+  manualHint: t('address.manualHint'),
+  manualButton: t('address.manualButton'),
+  deliveryTime: t('address.deliveryTime'),
+  dateSample: t('address.dateSample'),
+  deliveredTo: t('address.deliveredTo'),
+  mapHintClick: t('address.mapHintClick'),
+  mapHintPoint: t('address.mapHintPoint', { point: pickedPointLabel.value }),
+}))
 </script>
 
 <template>
   <div class="cc3-checkout-delivery-address">
-    <h3 class="cc3-checkout-delivery-address__title">Адрес</h3>
+    <h3 class="cc3-checkout-delivery-address__title">{{ text.title }}</h3>
 
     <button type="button" class="cc3-checkout-delivery-address__map-link" @click="toggleMap">
       <Cc3Icon :name="isMapOpen ? 'x-circle' : 'location-pin'" :size="16" />
@@ -73,21 +99,20 @@ function onMapSelect(point: MapPoint) {
 
       <p class="cc3-checkout-delivery-address__map-hint">
         <template v-if="pickedPointLabel">
-          Точка на карте: {{ pickedPointLabel }}. Поля адреса ниже заполните вручную —
-          определение адреса по координатам подключается вместе с сервисом геокодирования.
+          {{ text.mapHintPoint }}
         </template>
         <template v-else>
-          Нажмите на карту, чтобы отметить точку доставки. Карту можно двигать и масштабировать.
+          {{ text.mapHintClick }}
         </template>
       </p>
     </div>
 
     <label class="cc3-checkout-delivery-address__search">
       <span class="cc3-checkout-delivery-address__label">
-        Найти адрес <span class="cc3-checkout-delivery-address__required">*</span>
+        {{ text.findAddress }} <span class="cc3-checkout-delivery-address__required">*</span>
         <Cc3Icon name="info-circle" :size="14" class="cc3-checkout-delivery-address__label-hint" />
       </span>
-      <Cc3InputField v-model="search" type="text" placeholder="Начните вводить ваш адрес">
+      <Cc3InputField v-model="search" type="text" :placeholder="text.placeholder">
         <template #prefix>
           <Cc3Icon name="search-md" :size="16" />
         </template>
@@ -97,36 +122,36 @@ function onMapSelect(point: MapPoint) {
     <div class="cc3-checkout-delivery-address__row cc3-checkout-delivery-address__row--3">
       <label class="cc3-checkout-delivery-address__field">
         <span class="cc3-checkout-delivery-address__label">
-          Номер дома <span class="cc3-checkout-delivery-address__required">*</span>
+          {{ text.house }} <span class="cc3-checkout-delivery-address__required">*</span>
         </span>
         <Cc3InputField v-model="houseNumber" type="text" />
       </label>
 
       <label class="cc3-checkout-delivery-address__field">
-        <span class="cc3-checkout-delivery-address__label">Квартира</span>
+        <span class="cc3-checkout-delivery-address__label">{{ text.apartment }}</span>
         <Cc3InputField v-model="apartment" type="text" />
       </label>
 
       <label class="cc3-checkout-delivery-address__field">
-        <span class="cc3-checkout-delivery-address__label">Этаж</span>
+        <span class="cc3-checkout-delivery-address__label">{{ text.floor }}</span>
         <Cc3InputField v-model="floor" type="text" />
       </label>
     </div>
 
     <div class="cc3-checkout-delivery-address__row cc3-checkout-delivery-address__row--3">
       <label class="cc3-checkout-delivery-address__field">
-        <span class="cc3-checkout-delivery-address__label">Подъезд</span>
+        <span class="cc3-checkout-delivery-address__label">{{ text.entrance }}</span>
         <Cc3InputField v-model="entrance" type="text" />
       </label>
 
       <label class="cc3-checkout-delivery-address__field">
-        <span class="cc3-checkout-delivery-address__label">Домофон</span>
+        <span class="cc3-checkout-delivery-address__label">{{ text.intercom }}</span>
         <Cc3InputField v-model="intercom" type="text" />
       </label>
 
       <label class="cc3-checkout-delivery-address__field">
         <span class="cc3-checkout-delivery-address__label">
-          Индекс <span class="cc3-checkout-delivery-address__required">*</span>
+          {{ text.postal }} <span class="cc3-checkout-delivery-address__required">*</span>
         </span>
         <Cc3InputField v-model="postalCode" type="text" />
       </label>
@@ -134,26 +159,26 @@ function onMapSelect(point: MapPoint) {
 
     <div class="cc3-checkout-delivery-address__row cc3-checkout-delivery-address__row--3">
       <label class="cc3-checkout-delivery-address__field">
-        <span class="cc3-checkout-delivery-address__label">Район</span>
+        <span class="cc3-checkout-delivery-address__label">{{ text.district }}</span>
         <Cc3InputField v-model="district" type="text" />
       </label>
     </div>
 
     <p class="cc3-checkout-delivery-address__note">
-      Если вы не смогли найти свой адрес, то введите его вручную
+      {{ text.manualHint }}
     </p>
 
     <a href="#" class="cc3-checkout-delivery-address__manual-link">
       <Cc3Icon name="edit-01" :size="16" />
-      Ввести вручную
+      {{ text.manualButton }}
     </a>
 
     <div class="cc3-checkout-delivery-address__time">
-      <span class="cc3-checkout-delivery-address__label">Время доставки</span>
+      <span class="cc3-checkout-delivery-address__label">{{ text.deliveryTime }}</span>
 
       <div class="cc3-checkout-delivery-address__time-row">
         <span class="cc3-checkout-delivery-address__select">
-          вторник, 18 августа
+          {{ text.dateSample }}
           <Cc3Icon name="chevron-down" :size="16" />
         </span>
 
@@ -167,7 +192,7 @@ function onMapSelect(point: MapPoint) {
     <div class="cc3-checkout-delivery-address__result">
       <Cc3Icon name="location-pin" :size="18" />
       <span>
-        Заказ будет доставлен по адресу
+        {{ text.deliveredTo }}
         <strong class="cc3-checkout-delivery-address__result-city">
           {{ deliveryAddressLabel }}
         </strong>

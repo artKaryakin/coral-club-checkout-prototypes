@@ -1,6 +1,18 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('city.title'),
+  field: t('city.field'),
+  hintPrefix: t('city.hintPrefix'),
+  hintLink: t('city.hintLink'),
+}))
+
 
 // Поле-заглушка: в реальном проекте — C2Select с подсказками городов из API.
 // city — общее состояние: его же читает и пишет адресная книга.
@@ -9,18 +21,18 @@ const { city } = useCheckout()
 
 <template>
   <section class="cc3-checkout-city">
-    <h2 class="cc3-checkout-city__title">Город</h2>
+    <h2 class="cc3-checkout-city__title">{{ text.title }}</h2>
 
     <label class="cc3-checkout-city__field">
       <span class="cc3-checkout-city__label">
-        Город доставки <span class="cc3-checkout-city__required">*</span>
+        {{ text.field }} <span class="cc3-checkout-city__required">*</span>
       </span>
       <Cc3InputField v-model="city" type="text" />
     </label>
 
     <p class="cc3-checkout-city__hint">
-      Не нашли свой город? Воспользуйтесь
-      <a href="#" class="cc3-checkout-city__link">расширенным поиском</a>
+      {{ text.hintPrefix }}
+      <a href="#" class="cc3-checkout-city__link">{{ text.hintLink }}</a>
     </p>
   </section>
 </template>

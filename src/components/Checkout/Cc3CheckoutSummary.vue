@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import { useCheckout } from '@/composables/useCheckout'
@@ -7,6 +7,19 @@ import { useCheckout } from '@/composables/useCheckout'
 import Cc3CheckoutSummaryDrawer from './Cc3CheckoutSummaryDrawer.vue'
 import Cc3CheckoutSummaryPreview from './Cc3CheckoutSummaryPreview.vue'
 import Cc3CheckoutSummaryProductsList from './Cc3CheckoutSummaryProductsList.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  items: t('summary.items', { count: summary.value.itemsCount }),
+  delivery: t('summary.delivery'),
+  pickupPoint: t('summary.pickupPoint', { code: summary.value.pickupCode ?? '' }),
+  total: t('summary.total'),
+  promoPlaceholder: t('summary.promoPlaceholder'),
+  apply: t('common.apply'),
+}))
+
 
 const { summary, isSummaryDetailsOpen, promoCode } = useCheckout()
 
@@ -46,17 +59,17 @@ onBeforeUnmount(() => {
 
     <dl class="cc3-checkout-summary__rows">
       <div class="cc3-checkout-summary__row">
-        <dt>Товары ({{ summary.itemsCount }})</dt>
+        <dt>{{ text.items }}</dt>
         <dd>{{ summary.itemsTotalFormat }}</dd>
       </div>
 
       <div class="cc3-checkout-summary__row">
-        <dt>Доставка</dt>
+        <dt>{{ text.delivery }}</dt>
         <dd>{{ summary.deliveryFormat }}</dd>
       </div>
 
       <div v-if="summary.pickupCode" class="cc3-checkout-summary__row">
-        <dt>Пункт выдачи ({{ summary.pickupCode }})</dt>
+        <dt>{{ text.pickupPoint }}</dt>
         <dd />
       </div>
 
@@ -70,15 +83,15 @@ onBeforeUnmount(() => {
     </dl>
 
     <div class="cc3-checkout-summary__row cc3-checkout-summary__row--total">
-      <dt>Итого:</dt>
+      <dt>{{ text.total }}</dt>
       <dd>{{ summary.totalFormat }}</dd>
     </div>
 
     <div class="cc3-checkout-summary__promo">
-      <Cc3InputField v-model="promoCode" type="text" placeholder="Промокод" />
+      <Cc3InputField v-model="promoCode" type="text" :placeholder="text.promoPlaceholder" />
 
       <button type="button" class="cc3-checkout-summary__promo-apply" :disabled="!promoCode">
-        Применить
+        {{ text.apply }}
       </button>
     </div>
 

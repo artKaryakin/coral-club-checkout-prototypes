@@ -1,6 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('wallet.balance', { amount: walletDisplayBalanceFormat.value }),
+  payAll: t('wallet.payAll'),
+  applyFull: t('wallet.applyFull'),
+  spendUpTo: t('wallet.spendUpTo', { amount: walletMaxUsableFormat.value }),
+  applyBelow: t('wallet.applyBelow'),
+  otherAmount: t('wallet.otherAmount'),
+  applyDiscount: t('wallet.applyDiscount'),
+  question: t('wallet.question'),
+  enterAmount: t('wallet.enterAmount'),
+  max: t('wallet.max', { amount: walletMaxUsableFormat.value }),
+  remaining: t('wallet.remaining', { amount: walletRemainingToPayFormat.value }),
+  fullyCovered: t('wallet.fullyCovered'),
+  remove: t('wallet.remove'),
+}))
+
 
 const {
   walletMode,
@@ -21,18 +42,17 @@ const {
 
 <template>
   <section class="cc3-checkout-wallet">
-    <h2 class="cc3-checkout-wallet__title">Баланс Coral Wallet {{ walletDisplayBalanceFormat }}</h2>
+    <h2 class="cc3-checkout-wallet__title">{{ text.title }}</h2>
 
     <!-- Скидка ещё не применена: предлагаем оплатить весь заказ балансом целиком -->
     <template v-if="walletMode === 'idle'">
       <p class="cc3-checkout-wallet__description">
         <template v-if="isWalletFullyCovering">
-          Оплатите весь заказ средствами с баланса Coral Wallet.
-          <strong>Примените скидку 100% ниже.</strong>
+          {{ text.payAll }}
+          <strong>{{ text.applyFull }}</strong>
         </template>
         <template v-else>
-          Спишите с баланса Coral Wallet до {{ walletMaxUsableFormat }} в качестве скидки на этот
-          заказ. <strong>Примените скидку ниже.</strong>
+          {{ text.spendUpTo }} <strong>{{ text.applyBelow }}</strong>
         </template>
       </p>
 
@@ -41,22 +61,22 @@ const {
         class="cc3-checkout-wallet__link"
         @click="openWalletCustomAmount"
       >
-        Я хочу использовать другую сумму
+        {{ text.otherAmount }}
       </button>
 
       <button type="button" class="cc3-checkout-wallet__apply" @click="applyWalletFullDiscount">
-        Применить скидку
+        {{ text.applyDiscount }}
       </button>
     </template>
 
     <!-- Ввод произвольной суммы -->
     <template v-else-if="walletMode === 'custom'">
       <p class="cc3-checkout-wallet__description">
-        На какую сумму хотите использовать баланс Coral Wallet в качестве скидки на этот заказ?
+        {{ text.question }}
       </p>
 
       <label class="cc3-checkout-wallet__field">
-        <span class="cc3-checkout-wallet__label">Введите сумму</span>
+        <span class="cc3-checkout-wallet__label">{{ text.enterAmount }}</span>
 
         <span class="cc3-checkout-wallet__field-row">
           <Cc3InputField
@@ -72,11 +92,11 @@ const {
             :disabled="!isWalletCustomAmountValid"
             @click="applyWalletCustomAmount"
           >
-            Применить скидку
+            {{ text.applyDiscount }}
           </button>
         </span>
 
-        <span class="cc3-checkout-wallet__hint">Максимум {{ walletMaxUsableFormat }}</span>
+        <span class="cc3-checkout-wallet__hint">{{ text.max }}</span>
       </label>
     </template>
 
@@ -85,14 +105,14 @@ const {
       <p class="cc3-checkout-wallet__description">
         {{ walletAppliedAmountFormat }} скидка применена к вашему заказу.
         <strong v-if="!isOrderFullyPaidByWallet">
-          Вам всё ещё нужно оплатить {{ walletRemainingToPayFormat }} одним из способов оплаты
+          {{ text.remaining }}
           ниже.
         </strong>
-        <strong v-else>Заказ полностью покрыт балансом Coral Wallet.</strong>
+        <strong v-else>{{ text.fullyCovered }}</strong>
       </p>
 
       <button type="button" class="cc3-checkout-wallet__remove" @click="removeWalletDiscount">
-        Убрать скидку
+        {{ text.remove }}
       </button>
     </template>
   </section>

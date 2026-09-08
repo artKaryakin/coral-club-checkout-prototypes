@@ -1,7 +1,16 @@
 <script setup lang="ts" generic="T extends MapMarker">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { useStand } from '@/stand/composables/useStand'
+
 import type { MapMarker, MapPoint } from './mapTypes'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  zoomIn: t('common.zoomIn'),
+  zoomOut: t('common.zoomOut'),
+}))
 
 type Props = {
   /**
@@ -264,7 +273,7 @@ onBeforeUnmount(() => {
         type="button"
         class="cc3-map__zoom-button"
         :disabled="isZoomInDisabled"
-        aria-label="Приблизить"
+        :aria-label="text.zoomIn"
         @pointerdown.stop
         @click="changeZoom(1)"
       >
@@ -275,7 +284,7 @@ onBeforeUnmount(() => {
         type="button"
         class="cc3-map__zoom-button"
         :disabled="isZoomOutDisabled"
-        aria-label="Отдалить"
+        :aria-label="text.zoomOut"
         @pointerdown.stop
         @click="changeZoom(-1)"
       >

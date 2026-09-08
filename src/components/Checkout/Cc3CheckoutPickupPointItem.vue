@@ -1,4 +1,13 @@
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  select: t('common.select'),
+}))
+
 type Props = {
   name: string
   address: string
@@ -27,7 +36,7 @@ defineEmits<{ select: [] }>()
       class="cc3-checkout-pickup-point-item__button"
       @click="$emit('select')"
     >
-      Выбрать
+      {{ text.select }}
     </button>
   </div>
 </template>

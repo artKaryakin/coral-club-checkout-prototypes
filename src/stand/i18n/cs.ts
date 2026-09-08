@@ -119,6 +119,7 @@ export default {
   'address.manualHint': 'Pokud jste adresu nenašli, zadejte ji ručně',
   'address.manualButton': 'Zadat ručně',
   'address.deliveryTime': 'Čas doručení',
+  'address.dateSample': 'úterý 18. srpna',
   'address.deliveredTo': 'Objednávka bude doručena na adresu',
   'address.mapShow': 'Vybrat na mapě',
   'address.mapHide': 'Skrýt mapu',

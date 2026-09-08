@@ -125,6 +125,7 @@ export default {
   'address.manualHint': 'If you could not find your address, enter it manually',
   'address.manualButton': 'Enter manually',
   'address.deliveryTime': 'Delivery time',
+  'address.dateSample': 'Tuesday, August 18',
   'address.deliveredTo': 'The order will be delivered to',
   'address.mapShow': 'Pick on the map',
   'address.mapHide': 'Hide the map',

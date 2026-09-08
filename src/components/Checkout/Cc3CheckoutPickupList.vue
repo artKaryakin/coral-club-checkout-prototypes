@@ -9,6 +9,19 @@ import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 
 import Cc3CheckoutPickupPointItem from './Cc3CheckoutPickupPointItem.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('pickup.title'),
+  map: t('common.map'),
+  list: t('common.list'),
+  findAddress: t('common.findAddress'),
+  mapHint: t('pickup.mapHint'),
+  empty: t('pickup.empty'),
+}))
+
 
 const {
   pickupView,
@@ -61,7 +74,7 @@ const mapMarkers = computed(() =>
 
 <template>
   <div class="cc3-checkout-pickup-list">
-    <h3 class="cc3-checkout-pickup-list__title">Пункт самовывоза</h3>
+    <h3 class="cc3-checkout-pickup-list__title">{{ text.title }}</h3>
 
     <div class="cc3-checkout-pickup-list__view">
       <button
@@ -71,7 +84,7 @@ const mapMarkers = computed(() =>
         @click="pickupView = 'map'"
       >
         <Cc3Icon name="location-map" :size="14" />
-        Карта
+        {{ text.map }}
       </button>
 
       <button
@@ -81,13 +94,13 @@ const mapMarkers = computed(() =>
         @click="pickupView = 'list'"
       >
         <Cc3Icon name="layout-list" :size="14" />
-        Список
+        {{ text.list }}
       </button>
     </div>
 
     <label class="cc3-checkout-pickup-list__search">
       <span class="cc3-checkout-pickup-list__label">
-        Найти адрес <span class="cc3-checkout-pickup-list__required">*</span>
+        {{ text.findAddress }} <span class="cc3-checkout-pickup-list__required">*</span>
       </span>
 
       <Cc3InputField v-model="pickupSearch" type="text">
@@ -121,7 +134,7 @@ const mapMarkers = computed(() =>
       </Cc3Map>
 
       <p class="cc3-checkout-pickup-list__map-hint">
-        Нажмите на метку, чтобы выбрать пункт выдачи. Карту можно двигать и масштабировать.
+        {{ text.mapHint }}
       </p>
     </div>
 
@@ -136,7 +149,7 @@ const mapMarkers = computed(() =>
       />
 
       <p v-if="pickupPointsFormat.length === 0" class="cc3-checkout-pickup-list__empty">
-        По заданным условиям пункты не найдены.
+        {{ text.empty }}
       </p>
     </div>
   </div>

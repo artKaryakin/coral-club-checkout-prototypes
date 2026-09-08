@@ -1,7 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCheckout } from '@/composables/useCheckout'
 
 import Cc3CheckoutSummaryProductThumb from './Cc3CheckoutSummaryProductThumb.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  continueShopping: t('summary.continueShopping'),
+}))
+
 
 const { orderProductsFormat } = useCheckout()
 </script>
@@ -27,7 +36,7 @@ const { orderProductsFormat } = useCheckout()
       </li>
     </ul>
 
-    <a href="#" class="cc3-checkout-summary-products-list__continue">Продолжить покупки</a>
+    <a href="#" class="cc3-checkout-summary-products-list__continue">{{ text.continueShopping }}</a>
   </div>
 </template>
 

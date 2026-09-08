@@ -119,6 +119,7 @@ export default {
   'address.manualHint': 'Jeśli nie udało się znaleźć adresu, wpisz go ręcznie',
   'address.manualButton': 'Wpisz ręcznie',
   'address.deliveryTime': 'Czas dostawy',
+  'address.dateSample': 'wtorek, 18 sierpnia',
   'address.deliveredTo': 'Zamówienie zostanie dostarczone na adres',
   'address.mapShow': 'Wybierz na mapie',
   'address.mapHide': 'Ukryj mapę',

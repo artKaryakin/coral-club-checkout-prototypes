@@ -106,6 +106,8 @@ export interface StandAddress {
 export interface CountryConfig {
   code: CountryCode
   locale: LocaleCode
+  /** Эмодзи-флаг рядом с полем телефона. */
+  flag: string
   /** Валюта и локаль форматирования сумм — цены не должны быть в рублях везде. */
   currency: string
   intlLocale: string
