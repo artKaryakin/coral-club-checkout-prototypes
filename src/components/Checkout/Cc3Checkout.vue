@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
 import Cc3CheckoutAddressTabs from './Cc3CheckoutAddressTabs.vue'
@@ -11,21 +12,34 @@ import Cc3CheckoutRecipient from './Cc3CheckoutRecipient.vue'
 import Cc3CheckoutSubmit from './Cc3CheckoutSubmit.vue'
 import Cc3CheckoutSummary from './Cc3CheckoutSummary.vue'
 import Cc3CheckoutWallet from './Cc3CheckoutWallet.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const { country } = useStand()
+
+const text = computed(() => ({
+  title: t('checkout.title'),
+  countryLabel: t('checkout.countryLabel'),
+  countryName: t(`country.${country.value}`),
+  notice: t('checkout.notice'),
+}))
+
 </script>
 
 <template>
   <div class="cc3-checkout">
     <header class="cc3-checkout__header">
-      <h1 class="cc3-checkout__title">Оформление заказа</h1>
+      <h1 class="cc3-checkout__title">{{ text.title }}</h1>
       <p class="cc3-checkout__country">
-        Страна получения: <strong>Россия</strong>
+        {{ text.countryLabel }} <strong>{{ text.countryName }}</strong>
         <Cc3Icon name="info-circle" :size="14" />
       </p>
     </header>
 
     <p class="cc3-checkout__notice">
       <Cc3Icon name="info-circle" :size="16" class="cc3-checkout__notice-icon" />
-      Новый адрес доставки сохранится после оформления заказа
+      {{ text.notice }}
     </p>
 
     <Cc3CheckoutAddressTabs />

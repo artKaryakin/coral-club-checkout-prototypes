@@ -1,13 +1,28 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('summary.title'),
+  more: t('summary.more', { count: orderProductsMoreCount.value }),
+  subtotal: t('summary.items', { count: summary.value.itemsCount }),
+  shipping: t('summary.delivery'),
+  total: t('summary.total'),
+  promoPlaceholder: t('summary.promoPlaceholder'),
+  apply: t('common.apply'),
+}))
+
 
 const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = useCheckout()
 </script>
 
 <template>
   <section class="cc3-modal-order-summary">
-    <h2 class="cc3-modal-order-summary__title">Order summary</h2>
+    <h2 class="cc3-modal-order-summary__title">{{ text.title }}</h2>
 
     <button type="button" class="cc3-modal-order-summary__preview">
       <span class="cc3-modal-order-summary__thumbs">
@@ -25,7 +40,7 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
         </span>
 
         <span v-if="orderProductsMoreCount > 0" class="cc3-modal-order-summary__more">
-          + {{ orderProductsMoreCount }} more
+          + {{ text.more }}
         </span>
       </span>
 
@@ -38,12 +53,12 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
 
     <dl class="cc3-modal-order-summary__rows">
       <div class="cc3-modal-order-summary__row">
-        <dt>Subtotal ({{ summary.itemsCount }})</dt>
+        <dt>{{ text.subtotal }}</dt>
         <dd>{{ summary.itemsTotalFormatRounded }}</dd>
       </div>
 
       <div class="cc3-modal-order-summary__row">
-        <dt>Shipping</dt>
+        <dt>{{ text.shipping }}</dt>
         <dd>{{ summary.deliveryFormatRounded }}</dd>
       </div>
 
@@ -56,7 +71,7 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
       </div>
 
       <div class="cc3-modal-order-summary__row cc3-modal-order-summary__row--total">
-        <dt>Total:</dt>
+        <dt>{{ text.total }}</dt>
         <dd>{{ summary.totalFormatRounded }}</dd>
       </div>
     </dl>
@@ -65,12 +80,12 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
       <input
         v-model="promoCode"
         type="text"
-        placeholder="Promo code"
+        :placeholder="text.promoPlaceholder"
         class="cc3-modal-order-summary__promo-input"
       />
 
       <button type="button" class="cc3-modal-order-summary__promo-apply" :disabled="!promoCode">
-        Apply
+        {{ text.apply }}
       </button>
     </div>
   </section>

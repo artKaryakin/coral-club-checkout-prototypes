@@ -1,5 +1,16 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  button: t('submit.button'),
+  legal: t('submit.legal'),
+  legalLink: t('submit.legalLink'),
+}))
+
 
 // Готовность считается в общем состоянии: приняты условия продажи
 // и для самовывоза выбран пункт выдачи.
@@ -9,13 +20,12 @@ const { isReady } = useCheckout()
 <template>
   <div class="cc3-checkout-submit">
     <button type="submit" class="cc3-checkout-submit__button" :disabled="!isReady">
-      Перейти к оплате
+      {{ text.button }}
     </button>
 
     <p class="cc3-checkout-submit__legal">
-      Нажимая «Перейти к оплате», вы соглашаетесь с условиями использования сервиса Coral
-      Club. С подробными условиями доставки можно ознакомиться на странице
-      <a href="#" class="cc3-checkout-submit__link">доставки и оплаты</a>.
+      {{ text.legal }}
+      <a href="#" class="cc3-checkout-submit__link">{{ text.legalLink }}</a>.
     </p>
   </div>
 </template>

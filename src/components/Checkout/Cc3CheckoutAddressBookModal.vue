@@ -3,17 +3,29 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
-import { deliveryMethodLabels, useCheckout } from '@/composables/useCheckout'
-import { formatPriceRounded } from '@/utils/formatPrice'
+import { useCheckout } from '@/composables/useCheckout'
 
 import Cc3CheckoutAddressBookCard from './Cc3CheckoutAddressBookCard.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('addressBook.all'),
+  close: t('common.close'),
+  searchPlaceholder: t('common.search'),
+  empty: t('addressBook.empty', { query: search.value }),
+  select: t('common.select'),
+  newAddress: t('checkout.tab.new'),
+}))
+
 
 const emit = defineEmits<{
   close: []
   newAddress: []
 }>()
 
-const { savedAddressBookEntries, applyAddressBookEntry } = useCheckout()
+const { deliveryMethodLabels, formatMoneyRounded, savedAddressBookEntries, applyAddressBookEntry } = useCheckout()
 
 const search = ref('')
 const highlightedId = ref<string>()
@@ -21,8 +33,8 @@ const highlightedId = ref<string>()
 const entries = computed(() =>
   savedAddressBookEntries.value.map((entry) => ({
     ...entry,
-    title: deliveryMethodLabels[entry.method],
-    priceFormat: formatPriceRounded(entry.price),
+    title: deliveryMethodLabels.value[entry.method],
+    priceFormat: formatMoneyRounded(entry.price),
   })),
 )
 
@@ -81,19 +93,19 @@ onBeforeUnmount(() => {
 
       <div class="cc3-checkout-address-book-modal__dialog" role="dialog" aria-modal="true">
         <div class="cc3-checkout-address-book-modal__header">
-          <h2 class="cc3-checkout-address-book-modal__title">Все адреса</h2>
+          <h2 class="cc3-checkout-address-book-modal__title">{{ text.title }}</h2>
 
           <button
             type="button"
             class="cc3-checkout-address-book-modal__close"
-            aria-label="Закрыть"
+            :aria-label="text.close"
             @click="$emit('close')"
           >
             <Cc3Icon name="x-md" :size="20" />
           </button>
         </div>
 
-        <Cc3InputField v-model="search" type="text" placeholder="Поиск">
+        <Cc3InputField v-model="search" type="text" :placeholder="text.searchPlaceholder">
           <template #prefix>
             <Cc3Icon name="search-md" :size="16" />
           </template>
@@ -116,7 +128,7 @@ onBeforeUnmount(() => {
           />
 
           <p v-if="filteredEntries.length === 0" class="cc3-checkout-address-book-modal__empty">
-            По запросу «{{ search }}» ничего не найдено.
+            {{ text.empty }}
           </p>
         </div>
 
@@ -127,7 +139,7 @@ onBeforeUnmount(() => {
             :disabled="!highlightedId"
             @click="confirmSelection"
           >
-            Выбрать
+            {{ text.select }}
           </button>
 
           <button
@@ -136,7 +148,7 @@ onBeforeUnmount(() => {
             @click="$emit('newAddress')"
           >
             <Cc3Icon name="plus-md" :size="20" />
-            Новый адрес доставки
+            {{ text.newAddress }}
           </button>
         </div>
       </div>

@@ -1,8 +1,17 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import coralclubLogo from '@/assets/modal/coralclub-logo.svg'
 import flagRu from '@/assets/modal/flag-ru.svg'
 import userPhoto from '@/assets/modal/user-photo.png'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  menu: t('common.menu'),
+}))
+
 
 defineProps<{ cartCount: number }>()
 </script>
@@ -10,7 +19,7 @@ defineProps<{ cartCount: number }>()
 <template>
   <header class="cc3-modal-header">
     <div class="cc3-modal-header__left">
-      <button type="button" class="cc3-modal-header__burger" aria-label="Меню">
+      <button type="button" class="cc3-modal-header__burger" :aria-label="text.menu">
         <Cc3Icon name="menu-01" :size="24" />
       </button>
 

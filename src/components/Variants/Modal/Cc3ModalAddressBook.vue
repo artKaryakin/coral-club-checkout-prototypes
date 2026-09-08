@@ -1,10 +1,22 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
 import type { DeliveryProfile, DeliveryProfileMethod } from './deliveryProfile'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('addressBook.title'),
+  close: t('common.close'),
+  addAddress: t('delivery.addAddress'),
+  searchPlaceholder: t('common.searchByNameAddress'),
+  edit: t('common.edit'),
+}))
+
 
 defineProps<{
   entries: DeliveryProfile[]
@@ -20,11 +32,11 @@ const emit = defineEmits<{
 
 type FilterId = 'all' | DeliveryProfileMethod
 
-const filters: { id: FilterId; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'courier', label: 'Courier' },
-  { id: 'pickup', label: 'Pickup' },
-]
+const filters = computed<{ id: FilterId; label: string }[]>(() => [
+  { id: 'all', label: t('common.all') },
+  { id: 'courier', label: t('delivery.courier.title') },
+  { id: 'pickup', label: t('delivery.pickup.title') },
+])
 
 const activeFilter = ref<FilterId>('all')
 const search = ref('')
@@ -53,11 +65,11 @@ function onOverlayKeydown(event: KeyboardEvent) {
     <div class="cc3-modal-address-book" role="dialog" aria-modal="true" @keydown="onOverlayKeydown">
       <div class="cc3-modal-address-book__header">
         <span class="cc3-modal-address-book__spacer" />
-        <h2 class="cc3-modal-address-book__title">Delivery Profiles</h2>
+        <h2 class="cc3-modal-address-book__title">{{ text.title }}</h2>
         <button
           type="button"
           class="cc3-modal-address-book__close"
-          aria-label="Close"
+          :aria-label="text.close"
           @click="$emit('close')"
         >
           <Cc3Icon name="x-md" :size="24" />
@@ -67,11 +79,11 @@ function onOverlayKeydown(event: KeyboardEvent) {
       <div class="cc3-modal-address-book__body">
         <button type="button" class="cc3-modal-address-book__add" @click="$emit('add')">
           <Cc3Icon name="plus-md" :size="24" />
-          Add delivery address
+          {{ text.addAddress }}
         </button>
 
         <div class="cc3-modal-address-book__field">
-          <Cc3InputField v-model="search" type="text" placeholder="Search by name, address" />
+          <Cc3InputField v-model="search" type="text" :placeholder="text.searchPlaceholder" />
         </div>
 
         <div class="cc3-modal-address-book__chips">
@@ -119,7 +131,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <button
                 type="button"
                 class="cc3-modal-address-book__card-edit"
-                aria-label="Edit"
+                :aria-label="text.edit"
                 @click.stop="$emit('edit', entry.id)"
               >
                 <Cc3Icon name="edit-01" :size="24" />

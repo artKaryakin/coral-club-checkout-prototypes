@@ -5,7 +5,8 @@ import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
-import { defaultMapCenter, useCheckout, type PickupProvider } from '@/composables/useCheckout'
+import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
@@ -29,7 +30,41 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const { pickupPointsFormat, pickupProviders, togglePickupProvider } = useCheckout()
+const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels, formatMoneyRounded } =
+  useCheckout()
+const { t } = useStand()
+
+const text = computed(() => ({
+  back: t('common.back'),
+  close: t('common.close'),
+  title: t('delivery.info.title'),
+  courier: t('delivery.courier.title'),
+  pickup: t('delivery.pickup.title'),
+  findAddress: t('common.findAddress'),
+  openUntil: t('pickup.openUntil'),
+  addressSection: t('address.title'),
+  house: t('address.house'),
+  apartment: t('address.apartment'),
+  floor: t('address.floor'),
+  entrance: t('address.entrance'),
+  intercom: t('address.intercom'),
+  postal: t('address.postal'),
+  recipientSection: t('group.recipient.title'),
+  nameSurname: t('recipient.nameSurname'),
+  phone: t('recipient.phone'),
+  email: t('recipient.email'),
+  favorite: t('address.favorite'),
+  hours: t('pickup.hours'),
+  hoursWeekday: t('pickup.hours.weekday'),
+  hoursWeekend: t('pickup.hours.weekend'),
+  directions: t('pickup.directions'),
+  contacts: t('pickup.contacts'),
+  addRecipient: t('recipient.add'),
+  continue: t('common.continue'),
+  save: t('common.save'),
+  remove: t('common.delete'),
+  filterAll: t('common.all'),
+}))
 
 function initialStep(): Step {
   if (!props.editProfile) {
@@ -52,22 +87,32 @@ const citySearch = ref(
 // самостоятельный сценарий, здесь — только визуальный прототип.
 type CourierVariant = { id: string; title: string; caption?: string }
 
-const courierVariants: CourierVariant[] = [
-  { id: 'standard', title: 'Courier, 1-2 days, 149.00 ₽' },
+// Стоимость обычной доставки — демо-значение; форматируется в валюте страны.
+const COURIER_PRICE = 149
+
+const courierVariants = computed<CourierVariant[]>(() => [
+  {
+    id: 'standard',
+    title: t('delivery.variant.standard', { price: formatMoneyRounded(COURIER_PRICE) }),
+  },
   {
     id: 'express',
-    title: 'Express, same-day, free',
-    caption: 'Available for orders from 10:00 AM to 5:00 PM',
+    title: t('delivery.variant.express'),
+    caption: t('delivery.variant.expressNote'),
   },
-]
+])
 
 const selectedCourierVariant = ref('standard')
 
-const providerFilters: { id: PickupProvider | 'all'; label: string }[] = [
-  { id: 'all', label: 'All' },
-  { id: 'office', label: 'Office' },
-  { id: 'cdek', label: 'SDEK' },
-]
+// Службы разные в разных странах, поэтому фильтры строятся из пунктов
+// текущей страны, а не задаются руками.
+const providerFilters = computed<{ id: PickupProvider | 'all'; label: string }[]>(() => [
+  { id: 'all', label: t('common.all') },
+  ...Object.entries(pickupProviderLabels.value).map(([id, label]) => ({
+    id: id as PickupProvider,
+    label,
+  })),
+])
 
 function isProviderFilterActive(id: PickupProvider | 'all') {
   return id === 'all' ? pickupProviders.value.length === 0 : pickupProviders.value.includes(id)
@@ -133,26 +178,24 @@ const pickupDetailView = computed<PickupDetailView | undefined>(() => {
   }
 
   return {
-    title: `${pickupProviderName[activePickupPoint.value.provider]} pickup point`,
+    title: pickupProviderLabels.value[activePickupPoint.value.provider],
     address: activePickupPoint.value.address,
-    priceLabel: `2-3 business days, ${activePickupPointPriceFormatRounded.value}`,
+    priceLabel: `${t('delivery.eta')}, ${activePickupPointPriceFormatRounded.value}`,
     note: activePickupPoint.value.note,
     phone: activePickupPoint.value.phone,
   }
 })
 
-// Короткая подпись внутри метки на карте.
+// Короткая подпись внутри метки на карте — названия служб, не переводятся.
 const pickupProviderPinLabel: Record<PickupProvider, string> = {
-  cdek: 'CDEK',
   office: 'CC',
-  fivepost: '5Post',
-}
-
-// Полное название службы — для заголовка карточки пункта.
-const pickupProviderName: Record<PickupProvider, string> = {
   cdek: 'CDEK',
-  office: 'Office',
   fivepost: '5Post',
+  kazpost: 'KZPost',
+  dhl: 'DHL',
+  inpost: 'InPost',
+  zasilkovna: 'Zás.',
+  usps: 'USPS',
 }
 
 const pickupMapMarkers = computed(() =>
@@ -160,7 +203,9 @@ const pickupMapMarkers = computed(() =>
     id: point.id,
     lat: point.lat,
     lng: point.lng,
-    provider: point.provider,
+    // Свой вид метки нарисован только для офиса; остальные службы
+    // показываются общим видом перевозчика.
+    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
     pinLabel: pickupProviderPinLabel[point.provider],
   })),
 )
@@ -192,12 +237,12 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
   const id = props.editProfile?.id ?? `profile-${Date.now()}`
 
   if (method.value === 'courier') {
-    const variant = courierVariants.find((item) => item.id === selectedCourierVariant.value)
+    const variant = courierVariants.value.find((item) => item.id === selectedCourierVariant.value)
 
     return {
       id,
       method: 'courier',
-      typeLabel: 'Courier',
+      typeLabel: t('delivery.method.courier'),
       name: recipientName.value,
       addressLine: [citySearch.value, houseNumber.value].filter(Boolean).join(', '),
       priceLabel: variant?.title ?? '',
@@ -210,7 +255,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
   return {
     id,
     method: 'pickup',
-    typeLabel: pickupDetailView.value?.title ?? 'Pickup',
+    typeLabel: pickupDetailView.value?.title ?? t('delivery.pickup.title'),
     name: recipientName.value,
     addressLine: pickupDetailView.value?.address ?? '',
     priceLabel: pickupDetailView.value?.priceLabel ?? '',
@@ -252,19 +297,19 @@ function onOverlayKeydown(event: KeyboardEvent) {
             v-if="step !== 'search'"
             type="button"
             class="cc3-modal-delivery-dialog__back"
-            aria-label="Назад"
+            :aria-label="text.back"
             @click="back"
           >
             <Cc3Icon name="chevron-down" :size="24" class="cc3-modal-delivery-dialog__back-icon" />
           </button>
           <span v-else class="cc3-modal-delivery-dialog__back-spacer" />
 
-          <h2 class="cc3-modal-delivery-dialog__title">Delivery information</h2>
+          <h2 class="cc3-modal-delivery-dialog__title">{{ text.title }}</h2>
 
           <button
             type="button"
             class="cc3-modal-delivery-dialog__close"
-            aria-label="Закрыть"
+            :aria-label="text.close"
             @click="$emit('close')"
           >
             <Cc3Icon name="x-md" :size="24" />
@@ -280,7 +325,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :class="{ 'cc3-modal-delivery-dialog__tab--active': method === 'courier' }"
                 @click="method = 'courier'"
               >
-                Courier
+                {{ text.courier }}
               </button>
               <button
                 type="button"
@@ -288,16 +333,16 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :class="{ 'cc3-modal-delivery-dialog__tab--active': method === 'pickup' }"
                 @click="method = 'pickup'"
               >
-                Pickup
+                {{ text.pickup }}
               </button>
             </div>
 
             <div class="cc3-modal-delivery-dialog__map">
               <Cc3Map
                 v-if="method === 'courier'"
-                :center="defaultMapCenter"
+                :center="mapCenter"
                 :zoom="14"
-                :markers="[{ id: 'city', lat: defaultMapCenter.lat, lng: defaultMapCenter.lng }]"
+                :markers="[{ id: 'city', lat: mapCenter.lat, lng: mapCenter.lng }]"
                 :height="380"
               >
                 <template #marker>
@@ -307,7 +352,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
               <Cc3Map
                 v-else
-                :center="defaultMapCenter"
+                :center="mapCenter"
                 :zoom="9"
                 :markers="pickupMapMarkers"
                 :height="380"
@@ -315,7 +360,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 <template #marker="{ marker }">
                   <Cc3MapPin
                     :label="marker.pinLabel"
-                    :variant="marker.provider"
+                    :variant="marker.pinVariant"
                     :selected="marker.id === selectedPickupPointId"
                     @click="selectPoint(marker.id)"
                   />
@@ -326,7 +371,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <template v-if="method === 'courier'">
               <div class="cc3-modal-delivery-dialog__field">
                 <span class="cc3-modal-delivery-dialog__label">
-                  Find address
+                  {{ text.findAddress }}
                   <span class="cc3-modal-delivery-dialog__required">*</span>
                 </span>
                 <Cc3InputField v-model="citySearch" type="text" />
@@ -357,7 +402,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
             <template v-else>
               <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">Find address</span>
+                <span class="cc3-modal-delivery-dialog__label">{{ text.findAddress }}</span>
                 <Cc3InputField type="text" placeholder="" />
               </div>
 
@@ -383,22 +428,22 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 @click="selectPoint(activePickupPoint.id)"
               >
                 <span class="cc3-modal-delivery-dialog__point-name">
-                  {{ pickupProviderName[activePickupPoint.provider] }}
+                  {{ activePickupPoint.name }}
                 </span>
                 <span class="cc3-modal-delivery-dialog__point-address">
                   {{ activePickupPoint.address }}
                 </span>
-                <span class="cc3-modal-delivery-dialog__point-hours">Open until 20:00</span>
+                <span class="cc3-modal-delivery-dialog__point-hours">{{ text.openUntil }}</span>
               </button>
             </template>
           </template>
 
           <template v-else-if="step === 'address-form'">
-            <h3 class="cc3-modal-delivery-dialog__section-title">Adress</h3>
+            <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.addressSection }}</h3>
 
             <div class="cc3-modal-delivery-dialog__field">
               <span class="cc3-modal-delivery-dialog__label">
-                Find address <span class="cc3-modal-delivery-dialog__required">*</span>
+                {{ text.findAddress }} <span class="cc3-modal-delivery-dialog__required">*</span>
               </span>
               <Cc3InputField v-model="citySearch" type="text" />
             </div>
@@ -406,55 +451,55 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <div class="cc3-modal-delivery-dialog__row">
               <div class="cc3-modal-delivery-dialog__field">
                 <span class="cc3-modal-delivery-dialog__label">
-                  House number <span class="cc3-modal-delivery-dialog__required">*</span>
+                  {{ text.house }} <span class="cc3-modal-delivery-dialog__required">*</span>
                 </span>
                 <Cc3InputField v-model="houseNumber" type="text" />
               </div>
 
               <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">Apartment</span>
+                <span class="cc3-modal-delivery-dialog__label">{{ text.apartment }}</span>
                 <Cc3InputField v-model="apartment" type="text" />
               </div>
             </div>
 
             <div class="cc3-modal-delivery-dialog__row">
               <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">Floor</span>
+                <span class="cc3-modal-delivery-dialog__label">{{ text.floor }}</span>
                 <Cc3InputField v-model="floor" type="text" />
               </div>
 
               <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">Entrance</span>
+                <span class="cc3-modal-delivery-dialog__label">{{ text.entrance }}</span>
                 <Cc3InputField v-model="entrance" type="text" />
               </div>
             </div>
 
             <div class="cc3-modal-delivery-dialog__row">
               <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">Intercom</span>
+                <span class="cc3-modal-delivery-dialog__label">{{ text.intercom }}</span>
                 <Cc3InputField v-model="intercom" type="text" />
               </div>
 
               <div class="cc3-modal-delivery-dialog__field">
                 <span class="cc3-modal-delivery-dialog__label">
-                  Index <span class="cc3-modal-delivery-dialog__required">*</span>
+                  {{ text.postal }} <span class="cc3-modal-delivery-dialog__required">*</span>
                 </span>
                 <Cc3InputField v-model="indexCode" type="text" />
               </div>
             </div>
 
-            <h3 class="cc3-modal-delivery-dialog__section-title">Recipient</h3>
+            <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
             <div class="cc3-modal-delivery-dialog__field">
               <span class="cc3-modal-delivery-dialog__label">
-                Name and Surname <span class="cc3-modal-delivery-dialog__required">*</span>
+                {{ text.nameSurname }} <span class="cc3-modal-delivery-dialog__required">*</span>
               </span>
               <Cc3InputField v-model="recipientName" type="text" />
             </div>
 
             <div class="cc3-modal-delivery-dialog__field">
               <span class="cc3-modal-delivery-dialog__label">
-                Phone number <span class="cc3-modal-delivery-dialog__required">*</span>
+                {{ text.phone }} <span class="cc3-modal-delivery-dialog__required">*</span>
               </span>
               <Cc3InputField v-model="recipientPhone" type="tel">
                 <template #prefix>
@@ -465,13 +510,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
             <div class="cc3-modal-delivery-dialog__field">
               <span class="cc3-modal-delivery-dialog__label">
-                email <span class="cc3-modal-delivery-dialog__required">*</span>
+                {{ text.email }} <span class="cc3-modal-delivery-dialog__required">*</span>
               </span>
               <Cc3InputField v-model="recipientEmail" type="email" />
             </div>
 
             <label class="cc3-modal-delivery-dialog__favorite">
-              <span>Mark as favorite address</span>
+              <span>{{ text.favorite }}</span>
               <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
           </template>
@@ -486,26 +531,26 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </p>
 
             <div class="cc3-modal-delivery-dialog__detail-block">
-              <p class="cc3-modal-delivery-dialog__detail-title">Working hours:</p>
+              <p class="cc3-modal-delivery-dialog__detail-title">{{ text.hours }}</p>
               <p class="cc3-modal-delivery-dialog__detail-text">
-                Mon-Fri 10:00 AM - 9:00 PM
+                {{ text.hoursWeekday }}
                 <br />
-                Sat-Sun 10:00 AM - 8:00 PM
+                {{ text.hoursWeekend }}
               </p>
             </div>
 
             <div v-if="pickupDetailView.note" class="cc3-modal-delivery-dialog__detail-block">
-              <p class="cc3-modal-delivery-dialog__detail-title">How to get there:</p>
+              <p class="cc3-modal-delivery-dialog__detail-title">{{ text.directions }}</p>
               <p class="cc3-modal-delivery-dialog__detail-text">{{ pickupDetailView.note }}</p>
             </div>
 
             <div v-if="pickupDetailView.phone" class="cc3-modal-delivery-dialog__detail-block">
-              <p class="cc3-modal-delivery-dialog__detail-title">Contacts:</p>
+              <p class="cc3-modal-delivery-dialog__detail-title">{{ text.contacts }}</p>
               <p class="cc3-modal-delivery-dialog__detail-text">{{ pickupDetailView.phone }}</p>
             </div>
 
             <label class="cc3-modal-delivery-dialog__favorite">
-              <span>Mark as favorite address</span>
+              <span>{{ text.favorite }}</span>
               <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
 
@@ -516,23 +561,23 @@ function onOverlayKeydown(event: KeyboardEvent) {
               @click="isRecipientVisible = true"
             >
               <Cc3Icon name="plus-md" :size="20" />
-              Add recipient
+              {{ text.addRecipient }}
             </button>
 
             <Transition name="cc3-modal-delivery-dialog-recipient">
               <div v-if="isRecipientVisible" class="cc3-modal-delivery-dialog__recipient">
-                <h3 class="cc3-modal-delivery-dialog__section-title">Recipient</h3>
+                <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
                 <div class="cc3-modal-delivery-dialog__field">
                   <span class="cc3-modal-delivery-dialog__label">
-                    Name and Surname <span class="cc3-modal-delivery-dialog__required">*</span>
+                    {{ text.nameSurname }} <span class="cc3-modal-delivery-dialog__required">*</span>
                   </span>
                   <Cc3InputField v-model="recipientName" type="text" />
                 </div>
 
                 <div class="cc3-modal-delivery-dialog__field">
                   <span class="cc3-modal-delivery-dialog__label">
-                    Phone number <span class="cc3-modal-delivery-dialog__required">*</span>
+                    {{ text.phone }} <span class="cc3-modal-delivery-dialog__required">*</span>
                   </span>
                   <Cc3InputField v-model="recipientPhone" type="tel">
                     <template #prefix>
@@ -543,7 +588,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
                 <div class="cc3-modal-delivery-dialog__field">
                   <span class="cc3-modal-delivery-dialog__label">
-                    email <span class="cc3-modal-delivery-dialog__required">*</span>
+                    {{ text.email }} <span class="cc3-modal-delivery-dialog__required">*</span>
                   </span>
                   <Cc3InputField v-model="recipientEmail" type="email" />
                 </div>
@@ -559,24 +604,24 @@ function onOverlayKeydown(event: KeyboardEvent) {
             class="cc3-modal-delivery-dialog__continue"
             @click="continueFromSearch"
           >
-            Continue
+            {{ text.continue }}
           </button>
 
           <template v-else-if="editProfile">
             <button type="button" class="cc3-modal-delivery-dialog__continue" @click="confirm">
-              Save
+              {{ text.save }}
             </button>
             <button
               type="button"
               class="cc3-modal-delivery-dialog__delete"
               @click="isDeleteConfirmOpen = true"
             >
-              Delete
+              {{ text.remove }}
             </button>
           </template>
 
           <button v-else type="button" class="cc3-modal-delivery-dialog__continue" @click="confirm">
-            Continue
+            {{ text.continue }}
           </button>
         </div>
       </div>

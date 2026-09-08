@@ -47,9 +47,73 @@ export interface StandField {
   options?: { value: string; label: string }[]
 }
 
+/** Служба, которой принадлежит пункт выдачи. */
+export type PickupProviderCode =
+  | 'office'
+  | 'cdek'
+  | 'fivepost'
+  | 'kazpost'
+  | 'dhl'
+  | 'inpost'
+  | 'zasilkovna'
+  | 'usps'
+
+/** Пункт выдачи — данные приходят из ядра, визуал рисует вариант. */
+export interface StandPickupPoint {
+  id: string
+  provider: PickupProviderCode
+  address: string
+  price: number
+  code: string
+  phone: string
+  lat: number
+  lng: number
+}
+
+/** Заполненные поля адреса — только для курьерской доставки. */
+export interface StandAddressFields {
+  search: string
+  houseNumber: string
+  apartment: string
+  floor: string
+  entrance: string
+  intercom: string
+  postalCode: string
+  district: string
+}
+
+/**
+ * Карточка адресной книги. Тексты хранятся ключами, а не готовыми
+ * строками: одна и та же карточка показывается на языке своей страны.
+ */
+export interface StandAddress {
+  id: string
+  method: 'courier' | 'pickup'
+  /** Ключ подписи способа доставки внизу карточки. */
+  methodKey: string
+  /** Ключ бейджа над карточкой, например «Последний адрес». */
+  badgeKey?: string
+  recipientName: string
+  phone: string
+  email: string
+  city: string
+  addressLine: string
+  address?: StandAddressFields
+  pickupPointId?: string
+  price: number
+}
+
 export interface CountryConfig {
   code: CountryCode
   locale: LocaleCode
+  /** Эмодзи-флаг рядом с полем телефона. */
+  flag: string
+  /** Валюта и локаль форматирования сумм — цены не должны быть в рублях везде. */
+  currency: string
+  intlLocale: string
+  /** Город по умолчанию и центр карты — на старте показывается он. */
+  city: string
+  mapCenter: { lat: number; lng: number }
   /** Провайдер подсказок адресов для этой страны. */
   provider: 'dadata' | 'loqate' | 'google' | 'twogis'
   address: FieldConfig[]

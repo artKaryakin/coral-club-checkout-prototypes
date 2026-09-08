@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import cardIcon from '@/assets/payment-icons/credit-card.png'
 import sberpayIcon from '@/assets/payment-icons/sberpay.png'
@@ -7,6 +7,21 @@ import sbpIcon from '@/assets/payment-icons/sbp.png'
 import umoneyIcon from '@/assets/payment-icons/umoney.png'
 
 import Cc3CheckoutPaymentMethodItem from './Cc3CheckoutPaymentMethodItem.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const methods = computed<Method[]>(() => [
+  { id: 'sbp', name: t('payment.sbp'), icon: sbpIcon },
+  { id: 'card', name: t('payment.card'), icon: cardIcon },
+  { id: 'sberpay', name: 'SberPay', icon: sberpayIcon },
+  { id: 'yoomoney', name: t('payment.umoney'), icon: umoneyIcon },
+])
+
+const text = computed(() => ({
+  title: t('payment.title'),
+}))
+
 
 type Method = {
   id: string
@@ -14,19 +29,12 @@ type Method = {
   icon: string
 }
 
-const methods: Method[] = [
-  { id: 'sbp', name: 'СБП', icon: sbpIcon },
-  { id: 'card', name: 'Оплата картой', icon: cardIcon },
-  { id: 'sberpay', name: 'SberPay', icon: sberpayIcon },
-  { id: 'yoomoney', name: 'ЮMoney', icon: umoneyIcon },
-]
-
 const selected = ref('sbp')
 </script>
 
 <template>
   <section class="cc3-checkout-payment">
-    <h2 class="cc3-checkout-payment__title">Способы оплаты</h2>
+    <h2 class="cc3-checkout-payment__title">{{ text.title }}</h2>
 
     <div class="cc3-checkout-payment__list">
       <Cc3CheckoutPaymentMethodItem

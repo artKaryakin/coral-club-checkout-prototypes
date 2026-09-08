@@ -1,17 +1,27 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('comment.title'),
+  placeholder: t('comment.placeholder'),
+}))
+
 
 const { orderComment } = useCheckout()
 </script>
 
 <template>
   <section class="cc3-checkout-comment">
-    <h2 class="cc3-checkout-comment__title">Комментарии к заказу</h2>
+    <h2 class="cc3-checkout-comment__title">{{ text.title }}</h2>
 
     <textarea
       v-model="orderComment"
       rows="4"
-      placeholder="Ваш комментарий"
+      :placeholder="text.placeholder"
       class="cc3-checkout-comment__input"
     />
   </section>

@@ -6,14 +6,22 @@ import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
-import {
-  defaultMapCenter,
-  pickupProviderLabels,
-  useCheckout,
-  type PickupProvider,
-} from '@/composables/useCheckout'
+import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 
 import Cc3CheckoutPickupPointItem from './Cc3CheckoutPickupPointItem.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('pickup.title'),
+  map: t('common.map'),
+  list: t('common.list'),
+  findAddress: t('common.findAddress'),
+  mapHint: t('pickup.mapHint'),
+  empty: t('pickup.empty'),
+}))
+
 
 const {
   pickupView,
@@ -22,21 +30,29 @@ const {
   pickupPointsFormat,
   selectPickupPoint,
   togglePickupProvider,
+  mapCenter,
+  pickupProviderLabels,
 } = useCheckout()
 
-const providerOrder: PickupProvider[] = ['cdek', 'office', 'fivepost']
-
+// Короткие подписи на метках карты — названия служб, не переводятся.
 const providerPinLabels: Record<PickupProvider, string> = {
-  cdek: 'СДЭК',
   office: 'CC',
+  cdek: 'CDEK',
   fivepost: '5Post',
+  kazpost: 'KZPost',
+  dhl: 'DHL',
+  inpost: 'InPost',
+  zasilkovna: 'Zás.',
+  usps: 'USPS',
 }
 
+// Службы разные в разных странах, поэтому список фильтров строится из
+// пунктов текущей страны, а не задаётся руками.
 const filters = computed(() =>
-  providerOrder.map((provider) => ({
-    provider,
-    label: pickupProviderLabels[provider],
-    checked: pickupProviders.value.includes(provider),
+  Object.entries(pickupProviderLabels.value).map(([provider, label]) => ({
+    provider: provider as PickupProvider,
+    label,
+    checked: pickupProviders.value.includes(provider as PickupProvider),
   })),
 )
 
@@ -47,7 +63,9 @@ const mapMarkers = computed(() =>
     id: point.id,
     lat: point.lat,
     lng: point.lng,
-    provider: point.provider,
+    // Свой вид метки нарисован только для офиса; остальные службы
+    // показываются общим видом перевозчика.
+    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
     pinLabel: providerPinLabels[point.provider],
     title: `${point.name} — ${point.address}`,
   })),
@@ -56,7 +74,7 @@ const mapMarkers = computed(() =>
 
 <template>
   <div class="cc3-checkout-pickup-list">
-    <h3 class="cc3-checkout-pickup-list__title">Пункт самовывоза</h3>
+    <h3 class="cc3-checkout-pickup-list__title">{{ text.title }}</h3>
 
     <div class="cc3-checkout-pickup-list__view">
       <button
@@ -66,7 +84,7 @@ const mapMarkers = computed(() =>
         @click="pickupView = 'map'"
       >
         <Cc3Icon name="location-map" :size="14" />
-        Карта
+        {{ text.map }}
       </button>
 
       <button
@@ -76,13 +94,13 @@ const mapMarkers = computed(() =>
         @click="pickupView = 'list'"
       >
         <Cc3Icon name="layout-list" :size="14" />
-        Список
+        {{ text.list }}
       </button>
     </div>
 
     <label class="cc3-checkout-pickup-list__search">
       <span class="cc3-checkout-pickup-list__label">
-        Найти адрес <span class="cc3-checkout-pickup-list__required">*</span>
+        {{ text.findAddress }} <span class="cc3-checkout-pickup-list__required">*</span>
       </span>
 
       <Cc3InputField v-model="pickupSearch" type="text">
@@ -104,11 +122,11 @@ const mapMarkers = computed(() =>
     </div>
 
     <div v-if="pickupView === 'map'" class="cc3-checkout-pickup-list__map">
-      <Cc3Map :center="defaultMapCenter" :zoom="9" :markers="mapMarkers" :height="360">
+      <Cc3Map :center="mapCenter" :zoom="9" :markers="mapMarkers" :height="360">
         <template #marker="{ marker }">
           <Cc3MapPin
             :label="marker.pinLabel"
-            :variant="marker.provider"
+            :variant="marker.pinVariant"
             :title="marker.title"
             @click="selectPickupPoint(marker.id)"
           />
@@ -116,7 +134,7 @@ const mapMarkers = computed(() =>
       </Cc3Map>
 
       <p class="cc3-checkout-pickup-list__map-hint">
-        Нажмите на метку, чтобы выбрать пункт выдачи. Карту можно двигать и масштабировать.
+        {{ text.mapHint }}
       </p>
     </div>
 
@@ -131,7 +149,7 @@ const mapMarkers = computed(() =>
       />
 
       <p v-if="pickupPointsFormat.length === 0" class="cc3-checkout-pickup-list__empty">
-        По заданным условиям пункты не найдены.
+        {{ text.empty }}
       </p>
     </div>
   </div>

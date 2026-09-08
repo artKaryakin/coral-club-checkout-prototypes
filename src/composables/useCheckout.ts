@@ -1,4 +1,4 @@
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import bLuronImg from '@/assets/products/b-luron.png'
 import coralDetoxPlusImg from '@/assets/products/coral-detox-plus.png'
@@ -6,11 +6,14 @@ import dSprayImg from '@/assets/products/d-spray.png'
 import ultimateMaxImg from '@/assets/products/ultimate-max.png'
 import { formatDecimal, formatPrice, formatPriceRounded } from '@/utils/formatPrice'
 
+import { addressBook } from '@/stand/config/addresses'
+import { pickupPoints as standPickupPoints } from '@/stand/config/pickupPoints'
+import type { PickupProviderCode } from '@/stand/config/types'
 import { useStand } from '@/stand/composables/useStand'
 
 export type DeliveryMethod = 'courier' | 'pickup'
 
-export type PickupProvider = 'cdek' | 'office' | 'fivepost'
+export type PickupProvider = PickupProviderCode
 
 export type PickupView = 'map' | 'list'
 
@@ -63,21 +66,10 @@ export type PickupPointFormat = PickupPoint & {
   priceFormat: string
 }
 
-export const deliveryMethodLabels: Record<DeliveryMethod, string> = {
-  courier: 'Доставка курьером',
-  pickup: 'Самовывоз',
-}
-
-export const pickupProviderLabels: Record<PickupProvider, string> = {
-  cdek: 'Пункт самовывоза СДЭК',
-  office: 'Бесплатный самовывоз из офиса компании',
-  fivepost: 'Пункт самовывоза 5Post',
-}
-
 /**
- * Центр карты по умолчанию — Москва
+ * Подписи способов доставки, названия служб и центр карты зависят от страны
+ * и языка, поэтому они больше не константы модуля — их отдаёт useCheckout().
  */
-export const defaultMapCenter = { lat: 55.7522, lng: 37.6156 }
 
 export type Recipient = {
   lastName: string
@@ -144,133 +136,6 @@ export type AddressBookEntry = {
    */
   price: number
 }
-
-// ─── Данные-заглушки ─────────────────────────────────────────────────────────
-// В реальном проекте приходят из API: useApiData<PickupPoints>('...') из пакета `ui`.
-// Коды пунктов, телефоны СДЭК и координаты — демонстрационные, координаты
-// проставлены приблизительно по названиям улиц.
-// ─────────────────────────────────────────────────────────────────────────────
-const pickupPoints: PickupPoint[] = [
-  {
-    id: 'office-horoshevskoe',
-    provider: 'office',
-    name: 'Бесплатный самовывоз из офиса компании',
-    address: 'Москва, Хорошевское шоссе, д.32, корп. 2',
-    price: 0,
-    code: '11ВЭ',
-    phone: '+7 495 797-42-81',
-    note: 'Забрать заказ из офиса продаж можно сразу после оформления',
-    lat: 55.7789,
-    lng: 37.5232,
-  },
-  {
-    id: 'office-stanislavskogo',
-    provider: 'office',
-    name: 'Бесплатный самовывоз из офиса компании',
-    address: 'Москва, ул. Станиславского, 11',
-    price: 0,
-    code: '11ВЖ',
-    phone: '+7 495 797-42-81',
-    note: 'Забрать заказ из офиса продаж можно сразу после оформления',
-    lat: 55.7411,
-    lng: 37.6642,
-  },
-  {
-    id: 'cdek-vinogradova',
-    provider: 'cdek',
-    name: 'Пункт самовывоза СДЭК',
-    address: 'Москва, ул. Академика Виноградова, 5',
-    price: 0,
-    code: 'MSK112',
-    lat: 55.6167,
-    lng: 37.5083,
-  },
-  {
-    id: 'cdek-varshavskoe',
-    provider: 'cdek',
-    name: 'Пункт самовывоза СДЭК',
-    address: 'Москва, ш. Варшавское, 152, к. 1',
-    price: 0,
-    code: 'MSK274',
-    lat: 55.6153,
-    lng: 37.6045,
-  },
-  {
-    id: 'cdek-rudnevka',
-    provider: 'cdek',
-    name: 'Пункт самовывоза СДЭК',
-    address: 'Москва, ул. Руднёвка, 14',
-    price: 0,
-    code: 'MSK318',
-    lat: 55.7167,
-    lng: 37.8833,
-  },
-  {
-    id: 'cdek-kondiva-orlova',
-    provider: 'cdek',
-    name: 'Пункт самовывоза СДЭК',
-    address: 'Москва, ул. Кондива Орлова, 4',
-    price: 0,
-    code: 'MSK405',
-    lat: 55.8833,
-    lng: 37.6167,
-  },
-]
-
-// Профили адресной книги — заглушка, в реальном проекте приходят из API
-// (cc3-library-user, судя по документации ДС). Данные повторяют карточки
-// из QA-аккаунта: те же ФИО и адреса, что и в остальных сценариях чекаута.
-//
-// Это полный список «как у вернувшегося пользователя». Что из него реально
-// доступно, решает профиль прототипа — см. savedAddressBookEntries ниже.
-const addressBookEntries: AddressBookEntry[] = [
-  {
-    id: 'book-courier-berezovoy',
-    method: 'courier',
-    badge: 'Последний адрес',
-    fullName: 'Иванов Иван',
-    phone: '+7 999-111-22-33',
-    email: 'qa.auto.checkout+ru@example.com',
-    city: 'Москва, Москва',
-    addressLine: 'Берёзовой Рощи проспект, 12, Москва, Россия, 125252',
-    address: {
-      search: 'Берёзовой Рощи проспект',
-      houseNumber: '12',
-      apartment: '',
-      floor: '',
-      entrance: '',
-      intercom: '',
-      postalCode: '125252',
-      district: '',
-    },
-    methodLabel: 'Курьер',
-    price: 1349,
-  },
-  {
-    id: 'book-pickup-stanislavskogo',
-    method: 'pickup',
-    fullName: 'Крым индекс ТЕСТОВЫЙ ЗАКАЗ',
-    phone: '+7 999-111-22-33',
-    email: 'qa.auto.checkout+ru@example.com',
-    city: 'Москва, Москва',
-    addressLine: 'ул. Станиславского, 11, п/а, Москва, Россия, 109004',
-    pickupPointId: 'office-stanislavskogo',
-    methodLabel: 'Бесплатный самовывоз из офиса компании',
-    price: 0,
-  },
-  {
-    id: 'book-pickup-horoshevskoe',
-    method: 'pickup',
-    fullName: 'Тест Тестовииич Тест',
-    phone: '+7 999-111-22-33',
-    email: 'qa.auto.checkout+ru@example.com',
-    city: 'Москва, Москва',
-    addressLine: 'Хорошевское шоссе, д.32, корп. 2, п/а, Москва, Россия, 123007',
-    pickupPointId: 'office-horoshevskoe',
-    methodLabel: 'Бесплатный самовывоз из офиса компании',
-    price: 0,
-  },
-]
 
 export type OrderProduct = {
   id: string
@@ -380,7 +245,9 @@ const pickupProviders = ref<PickupProvider[]>([])
 const selectedPickupPointId = ref<string>()
 
 const recipient = ref<Recipient>(emptyRecipient())
-const city = ref('Москва, Москва')
+// Пустая строка означает «пользователь ничего не вводил» — тогда
+// показывается город страны из конфига стенда, см. useCheckout().
+const cityInput = ref('')
 const deliveryAddress = ref<DeliveryAddress>(emptyAddress())
 
 const isAddressBookOpen = ref(false)
@@ -409,32 +276,98 @@ const isSummaryDetailsOpen = ref(false)
 const promoCode = ref('')
 
 export function useCheckout() {
-  const { caseConfig } = useStand()
+  const { hasSavedAddresses, country, countryConfig, t } = useStand()
+
+  // Смена страны или типа пользователя в адресе — это новая конфигурация
+  // стенда: открытая адресная книга и выбранный пункт от предыдущей
+  // остаться не должны.
+  watch([country, hasSavedAddresses], () => {
+    isAddressBookOpen.value = false
+    selectedPickupPointId.value = undefined
+    cityInput.value = ''
+  })
 
   /**
-   * Наполнение адресной книги задаёт кейс: savedAddresses из cases.ts.
-   * Прежняя ось profile (new / returning) этим поглощается — «повторный
-   * вход» это просто кейс, у которого сохранённых адресов больше нуля.
+   * Наполнение адресной книги задаёт тип пользователя — вторая ось стенда.
+   * Прежние оси profile (new / returning) и кейс этим поглощаются.
    */
-  const hasAddressBook = computed(() => caseConfig.value.savedAddresses > 0)
+  const hasAddressBook = hasSavedAddresses
+
+  /** Центр карты и город по умолчанию берутся из страны, а не из Москвы. */
+  const mapCenter = computed(() => countryConfig.value.mapCenter)
+
+  const city = computed({
+    get: () => cityInput.value || countryConfig.value.city,
+    set: (value: string) => {
+      cityInput.value = value
+    },
+  })
+
+  const deliveryMethodLabels = computed<Record<DeliveryMethod, string>>(() => ({
+    courier: t('delivery.courier.title'),
+    pickup: t('delivery.pickup.title'),
+  }))
+
+  const pickupProviderLabels = computed(
+    () =>
+      Object.fromEntries(
+        standPickupPoints[country.value].map((point) => [
+          point.provider,
+          t(`pickup.provider.${point.provider}`),
+        ]),
+      ) as Record<PickupProvider, string>,
+  )
 
   /**
-   * Сохранённые адреса есть только в сценарии повторного входа. У нового
-   * пользователя список пустой — значит, нет ни адресной книги, ни выбора
-   * из сохранённого, только ручной ввод.
+   * Пункты выдачи текущей страны. Названия служб и пояснения приходят
+   * из локализации — сами точки лежат в ядре стенда.
+   */
+  const pickupPoints = computed<PickupPoint[]>(() =>
+    standPickupPoints[country.value].map((point) => ({
+      ...point,
+      name: t(`pickup.provider.${point.provider}`),
+      note: point.provider === 'office' ? t('pickup.note.office') : t('pickup.note.point'),
+    })),
+  )
+
+  /**
+   * Полная адресная книга страны: три курьерских адреса, два пункта выдачи
+   * и офис компании. Что из неё доступно, решает тип пользователя.
+   */
+  const countryAddressBook = computed<AddressBookEntry[]>(() =>
+    addressBook[country.value].map((entry) => ({
+      id: entry.id,
+      method: entry.method,
+      badge: entry.badgeKey ? t(entry.badgeKey) : undefined,
+      fullName: entry.recipientName,
+      phone: entry.phone,
+      email: entry.email,
+      city: entry.city,
+      addressLine: entry.addressLine,
+      address: entry.address,
+      pickupPointId: entry.pickupPointId,
+      methodLabel: t(entry.methodKey),
+      price: entry.price,
+    })),
+  )
+
+  /**
+   * Сохранённые адреса есть только у пользователя с адресной книгой.
+   * У нового список пустой — значит, нет ни книги, ни выбора из
+   * сохранённого, только ручной ввод.
    */
   const savedAddressBookEntries = computed(() =>
-    hasAddressBook.value ? addressBookEntries : [],
+    hasAddressBook.value ? countryAddressBook.value : [],
   )
 
   const selectedPickupPoint = computed(() =>
-    pickupPoints.find((point) => point.id === selectedPickupPointId.value),
+    pickupPoints.value.find((point) => point.id === selectedPickupPointId.value),
   )
 
   const pickupPointsFormat = computed<PickupPointFormat[]>(() => {
     const search = pickupSearch.value.trim().toLowerCase()
 
-    return pickupPoints
+    return pickupPoints.value
       .filter((point) => {
         const byProvider =
           pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
@@ -445,7 +378,7 @@ export function useCheckout() {
 
         return byProvider && bySearch
       })
-      .map((point) => ({ ...point, priceFormat: formatPrice(point.price) }))
+      .map((point) => ({ ...point, priceFormat: money(point.price) }))
   })
 
   const isPickup = computed(() => deliveryMethod.value === 'pickup')
@@ -476,26 +409,32 @@ export function useCheckout() {
     () => walletAppliedAmount.value > 0 && walletRemainingToPay.value <= 0,
   )
 
+  const money = (value: number) =>
+    formatPrice(value, countryConfig.value.currency, countryConfig.value.intlLocale)
+
+  const moneyRounded = (value: number) =>
+    formatPriceRounded(value, countryConfig.value.currency, countryConfig.value.intlLocale)
+
   const summary = computed(() => ({
     itemsCount: order.itemsCount,
-    itemsTotalFormat: formatPrice(order.itemsTotal),
-    itemsTotalFormatRounded: formatPriceRounded(order.itemsTotal),
+    itemsTotalFormat: money(order.itemsTotal),
+    itemsTotalFormatRounded: moneyRounded(order.itemsTotal),
     points: order.points,
     walletUsedFormat:
-      walletAppliedAmount.value > 0 ? formatDecimal(walletAppliedAmount.value) : undefined,
+      walletAppliedAmount.value > 0 ? formatDecimal(walletAppliedAmount.value, countryConfig.value.intlLocale) : undefined,
     walletUsedFormatRounded:
-      walletAppliedAmount.value > 0 ? formatPriceRounded(walletAppliedAmount.value) : undefined,
-    deliveryFormat: formatPrice(order.delivery),
-    deliveryFormatRounded: formatPriceRounded(order.delivery),
-    totalFormat: formatPrice(Math.max(0, order.total - walletAppliedAmount.value)),
-    totalFormatRounded: formatPriceRounded(Math.max(0, order.total - walletAppliedAmount.value)),
+      walletAppliedAmount.value > 0 ? moneyRounded(walletAppliedAmount.value) : undefined,
+    deliveryFormat: money(order.delivery),
+    deliveryFormatRounded: moneyRounded(order.delivery),
+    totalFormat: money(Math.max(0, order.total - walletAppliedAmount.value)),
+    totalFormatRounded: moneyRounded(Math.max(0, order.total - walletAppliedAmount.value)),
     pickupCode: isPickup.value ? selectedPickupPoint.value?.code : undefined,
   }))
 
   const orderProductsFormat = computed(() =>
     orderProducts.map((product) => ({
       ...product,
-      priceFormat: formatPrice(product.price),
+      priceFormat: money(product.price),
     })),
   )
 
@@ -506,12 +445,12 @@ export function useCheckout() {
   )
 
   const walletDisplayBalanceFormat = computed(() =>
-    formatPriceRounded(walletBalance - walletAppliedAmount.value),
+    moneyRounded(walletBalance - walletAppliedAmount.value),
   )
 
-  const walletMaxUsableFormat = computed(() => formatPriceRounded(walletMaxUsable.value))
-  const walletAppliedAmountFormat = computed(() => formatPriceRounded(walletAppliedAmount.value))
-  const walletRemainingToPayFormat = computed(() => formatPriceRounded(walletRemainingToPay.value))
+  const walletMaxUsableFormat = computed(() => moneyRounded(walletMaxUsable.value))
+  const walletAppliedAmountFormat = computed(() => moneyRounded(walletAppliedAmount.value))
+  const walletRemainingToPayFormat = computed(() => moneyRounded(walletRemainingToPay.value))
 
   const isWalletCustomAmountValid = computed(() => {
     const amount = Number(walletCustomAmount.value.replace(/\s/g, '').replace(',', '.'))
@@ -563,7 +502,7 @@ export function useCheckout() {
    * через toRefs(), и полная замена объекта отвязала бы эти refs от новых данных.
    */
   function applyAddressBookEntry(entryId: string) {
-    const entry = addressBookEntries.find((item) => item.id === entryId)
+    const entry = countryAddressBook.value.find((item) => item.id === entryId)
 
     if (!entry) {
       return
@@ -573,7 +512,7 @@ export function useCheckout() {
       phone: entry.phone,
       email: entry.email,
     })
-    city.value = entry.city
+    cityInput.value = entry.city
     deliveryMethod.value = entry.method
 
     if (entry.method === 'courier') {
@@ -592,7 +531,7 @@ export function useCheckout() {
    */
   function clearRecipientAndAddress() {
     Object.assign(recipient.value, emptyRecipient())
-    city.value = ''
+    cityInput.value = ''
     Object.assign(deliveryAddress.value, emptyAddress())
 
     deliveryMethod.value = 'courier'
@@ -615,6 +554,11 @@ export function useCheckout() {
   return {
     deliveryMethod,
     isPickup,
+
+    mapCenter,
+    deliveryMethodLabels,
+    pickupProviderLabels,
+    formatMoneyRounded: moneyRounded,
 
     recipient,
     city,
@@ -674,7 +618,7 @@ export function resetCheckout(method: DeliveryMethod = 'courier', pickupPointId?
   selectedPickupPointId.value = pickupPointId
 
   Object.assign(recipient.value, emptyRecipient())
-  city.value = 'Москва, Москва'
+  cityInput.value = ''
   Object.assign(deliveryAddress.value, emptyAddress())
   isAddressBookOpen.value = false
 
