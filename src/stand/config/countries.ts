@@ -8,9 +8,9 @@ import { usStates } from './usStates'
  * каждый рынок. Три образца, на которые ориентировались:
  *
  *  - RU/KZ — курьерская доставка по городу: адрес одной строкой, дальше
- *    квартира, подъезд, этаж, домофон и комментарий курьеру. Улица и дом
- *    отдельными полями не разносятся — так их не вводят ни в одном
- *    из привычных сервисов;
+ *    квартира, подъезд, этаж и домофон. Улица отдельным полем не выносится —
+ *    так её не вводят ни в одном из привычных сервисов; в России рядом со
+ *    строкой адреса стоит отдельное поле дома, его требует доставка;
  *  - DE/PL/CZ — почтовая доставка: строка адреса, необязательная квартира,
  *    индекс и город. Имя и фамилия — отдельные поля, «отчества» нет;
  *  - US — то же самое плюс штат отдельным селектом.
@@ -25,7 +25,7 @@ import { usStates } from './usStates'
  * правка одной строки здесь, во всех вариантах интерфейса сразу.
  */
 
-/** Курьерская доставка по городу: RU и KZ отличаются только данными. */
+/** Курьерская доставка по городу — базовый набор для рынков СНГ. */
 const cisAddress: CountryConfig['address'] = [
   { key: 'addressLabel' },
   { key: 'street', required: true },
@@ -35,7 +35,33 @@ const cisAddress: CountryConfig['address'] = [
   { key: 'intercom', half: true },
   { key: 'postal', autofilled: true, required: true, half: true },
   { key: 'city', autofilled: true, required: true, half: true },
-  { key: 'comment' },
+]
+
+/**
+ * Россия — тот же набор, но с домом отдельным полем.
+ *
+ * Дом остаётся и внутри строки адреса: её пользователь узнаёт целиком,
+ * как в привычных сервисах. Отдельное поле нужно доставке, поэтому оно
+ * подставляется из выбранной подсказки, но остаётся обычным полем —
+ * дом можно дописать («43к2», «12 стр. 1»), формат не проверяется.
+ *
+ * Индекс здесь тоже prefilled, а не autofilled: в OSM почтовый индекс
+ * заполнен не везде, и запирать поле, которое подсказка может не отдать,
+ * нельзя — пользователь останется без возможности ввести его руками.
+ *
+ * Отдельного поля города нет: город всегда стоит в начале строки адреса —
+ * «Москва, ул. Москворечье, 43». Второе поле с тем же значением удлиняет
+ * форму и заставляет следить, совпадают ли они между собой.
+ */
+const ruAddress: CountryConfig['address'] = [
+  { key: 'addressLabel' },
+  { key: 'street', required: true },
+  { key: 'house', required: true, prefilled: true, half: true },
+  { key: 'apartment', half: true },
+  { key: 'entrance', half: true },
+  { key: 'floor', half: true },
+  { key: 'intercom', half: true },
+  { key: 'postal', required: true, prefilled: true, half: true },
 ]
 
 const cisRecipient: CountryConfig['recipient'] = [
@@ -70,7 +96,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 55.7522, lng: 37.6156 },
     locale: 'ru',
     provider: 'dadata',
-    address: cisAddress,
+    address: ruAddress,
     recipient: cisRecipient,
   },
 

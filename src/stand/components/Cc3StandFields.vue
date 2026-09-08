@@ -6,12 +6,15 @@
       :field="field"
       :model-value="values[field.key] ?? ''"
       @update:model-value="onUpdate(field.key, $event)"
+      @select="onSelect(field.key, $event)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { FieldGroup, FieldKey } from '../config/types'
+import { applySuggestion } from '../suggest/applySuggestion'
+import type { AddressSuggestion } from '../suggest/types'
 import { useStandFields } from '../composables/useStandFields'
 import Cc3StandField from './Cc3StandField.vue'
 
@@ -34,6 +37,15 @@ const { fields } = useStandFields(props.group)
 
 function onUpdate(key: FieldKey, value: string) {
   values.value = { ...values.value, [key]: value }
+}
+
+/**
+ * Подстановка из выбранной подсказки. Раскладку по полям делает общая
+ * функция: то же самое происходит в строке поиска на карте, и вести себя
+ * это должно одинаково.
+ */
+function onSelect(sourceKey: FieldKey, suggestion: AddressSuggestion) {
+  values.value = applySuggestion(values.value, sourceKey, suggestion, fields.value)
 }
 </script>
 

@@ -178,6 +178,9 @@ export default {
   // Поля адресной формы — состав и порядок задаёт countries.ts,
   // подписи и примеры ввода — местные для каждого рынка
   'field.autofilled.hint': 'Wird automatisch ausgefüllt',
+  'suggest.loading': 'Suche läuft…',
+  'suggest.empty': 'Nichts gefunden — Adresse manuell eingeben',
+  'suggest.error': 'Vorschlagsdienst nicht verfügbar, Beispiele werden gezeigt',
 
   'field.addressLabel.label': 'Adressname',
   'field.addressLabel.home': 'Zuhause',
@@ -191,6 +194,8 @@ export default {
   'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
   'field.street.placeholder@cz': 'Vinohradská 112',
   'field.street.placeholder@us': '350 5th Ave',
+  'field.house.label': 'Hausnummer',
+  'field.house.placeholder': '43',
   'field.apartment.label': 'Wohnung, Etage usw.',
   'field.apartment.placeholder': '3. OG',
   'field.entrance.label': 'Aufgang',
