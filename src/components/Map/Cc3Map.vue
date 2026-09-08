@@ -148,30 +148,94 @@ const markerPositions = computed(() =>
 const isZoomOutDisabled = computed(() => zoom.value <= ZOOM_MIN)
 const isZoomInDisabled = computed(() => zoom.value >= ZOOM_MAX)
 
-// ─── Перетаскивание ──────────────────────────────────────────────────────────
+// ─── Перетаскивание и щипок ──────────────────────────────────────────────────
 const isDragging = ref(false)
 
-let pointerId: number | undefined
+/**
+ * Все прижатые к карте пальцы. Нужен именно список: один палец — это
+ * перетаскивание, два — щипок, и переключаться между ними надо на лету,
+ * не теряя карту под рукой.
+ */
+const activePointers = new Map<number, { x: number; y: number }>()
+
 let dragStartX = 0
 let dragStartY = 0
 let dragOriginX = 0
 let dragOriginY = 0
 let isMoved = false
 
-function onPointerDown(event: PointerEvent) {
-  pointerId = event.pointerId
-  isDragging.value = true
-  isMoved = false
+/** Расстояние между пальцами на момент последнего изменения масштаба. */
+let pinchDistance = 0
 
-  dragStartX = event.clientX
-  dragStartY = event.clientY
+/**
+ * Во сколько раз должно измениться расстояние между пальцами, чтобы
+ * шагнуть на один зум. Масштаб у тайлов целочисленный, промежуточных
+ * значений нет — порог не даёт карте дёргаться туда-сюда на дрожании руки.
+ */
+const PINCH_STEP = 1.6
+
+function pointersDistance(): number {
+  const [first, second] = [...activePointers.values()]
+
+  if (!first || !second) {
+    return 0
+  }
+
+  return Math.hypot(first.x - second.x, first.y - second.y)
+}
+
+function startDrag(x: number, y: number) {
+  dragStartX = x
+  dragStartY = y
   dragOriginX = originX.value
   dragOriginY = originY.value
+}
 
+function onPointerDown(event: PointerEvent) {
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
   root.value?.setPointerCapture(event.pointerId)
+
+  if (activePointers.size === 1) {
+    isDragging.value = true
+    isMoved = false
+    startDrag(event.clientX, event.clientY)
+
+    return
+  }
+
+  // Второй палец — дальше это щипок, а не перетаскивание.
+  isDragging.value = false
+  isMoved = true
+  pinchDistance = pointersDistance()
 }
 
 function onPointerMove(event: PointerEvent) {
+  if (!activePointers.has(event.pointerId)) {
+    return
+  }
+
+  activePointers.set(event.pointerId, { x: event.clientX, y: event.clientY })
+
+  if (activePointers.size >= 2) {
+    const distance = pointersDistance()
+
+    if (pinchDistance === 0 || distance === 0) {
+      return
+    }
+
+    const ratio = distance / pinchDistance
+
+    if (ratio > PINCH_STEP) {
+      changeZoom(1)
+      pinchDistance = distance
+    } else if (ratio < 1 / PINCH_STEP) {
+      changeZoom(-1)
+      pinchDistance = distance
+    }
+
+    return
+  }
+
   if (!isDragging.value) {
     return
   }
@@ -193,14 +257,27 @@ function onPointerMove(event: PointerEvent) {
 }
 
 function onPointerUp(event: PointerEvent) {
-  if (pointerId !== undefined) {
-    root.value?.releasePointerCapture(pointerId)
-    pointerId = undefined
+  const wasPinching = activePointers.size >= 2
+
+  activePointers.delete(event.pointerId)
+  root.value?.releasePointerCapture(event.pointerId)
+
+  // Оторвали один палец из двух — оставшийся продолжает вести карту.
+  if (activePointers.size === 1) {
+    const [remaining] = [...activePointers.values()]
+
+    if (remaining) {
+      isDragging.value = true
+      startDrag(remaining.x, remaining.y)
+    }
+
+    return
   }
 
   isDragging.value = false
+  pinchDistance = 0
 
-  if (isMoved || !root.value) {
+  if (wasPinching || isMoved || !root.value) {
     return
   }
 
