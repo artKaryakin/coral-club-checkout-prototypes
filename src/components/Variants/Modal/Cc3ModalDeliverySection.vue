@@ -1,7 +1,9 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
 
 import Cc3ModalAddressBook from './Cc3ModalAddressBook.vue'
 import Cc3ModalDeliveryDialog from './Cc3ModalDeliveryDialog.vue'
@@ -23,66 +25,39 @@ const timeChips: TimeChip[] = [
   { label: '1:00 PM - 12:00 AM', value: 'afternoon' },
 ]
 
-// Адресная книга — демо-профили по макету Figma (узел 2171:41208).
-// В общее состояние useCheckout не пишутся — та же изоляция от прода,
-// что и у формы в Cc3ModalDeliveryDialog.
-const addressBookEntries = ref<DeliveryProfile[]>([
-  {
-    id: 'book-courier-ignatov',
-    method: 'courier',
-    typeLabel: 'Courier',
-    name: 'Ignat Ignatov',
-    addressLine: 'Khoroshevskoye Sh. Street 12, Tula, Tula Region, Russia, 123321',
-    priceLabel: '2-3 business days 1,349 ₽',
-    isFavorite: true,
-    phone: '(961) 12-34-567',
-    email: 'test@gmail.com',
-  },
-  {
-    id: 'book-pickup-sdek',
-    method: 'pickup',
-    typeLabel: 'SDEK Pickup Point',
-    name: 'Ignat Ignatov',
-    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
-    priceLabel: '2-3 business days, Free',
-    isFavorite: true,
-    phone: '(961) 12-34-567',
-    email: 'test@gmail.com',
-  },
-  {
-    id: 'book-courier-ivanova',
-    method: 'courier',
-    typeLabel: 'Courier',
-    name: 'Ivanova Tatyana',
-    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
-    priceLabel: '2-3 business days 1,349 ₽',
-    isFavorite: false,
-    phone: '(961) 55-67-889',
-    email: 'ivanova.tatyana@gmail.com',
-  },
-  {
-    id: 'book-pickup-office',
-    method: 'pickup',
-    typeLabel: 'Office',
-    name: 'Antonov Ilya',
-    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
-    priceLabel: '2-3 business days, Free',
-    isFavorite: false,
-    phone: '(961) 44-11-223',
-    email: 'antonov.ilya@gmail.com',
-  },
-  {
-    id: 'book-courier-antonov',
-    method: 'courier',
-    typeLabel: 'Courier',
-    name: 'Antonov Ilya',
-    addressLine: 'Friedrich Engels Street, 12, Tula, Tula Region, Russia, 123321',
-    priceLabel: '2-3 business days 1,349 ₽',
-    isFavorite: false,
-    phone: '(961) 44-11-223',
-    email: 'antonov.ilya@gmail.com',
-  },
-])
+// Адресная книга приходит из ядра стенда: состав задаёт страна, наличие —
+// тип пользователя. Оформление карточек по макету Figma (узел 2171:41208)
+// не меняется, меняется только источник данных.
+//
+// Список остаётся ref, потому что диалог добавляет, правит и удаляет
+// карточки по ходу сессии. При смене страны или типа пользователя он
+// пересобирается заново — правки предыдущей конфигурации не протекают.
+const { savedAddressBookEntries, formatMoneyRounded } = useCheckout()
+const { country, user, t } = useStand()
+
+function toProfiles(): DeliveryProfile[] {
+  return savedAddressBookEntries.value.map((entry, index) => ({
+    id: entry.id,
+    method: entry.method,
+    typeLabel: entry.methodLabel,
+    name: entry.fullName,
+    addressLine: entry.addressLine,
+    priceLabel: `${t('delivery.eta')}, ${
+      entry.price > 0 ? formatMoneyRounded(entry.price) : t('delivery.free')
+    }`,
+    isFavorite: index === 0,
+    phone: entry.phone,
+    email: entry.email,
+  }))
+}
+
+const addressBookEntries = ref<DeliveryProfile[]>(toProfiles())
+
+watch([country, user], () => {
+  addressBookEntries.value = toProfiles()
+  selectedEntryId.value = undefined
+  editingEntryId.value = undefined
+})
 
 const selectedEntryId = ref<string>()
 const editingEntryId = ref<string>()

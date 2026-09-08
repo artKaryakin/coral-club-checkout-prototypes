@@ -47,4 +47,26 @@ export default {
   'variant.modal.hint': 'Koncept A — adres dodawany w osobnym oknie',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Koncept B — adres dodawany bezpośrednio na stronie',
+
+  // Dostawa i punkty odbioru
+  'delivery.method.courier': 'Kurier',
+  'delivery.method.point': 'Punkt odbioru',
+  'delivery.method.office': 'Bezpłatny odbiór w biurze firmy',
+  'delivery.eta': '2–3 dni robocze',
+  'delivery.free': 'Bezpłatnie',
+  'delivery.courier.title': 'Dostawa kurierem',
+  'delivery.pickup.title': 'Odbiór osobisty',
+
+  'pickup.provider.office': 'Biuro firmy',
+  'pickup.provider.cdek': 'Punkt odbioru CDEK',
+  'pickup.provider.fivepost': 'Punkt odbioru 5Post',
+  'pickup.provider.kazpost': 'Oddział Kazpost',
+  'pickup.provider.dhl': 'DHL Packstation',
+  'pickup.provider.inpost': 'Paczkomat InPost',
+  'pickup.provider.zasilkovna': 'Zásilkovna',
+  'pickup.provider.usps': 'Placówka USPS',
+  'pickup.note.office': 'Zamówienie można odebrać w biurze zaraz po złożeniu',
+  'pickup.note.point': 'Zamówienie czeka w punkcie odbioru przez siedem dni',
+
+  'address.badge.last': 'Ostatni adres',
 }

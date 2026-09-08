@@ -47,4 +47,26 @@ export default {
   'variant.modal.hint': 'Konzept A — die Adresse wird in einem separaten Fenster hinzugefügt',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Konzept B — die Adresse wird direkt auf der Seite hinzugefügt',
+
+  // Lieferung und Abholstellen
+  'delivery.method.courier': 'Kurier',
+  'delivery.method.point': 'Paketshop',
+  'delivery.method.office': 'Kostenlose Abholung im Firmenbüro',
+  'delivery.eta': '2–3 Werktage',
+  'delivery.free': 'Kostenlos',
+  'delivery.courier.title': 'Kurierlieferung',
+  'delivery.pickup.title': 'Abholung',
+
+  'pickup.provider.office': 'Firmenbüro',
+  'pickup.provider.cdek': 'CDEK-Paketshop',
+  'pickup.provider.fivepost': '5Post-Paketshop',
+  'pickup.provider.kazpost': 'Kazpost-Filiale',
+  'pickup.provider.dhl': 'DHL Packstation',
+  'pickup.provider.inpost': 'InPost Paczkomat',
+  'pickup.provider.zasilkovna': 'Zásilkovna',
+  'pickup.provider.usps': 'USPS-Filiale',
+  'pickup.note.office': 'Die Bestellung kann direkt nach dem Kauf im Büro abgeholt werden',
+  'pickup.note.point': 'Die Bestellung liegt sieben Tage im Paketshop bereit',
+
+  'address.badge.last': 'Zuletzt verwendet',
 }

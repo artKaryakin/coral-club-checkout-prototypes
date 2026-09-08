@@ -47,4 +47,26 @@ export default {
   'variant.modal.hint': 'Концепт A — адрес добавляется в отдельном окне',
   'variant.inline.title': 'Инлайн',
   'variant.inline.hint': 'Концепт B — адрес добавляется прямо на странице',
+
+  // Доставка и пункты выдачи
+  'delivery.method.courier': 'Курьер',
+  'delivery.method.point': 'Пункт выдачи',
+  'delivery.method.office': 'Бесплатный самовывоз из офиса компании',
+  'delivery.eta': '2–3 рабочих дня',
+  'delivery.free': 'Бесплатно',
+  'delivery.courier.title': 'Доставка курьером',
+  'delivery.pickup.title': 'Самовывоз',
+
+  'pickup.provider.office': 'Офис компании',
+  'pickup.provider.cdek': 'Пункт выдачи СДЭК',
+  'pickup.provider.fivepost': 'Пункт выдачи 5Post',
+  'pickup.provider.kazpost': 'Отделение Казпочты',
+  'pickup.provider.dhl': 'DHL Packstation',
+  'pickup.provider.inpost': 'InPost Paczkomat',
+  'pickup.provider.zasilkovna': 'Zásilkovna',
+  'pickup.provider.usps': 'Отделение USPS',
+  'pickup.note.office': 'Забрать заказ из офиса продаж можно сразу после оформления',
+  'pickup.note.point': 'Заказ хранится в пункте выдачи семь дней',
+
+  'address.badge.last': 'Последний адрес',
 }

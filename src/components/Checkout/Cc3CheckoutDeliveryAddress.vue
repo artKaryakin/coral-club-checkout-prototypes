@@ -6,11 +6,11 @@ import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
-import { defaultMapCenter, useCheckout } from '@/composables/useCheckout'
+import { useCheckout } from '@/composables/useCheckout'
 
 // Поля-заглушки: в реальном проекте — C2Field/C2Input + карта из пакета UI.
 // deliveryAddress — общее состояние: его же читает и пишет адресная книга.
-const { deliveryAddress } = useCheckout()
+const { deliveryAddress, mapCenter } = useCheckout()
 const { search, houseNumber, apartment, floor, entrance, intercom, postalCode, district } =
   toRefs(deliveryAddress.value)
 
@@ -60,7 +60,7 @@ function onMapSelect(point: MapPoint) {
 
     <div v-if="isMapOpen" class="cc3-checkout-delivery-address__map">
       <Cc3Map
-        :center="defaultMapCenter"
+        :center="mapCenter"
         :zoom="10"
         :markers="mapMarkers"
         :height="320"

@@ -3,8 +3,7 @@ import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
-import { deliveryMethodLabels, useCheckout } from '@/composables/useCheckout'
-import { formatPriceRounded } from '@/utils/formatPrice'
+import { useCheckout } from '@/composables/useCheckout'
 
 import Cc3CheckoutAddressBookCard from './Cc3CheckoutAddressBookCard.vue'
 
@@ -13,7 +12,7 @@ const emit = defineEmits<{
   newAddress: []
 }>()
 
-const { savedAddressBookEntries, applyAddressBookEntry } = useCheckout()
+const { deliveryMethodLabels, formatMoneyRounded, savedAddressBookEntries, applyAddressBookEntry } = useCheckout()
 
 const search = ref('')
 const highlightedId = ref<string>()
@@ -21,8 +20,8 @@ const highlightedId = ref<string>()
 const entries = computed(() =>
   savedAddressBookEntries.value.map((entry) => ({
     ...entry,
-    title: deliveryMethodLabels[entry.method],
-    priceFormat: formatPriceRounded(entry.price),
+    title: deliveryMethodLabels.value[entry.method],
+    priceFormat: formatMoneyRounded(entry.price),
   })),
 )
 

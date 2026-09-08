@@ -14,6 +14,10 @@ import type { CountryCode, CountryConfig } from './types'
 export const countries: Record<CountryCode, CountryConfig> = {
   ru: {
     code: 'ru',
+    currency: 'RUB',
+    intlLocale: 'ru-RU',
+    city: 'Москва, Москва',
+    mapCenter: { lat: 55.7522, lng: 37.6156 },
     locale: 'ru',
     provider: 'dadata',
     address: [
@@ -33,6 +37,10 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   kz: {
     code: 'kz',
+    currency: 'KZT',
+    intlLocale: 'ru-KZ',
+    city: 'Алматы',
+    mapCenter: { lat: 43.2389, lng: 76.8897 },
     locale: 'ru',
     provider: 'twogis',
     address: [
@@ -52,6 +60,10 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   de: {
     code: 'de',
+    currency: 'EUR',
+    intlLocale: 'de-DE',
+    city: 'Berlin',
+    mapCenter: { lat: 52.5200, lng: 13.4050 },
     locale: 'de',
     provider: 'loqate',
     address: [
@@ -71,6 +83,10 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   pl: {
     code: 'pl',
+    currency: 'PLN',
+    intlLocale: 'pl-PL',
+    city: 'Warszawa',
+    mapCenter: { lat: 52.2297, lng: 21.0122 },
     locale: 'pl',
     provider: 'loqate',
     address: [
@@ -90,6 +106,10 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   cz: {
     code: 'cz',
+    currency: 'CZK',
+    intlLocale: 'cs-CZ',
+    city: 'Praha',
+    mapCenter: { lat: 50.0755, lng: 14.4378 },
     locale: 'cs',
     provider: 'loqate',
     address: [
@@ -109,6 +129,10 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   us: {
     code: 'us',
+    currency: 'USD',
+    intlLocale: 'en-US',
+    city: 'New York, NY',
+    mapCenter: { lat: 40.7128, lng: -74.0060 },
     locale: 'en',
     provider: 'loqate',
     // В США номер дома входит в street line — отдельного поля «дом» нет.

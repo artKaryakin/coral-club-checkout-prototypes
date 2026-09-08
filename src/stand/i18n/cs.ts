@@ -47,4 +47,26 @@ export default {
   'variant.modal.hint': 'Koncept A — adresa se přidává v samostatném okně',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Koncept B — adresa se přidává přímo na stránce',
+
+  // Doručení a výdejní místa
+  'delivery.method.courier': 'Kurýr',
+  'delivery.method.point': 'Výdejní místo',
+  'delivery.method.office': 'Bezplatný odběr v kanceláři firmy',
+  'delivery.eta': '2–3 pracovní dny',
+  'delivery.free': 'Zdarma',
+  'delivery.courier.title': 'Doručení kurýrem',
+  'delivery.pickup.title': 'Osobní odběr',
+
+  'pickup.provider.office': 'Kancelář firmy',
+  'pickup.provider.cdek': 'Výdejní místo CDEK',
+  'pickup.provider.fivepost': 'Výdejní místo 5Post',
+  'pickup.provider.kazpost': 'Pobočka Kazpost',
+  'pickup.provider.dhl': 'DHL Packstation',
+  'pickup.provider.inpost': 'InPost Paczkomat',
+  'pickup.provider.zasilkovna': 'Zásilkovna',
+  'pickup.provider.usps': 'Pobočka USPS',
+  'pickup.note.office': 'Objednávku si můžete vyzvednout v kanceláři hned po odeslání',
+  'pickup.note.point': 'Objednávka čeká na výdejním místě sedm dní',
+
+  'address.badge.last': 'Poslední adresa',
 }

@@ -5,7 +5,7 @@ import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
-import { defaultMapCenter, useCheckout, type PickupProvider } from '@/composables/useCheckout'
+import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
@@ -29,7 +29,8 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const { pickupPointsFormat, pickupProviders, togglePickupProvider } = useCheckout()
+const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels } =
+  useCheckout()
 
 function initialStep(): Step {
   if (!props.editProfile) {
@@ -133,7 +134,7 @@ const pickupDetailView = computed<PickupDetailView | undefined>(() => {
   }
 
   return {
-    title: `${pickupProviderName[activePickupPoint.value.provider]} pickup point`,
+    title: pickupProviderLabels.value[activePickupPoint.value.provider],
     address: activePickupPoint.value.address,
     priceLabel: `2-3 business days, ${activePickupPointPriceFormatRounded.value}`,
     note: activePickupPoint.value.note,
@@ -141,18 +142,16 @@ const pickupDetailView = computed<PickupDetailView | undefined>(() => {
   }
 })
 
-// Короткая подпись внутри метки на карте.
+// Короткая подпись внутри метки на карте — названия служб, не переводятся.
 const pickupProviderPinLabel: Record<PickupProvider, string> = {
-  cdek: 'CDEK',
   office: 'CC',
-  fivepost: '5Post',
-}
-
-// Полное название службы — для заголовка карточки пункта.
-const pickupProviderName: Record<PickupProvider, string> = {
   cdek: 'CDEK',
-  office: 'Office',
   fivepost: '5Post',
+  kazpost: 'KZPost',
+  dhl: 'DHL',
+  inpost: 'InPost',
+  zasilkovna: 'Zás.',
+  usps: 'USPS',
 }
 
 const pickupMapMarkers = computed(() =>
@@ -160,7 +159,9 @@ const pickupMapMarkers = computed(() =>
     id: point.id,
     lat: point.lat,
     lng: point.lng,
-    provider: point.provider,
+    // Свой вид метки нарисован только для офиса; остальные службы
+    // показываются общим видом перевозчика.
+    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
     pinLabel: pickupProviderPinLabel[point.provider],
   })),
 )
@@ -295,9 +296,9 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <div class="cc3-modal-delivery-dialog__map">
               <Cc3Map
                 v-if="method === 'courier'"
-                :center="defaultMapCenter"
+                :center="mapCenter"
                 :zoom="14"
-                :markers="[{ id: 'city', lat: defaultMapCenter.lat, lng: defaultMapCenter.lng }]"
+                :markers="[{ id: 'city', lat: mapCenter.lat, lng: mapCenter.lng }]"
                 :height="380"
               >
                 <template #marker>
@@ -307,7 +308,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
               <Cc3Map
                 v-else
-                :center="defaultMapCenter"
+                :center="mapCenter"
                 :zoom="9"
                 :markers="pickupMapMarkers"
                 :height="380"
@@ -315,7 +316,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 <template #marker="{ marker }">
                   <Cc3MapPin
                     :label="marker.pinLabel"
-                    :variant="marker.provider"
+                    :variant="marker.pinVariant"
                     :selected="marker.id === selectedPickupPointId"
                     @click="selectPoint(marker.id)"
                   />
@@ -383,7 +384,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 @click="selectPoint(activePickupPoint.id)"
               >
                 <span class="cc3-modal-delivery-dialog__point-name">
-                  {{ pickupProviderName[activePickupPoint.provider] }}
+                  {{ activePickupPoint.name }}
                 </span>
                 <span class="cc3-modal-delivery-dialog__point-address">
                   {{ activePickupPoint.address }}

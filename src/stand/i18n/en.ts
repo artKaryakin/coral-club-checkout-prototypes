@@ -53,4 +53,26 @@ export default {
   'variant.modal.hint': 'Concept A — the address is added in a separate window',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Concept B — the address is added right on the page',
+
+  // Delivery and pickup points
+  'delivery.method.courier': 'Courier',
+  'delivery.method.point': 'Pickup point',
+  'delivery.method.office': 'Free pickup from the company office',
+  'delivery.eta': '2-3 business days',
+  'delivery.free': 'Free',
+  'delivery.courier.title': 'Courier delivery',
+  'delivery.pickup.title': 'Pickup',
+
+  'pickup.provider.office': 'Company office',
+  'pickup.provider.cdek': 'CDEK pickup point',
+  'pickup.provider.fivepost': '5Post pickup point',
+  'pickup.provider.kazpost': 'Kazpost branch',
+  'pickup.provider.dhl': 'DHL Packstation',
+  'pickup.provider.inpost': 'InPost Paczkomat',
+  'pickup.provider.zasilkovna': 'Zásilkovna',
+  'pickup.provider.usps': 'USPS post office',
+  'pickup.note.office': 'You can collect the order from the sales office right after checkout',
+  'pickup.note.point': 'The order is held at the pickup point for seven days',
+
+  'address.badge.last': 'Last used address',
 }

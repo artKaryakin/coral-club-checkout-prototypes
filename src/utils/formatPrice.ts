@@ -14,14 +14,20 @@ export function formatPrice(value: number, currency = 'RUB', locale = 'ru-RU'): 
 }
 
 /**
- * Округлённая сумма с символом рубля, без копеек — так подписан баланс
+ * Округлённая сумма с символом валюты, без копеек — так подписан баланс
  * и суммы скидки в блоке Coral Wallet (в отличие от сводки заказа,
  * где суммы всегда с копейками).
  */
-export function formatPriceRounded(value: number, locale = 'ru-RU'): string {
-  const amount = new Intl.NumberFormat(locale, { maximumFractionDigits: 0 }).format(value)
-
-  return `${amount} ₽`
+export function formatPriceRounded(
+  value: number,
+  currency = 'RUB',
+  locale = 'ru-RU',
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency,
+    maximumFractionDigits: 0,
+  }).format(value)
 }
 
 /**
