@@ -156,7 +156,8 @@ export function useStand() {
       window.location.search.includes('debug=1') || window.location.hash.includes('debug=1'),
   )
 
-  const t = (key: string) => translate(locale.value, country.value, key)
+  const t = (key: string, params?: Record<string, string | number>) =>
+    translate(locale.value, country.value, key, params)
 
   return {
     selection,
