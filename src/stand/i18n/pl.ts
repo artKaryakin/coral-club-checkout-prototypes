@@ -14,4 +14,37 @@ export default {
   'field.autofilled.hint': 'Wypełniane automatycznie',
   'group.address.title': 'Adres dostawy',
   'group.recipient.title': 'Odbiorca',
+
+  // Ekran wejścia na stanowisko
+  'stand.title': 'Prototypy checkoutu',
+  'stand.step.country': 'Kraj',
+  'stand.step.user': 'Użytkownik',
+  'stand.step.variant': 'Wersja',
+  'stand.country.title': 'Wybierz kraj',
+  'stand.country.hint': 'Kraj określa język interfejsu oraz zestaw i kolejność pól adresu.',
+  'stand.user.title': 'Kto składa zamówienie',
+  'stand.user.hint': 'Różni się tylko stan początkowy książki adresowej.',
+  'stand.variant.title': 'Wersja checkoutu',
+  'stand.variant.hint': 'Trzy wersje na tych samych danych — właśnie je porównujemy.',
+  'stand.back': 'Wstecz',
+  'stand.restart': 'Zacznij od nowa',
+
+  'country.ru': 'Rosja',
+  'country.kz': 'Kazachstan',
+  'country.de': 'Niemcy',
+  'country.pl': 'Polska',
+  'country.cz': 'Czechy',
+  'country.us': 'Stany Zjednoczone',
+
+  'user.new.title': 'Nowy użytkownik',
+  'user.new.hint': 'Książka adresowa jest pusta, adres wpisywany od zera',
+  'user.saved.title': 'Użytkownik z zapisanymi adresami',
+  'user.saved.hint': 'Sześć adresów: trzy kurierskie, dwa punkty odbioru, jedno biuro firmy',
+
+  'variant.prod.title': 'Produkcja',
+  'variant.prod.hint': 'Wersja kontrolna — tak jak teraz w sklepie',
+  'variant.modal.title': 'Okno modalne',
+  'variant.modal.hint': 'Koncept A — adres dodawany w osobnym oknie',
+  'variant.inline.title': 'Inline',
+  'variant.inline.hint': 'Koncept B — adres dodawany bezpośrednio na stronie',
 }

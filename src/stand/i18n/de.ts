@@ -14,4 +14,37 @@ export default {
   'field.autofilled.hint': 'Wird automatisch ausgefüllt',
   'group.address.title': 'Lieferadresse',
   'group.recipient.title': 'Empfänger',
+
+  // Startbildschirm des Stands
+  'stand.title': 'Checkout-Prototypen',
+  'stand.step.country': 'Land',
+  'stand.step.user': 'Nutzer',
+  'stand.step.variant': 'Version',
+  'stand.country.title': 'Land auswählen',
+  'stand.country.hint': 'Das Land bestimmt die Sprache der Oberfläche sowie Auswahl und Reihenfolge der Adressfelder.',
+  'stand.user.title': 'Wer bestellt',
+  'stand.user.hint': 'Unterschiedlich ist nur der Ausgangszustand des Adressbuchs.',
+  'stand.variant.title': 'Checkout-Version',
+  'stand.variant.hint': 'Drei Versionen mit denselben Daten — genau die vergleichen wir.',
+  'stand.back': 'Zurück',
+  'stand.restart': 'Neu beginnen',
+
+  'country.ru': 'Russland',
+  'country.kz': 'Kasachstan',
+  'country.de': 'Deutschland',
+  'country.pl': 'Polen',
+  'country.cz': 'Tschechien',
+  'country.us': 'USA',
+
+  'user.new.title': 'Neuer Nutzer',
+  'user.new.hint': 'Das Adressbuch ist leer, die Adresse wird neu eingegeben',
+  'user.saved.title': 'Nutzer mit gespeicherten Adressen',
+  'user.saved.hint': 'Sechs Adressen: drei für Kurier, zwei Paketshops, ein Firmenbüro',
+
+  'variant.prod.title': 'Produktion',
+  'variant.prod.hint': 'Kontrollversion — so wie heute im Shop',
+  'variant.modal.title': 'Modales Fenster',
+  'variant.modal.hint': 'Konzept A — die Adresse wird in einem separaten Fenster hinzugefügt',
+  'variant.inline.title': 'Inline',
+  'variant.inline.hint': 'Konzept B — die Adresse wird direkt auf der Seite hinzugefügt',
 }

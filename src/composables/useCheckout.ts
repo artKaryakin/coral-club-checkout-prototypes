@@ -409,14 +409,13 @@ const isSummaryDetailsOpen = ref(false)
 const promoCode = ref('')
 
 export function useCheckout() {
-  const { caseConfig } = useStand()
+  const { hasSavedAddresses } = useStand()
 
   /**
-   * Наполнение адресной книги задаёт кейс: savedAddresses из cases.ts.
-   * Прежняя ось profile (new / returning) этим поглощается — «повторный
-   * вход» это просто кейс, у которого сохранённых адресов больше нуля.
+   * Наполнение адресной книги задаёт тип пользователя — вторая ось стенда.
+   * Прежние оси profile (new / returning) и кейс этим поглощаются.
    */
-  const hasAddressBook = computed(() => caseConfig.value.savedAddresses > 0)
+  const hasAddressBook = hasSavedAddresses
 
   /**
    * Сохранённые адреса есть только в сценарии повторного входа. У нового

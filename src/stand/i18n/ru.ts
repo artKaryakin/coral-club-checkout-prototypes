@@ -14,4 +14,37 @@ export default {
   'field.autofilled.hint': 'Заполняется автоматически',
   'group.address.title': 'Адрес доставки',
   'group.recipient.title': 'Получатель',
+
+  // Экран входа на стенд
+  'stand.title': 'Стенд прототипов чекаута',
+  'stand.step.country': 'Страна',
+  'stand.step.user': 'Пользователь',
+  'stand.step.variant': 'Версия',
+  'stand.country.title': 'Выберите страну',
+  'stand.country.hint': 'Страна задаёт язык интерфейса, а также набор и порядок полей адреса.',
+  'stand.user.title': 'Кто оформляет заказ',
+  'stand.user.hint': 'Отличается только стартовое состояние адресной книги.',
+  'stand.variant.title': 'Версия чекаута',
+  'stand.variant.hint': 'Три версии на одних и тех же данных — их и сравниваем.',
+  'stand.back': 'Назад',
+  'stand.restart': 'Начать заново',
+
+  'country.ru': 'Россия',
+  'country.kz': 'Казахстан',
+  'country.de': 'Германия',
+  'country.pl': 'Польша',
+  'country.cz': 'Чехия',
+  'country.us': 'США',
+
+  'user.new.title': 'Новый пользователь',
+  'user.new.hint': 'Адресная книга пуста, адрес вводится с нуля',
+  'user.saved.title': 'Пользователь с сохранёнными адресами',
+  'user.saved.hint': 'Шесть адресов: три курьерских, два пункта выдачи, один офис компании',
+
+  'variant.prod.title': 'Прод',
+  'variant.prod.hint': 'Контрольная версия — как сейчас на сайте',
+  'variant.modal.title': 'Модальное окно',
+  'variant.modal.hint': 'Концепт A — адрес добавляется в отдельном окне',
+  'variant.inline.title': 'Инлайн',
+  'variant.inline.hint': 'Концепт B — адрес добавляется прямо на странице',
 }

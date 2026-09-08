@@ -14,4 +14,37 @@ export default {
   'field.autofilled.hint': 'Vyplní se automaticky',
   'group.address.title': 'Doručovací adresa',
   'group.recipient.title': 'Příjemce',
+
+  // Vstupní obrazovka standu
+  'stand.title': 'Prototypy pokladny',
+  'stand.step.country': 'Země',
+  'stand.step.user': 'Uživatel',
+  'stand.step.variant': 'Verze',
+  'stand.country.title': 'Vyberte zemi',
+  'stand.country.hint': 'Země určuje jazyk rozhraní i výběr a pořadí adresních polí.',
+  'stand.user.title': 'Kdo objednává',
+  'stand.user.hint': 'Liší se pouze výchozí stav adresáře.',
+  'stand.variant.title': 'Verze pokladny',
+  'stand.variant.hint': 'Tři verze nad stejnými daty — právě ty porovnáváme.',
+  'stand.back': 'Zpět',
+  'stand.restart': 'Začít znovu',
+
+  'country.ru': 'Rusko',
+  'country.kz': 'Kazachstán',
+  'country.de': 'Německo',
+  'country.pl': 'Polsko',
+  'country.cz': 'Česko',
+  'country.us': 'Spojené státy',
+
+  'user.new.title': 'Nový uživatel',
+  'user.new.hint': 'Adresář je prázdný, adresa se zadává od začátku',
+  'user.saved.title': 'Uživatel s uloženými adresami',
+  'user.saved.hint': 'Šest adres: tři kurýrní, dvě výdejní místa, jedna firemní pobočka',
+
+  'variant.prod.title': 'Produkce',
+  'variant.prod.hint': 'Kontrolní verze — jak to vypadá dnes',
+  'variant.modal.title': 'Modální okno',
+  'variant.modal.hint': 'Koncept A — adresa se přidává v samostatném okně',
+  'variant.inline.title': 'Inline',
+  'variant.inline.hint': 'Koncept B — adresa se přidává přímo na stránce',
 }
