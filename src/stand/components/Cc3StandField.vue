@@ -22,7 +22,7 @@
       v-else-if="field.type === 'select'"
       :id="fieldId"
       v-model="value"
-      class="cc3-stand-field__control"
+      class="cc3-stand-field__select"
       :name="field.key"
       :autocomplete="field.autocomplete"
       :disabled="field.autofilled"
@@ -37,17 +37,16 @@
       v-else-if="field.type === 'textarea'"
       :id="fieldId"
       v-model="value"
-      class="cc3-stand-field__control cc3-stand-field__control--textarea"
+      class="cc3-stand-field__textarea"
       :name="field.key"
       :placeholder="field.placeholder"
       rows="3"
     />
 
-    <input
+    <Cc3InputField
       v-else
       :id="fieldId"
       v-model="value"
-      class="cc3-stand-field__control"
       :name="field.key"
       :type="inputType"
       :placeholder="field.placeholder"
@@ -62,15 +61,19 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
+
+import Cc3InputField from '@/components/Field/Cc3InputField.vue'
+
 import type { StandField } from '../config/types'
 import { useStand } from '../composables/useStand'
 
 /**
  * Универсальное поле формы.
  *
- * Настоящие input и label с for обязательны: без них не работает нативное
- * автозаполнение браузера и на мобильном открывается неправильная клавиатура.
- * Дивы вместо полей — самая частая ошибка при вёрстке по макету.
+ * Настоящие input/select/textarea и label с for обязательны: без них не
+ * работает нативное автозаполнение браузера и на мобильном открывается
+ * неправильная клавиатура. Дивы вместо полей — самая частая ошибка при
+ * вёрстке по макету.
  *
  * Поле с autofilled заполняется по индексу или из подсказки и вручную не
  * вводится — визуально это должно быть отличимо от введённого руками.
@@ -116,64 +119,86 @@ const modifiers = computed(() => ({
 .cc3-stand-field {
   display: flex;
   flex-direction: column;
-  gap: var(--st-global-distance-space-inset-xs);
+  gap: var(--st-global-distance-space-inset-sm);
 
   // Отступ задаётся самому полю, а не через соседей: порядок полей приходит
   // из конфига страны и непостоянен, селекторы вида :nth-child и + сломаются.
-  margin-block-end: var(--st-global-distance-space-inset-lg);
+  margin-block-end: var(--st-global-distance-space-inset-xl);
   width: 100%;
 
   &__label {
-    color: var(--st-content-foreground-color-neutral-tetriary);
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__required {
+    @include font('label-xs');
+
     color: var(--st-content-foreground-color-negative-primary);
   }
 
-  &__control {
-    padding: var(--st-global-distance-space-inset-md);
+  &__select,
+  &__textarea {
+    padding: 0 var(--st-global-distance-space-inset-md);
     width: 100%;
+
+    font-family: inherit;
+
+    @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
     background-color: var(--st-content-background-color-neutral-primary);
-    border-color: var(--st-action-border-color-neutral-subtle-normal);
-    border-style: solid;
-    border-width: 1px;
-    border-radius: var(--st-global-radius-md);
+    border: 2px solid var(--st-content-border-color-neutral-implicit);
+    border-radius: var(--st-global-radius-sm);
 
-    &--textarea {
-      resize: vertical;
+    &:disabled {
+      background-color: var(--st-content-background-color-neutral-subtle);
     }
+  }
+
+  &__select {
+    height: 44px;
+  }
+
+  &__textarea {
+    padding-top: var(--st-global-distance-space-inset-md);
+    padding-bottom: var(--st-global-distance-space-inset-md);
+
+    resize: vertical;
   }
 
   &__chips {
     display: flex;
     flex-wrap: wrap;
-    gap: var(--st-global-distance-space-inset-sm);
+    gap: var(--st-global-distance-space-inset-md);
   }
 
   &__chip {
-    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-lg);
+    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-xl);
+
+    @include font('label-sm');
 
     color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-content-background-color-neutral-secondary);
-    border: none;
-    border-radius: var(--st-global-radius-lg);
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 1px solid var(--st-content-border-color-neutral-implicit);
+    border-radius: var(--st-global-radius-pill);
     cursor: pointer;
 
     &--active {
-      color: var(--st-content-foreground-color-primary-secondary);
-      background-color: var(--st-content-background-color-primary-subtle);
+      color: var(--st-action-foreground-color-positive-normal);
+      border-color: var(--st-action-foreground-color-positive-normal);
     }
   }
 
   &__hint {
-    color: var(--st-content-foreground-color-neutral-tetriary);
-  }
+    @include font('body-xs');
 
-  &--autofilled &__control {
-    background-color: var(--st-content-background-color-neutral-secondary);
+    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 }
 </style>

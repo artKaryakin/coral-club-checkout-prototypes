@@ -5,6 +5,10 @@ type Props = {
   placeholder?: string
   invalid?: boolean
   inputmode?: 'text' | 'numeric' | 'decimal' | 'tel' | 'email' | 'url' | 'search' | 'none'
+  id?: string
+  name?: string
+  autocomplete?: string
+  readonly?: boolean
 }
 
 withDefaults(defineProps<Props>(), {
@@ -12,20 +16,31 @@ withDefaults(defineProps<Props>(), {
   placeholder: undefined,
   invalid: false,
   inputmode: undefined,
+  id: undefined,
+  name: undefined,
+  autocomplete: undefined,
+  readonly: false,
 })
 
 const model = defineModel<string>({ default: '' })
 </script>
 
 <template>
-  <span class="cc3-input-field" :class="{ 'cc3-input-field--invalid': invalid }">
+  <span
+    class="cc3-input-field"
+    :class="{ 'cc3-input-field--invalid': invalid, 'cc3-input-field--readonly': readonly }"
+  >
     <slot name="prefix" />
 
     <input
+      :id="id"
       v-model="model"
       :type="type"
+      :name="name"
       :placeholder="placeholder"
       :inputmode="inputmode"
+      :autocomplete="autocomplete"
+      :readonly="readonly"
       class="cc3-input-field__input"
     />
   </span>
@@ -58,6 +73,10 @@ const model = defineModel<string>({ default: '' })
 
   &--invalid {
     border-color: var(--st-content-border-color-negative-explicit);
+  }
+
+  &--readonly {
+    background-color: var(--st-content-background-color-neutral-subtle);
   }
 
   &__input {

@@ -6,9 +6,10 @@ import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
-import Cc3StandFields from '@/stand/components/Cc3StandFields.vue'
-import type { FieldKey } from '@/stand/config/types'
+import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
+import { useStandFields } from '@/stand/composables/useStandFields'
+import type { FieldKey } from '@/stand/config/types'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
@@ -46,16 +47,7 @@ const text = computed(() => ({
   openUntil: t('pickup.openUntil'),
   addressSection: t('address.title'),
   addressPlaceholder: t('field.street.placeholder'),
-  house: t('address.house'),
-  apartment: t('address.apartment'),
-  floor: t('address.floor'),
-  entrance: t('address.entrance'),
-  intercom: t('address.intercom'),
-  postal: t('address.postal'),
   recipientSection: t('group.recipient.title'),
-  nameSurname: t('recipient.nameSurname'),
-  phone: t('recipient.phone'),
-  email: t('recipient.email'),
   favorite: t('address.favorite'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
@@ -217,6 +209,12 @@ const pickupMapMarkers = computed(() =>
 // рынка к рынку. Пустое значение показывает плейсхолдер с местным
 // примером — «Москва, ул. Москворечье, 43» или «350 5th Ave».
 const values = ref<Partial<Record<FieldKey, string>>>({})
+
+// Собственная вёрстка вместо Cc3StandFields (черновой заглушки ядра) —
+// состав и порядок полей по-прежнему из конфига страны, а оформление,
+// сетка в две колонки для half-полей и переходы между брейкпоинтами свои.
+const { fields: addressFields } = useStandFields('address')
+const { fields: recipientFields } = useStandFields('recipient')
 
 function seedValues() {
   const profile = props.editProfile
@@ -478,11 +476,25 @@ function onOverlayKeydown(event: KeyboardEvent) {
           <template v-else-if="step === 'address-form'">
             <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.addressSection }}</h3>
 
-            <Cc3StandFields v-model="values" group="address" />
+            <div class="cc3-modal-delivery-dialog__fields">
+              <Cc3StandField
+                v-for="field in addressFields"
+                :key="field.key"
+                v-model="values[field.key]"
+                :field="field"
+              />
+            </div>
 
             <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
-            <Cc3StandFields v-model="values" group="recipient" />
+            <div class="cc3-modal-delivery-dialog__fields">
+              <Cc3StandField
+                v-for="field in recipientFields"
+                :key="field.key"
+                v-model="values[field.key]"
+                :field="field"
+              />
+            </div>
 
             <label class="cc3-modal-delivery-dialog__favorite">
               <span>{{ text.favorite }}</span>
@@ -537,7 +549,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <div v-if="isRecipientVisible" class="cc3-modal-delivery-dialog__recipient">
                 <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
-                <Cc3StandFields v-model="values" group="recipient" />
+                <div class="cc3-modal-delivery-dialog__fields">
+                  <Cc3StandField
+                    v-for="field in recipientFields"
+                    :key="field.key"
+                    v-model="values[field.key]"
+                    :field="field"
+                  />
+                </div>
               </div>
             </Transition>
           </template>
@@ -911,6 +930,21 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
   &__recipient {
     padding-top: var(--st-global-distance-space-inset-md);
+  }
+
+  &__fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 var(--st-global-distance-space-inset-2xl);
+
+    padding-bottom: var(--st-global-distance-space-inset-sm);
+
+    // half — не своя модификация, а флаг из конфига страны (см. Cc3StandField):
+    // поле встаёт в половину строки, а не на всю ширину.
+    .cc3-stand-field--half {
+      flex: 1 1 calc(50% - var(--st-global-distance-space-inset-2xl));
+      min-width: 140px;
+    }
   }
 
   &__footer {
