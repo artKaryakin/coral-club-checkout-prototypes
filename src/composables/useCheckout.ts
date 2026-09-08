@@ -6,7 +6,7 @@ import dSprayImg from '@/assets/products/d-spray.png'
 import ultimateMaxImg from '@/assets/products/ultimate-max.png'
 import { formatDecimal, formatPrice, formatPriceRounded } from '@/utils/formatPrice'
 
-import { useVariant } from './useVariant'
+import { useStand } from '@/stand/composables/useStand'
 
 export type DeliveryMethod = 'courier' | 'pickup'
 
@@ -409,7 +409,14 @@ const isSummaryDetailsOpen = ref(false)
 const promoCode = ref('')
 
 export function useCheckout() {
-  const { hasAddressBook } = useVariant()
+  const { caseConfig } = useStand()
+
+  /**
+   * Наполнение адресной книги задаёт кейс: savedAddresses из cases.ts.
+   * Прежняя ось profile (new / returning) этим поглощается — «повторный
+   * вход» это просто кейс, у которого сохранённых адресов больше нуля.
+   */
+  const hasAddressBook = computed(() => caseConfig.value.savedAddresses > 0)
 
   /**
    * Сохранённые адреса есть только в сценарии повторного входа. У нового

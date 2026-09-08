@@ -43,6 +43,17 @@ function isCountry(value: string | undefined): value is CountryCode {
   return countryCodes.includes(value as CountryCode)
 }
 
+/**
+ * Прежняя схема адреса — #/{variant}/{profile}, где profile это new или
+ * returning. Такие ссылки лежат в закладках и в переписке, поэтому вместо
+ * пустого экрана открывается эквивалентный кейс: профиль отличался ровно
+ * наполнением адресной книги, а его теперь задаёт кейс.
+ */
+const legacyProfileCases: Record<string, CaseId> = {
+  new: defaultCase,
+  returning: 'UC-05',
+}
+
 function parseHash(): StandRoute | undefined {
   const [path, query] = window.location.hash.replace(/^#\/?/, '').split('?')
   const [variant, country, caseId] = path.split('/').filter(Boolean)
@@ -51,9 +62,21 @@ function parseHash(): StandRoute | undefined {
     return undefined
   }
 
+  const legacyCase = isCountry(country) ? undefined : legacyProfileCases[country ?? '']
+
   const resolvedCountry = isCountry(country) ? country : defaultCountry
-  const resolvedCase = isCaseId(caseId) ? caseId : defaultCase
+  const resolvedCase = legacyCase ?? (isCaseId(caseId) ? caseId : defaultCase)
   const requestedLocale = new URLSearchParams(query ?? '').get('locale') ?? undefined
+
+  if (legacyCase) {
+    // Адрес в строке браузера подменяется на канонический: ссылка из отчёта
+    // должна совпадать с тем, что видит респондент. replaceState не создаёт
+    // запись в истории и не вызывает hashchange, поэтому маршрут возвращается
+    // здесь же, а не ждёт повторного разбора.
+    const canonical = `#/${variant}/${resolvedCountry}/${resolvedCase}`
+
+    window.history.replaceState(null, '', query ? `${canonical}?${query}` : canonical)
+  }
 
   return {
     variant,
