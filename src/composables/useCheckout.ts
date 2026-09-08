@@ -8,7 +8,7 @@ import { formatDecimal, formatPrice, formatPriceRounded } from '@/utils/formatPr
 
 import { addressBook } from '@/stand/config/addresses'
 import { pickupPoints as standPickupPoints } from '@/stand/config/pickupPoints'
-import type { PickupProviderCode } from '@/stand/config/types'
+import type { PickupProviderCode, StandAddressFields } from '@/stand/config/types'
 import { useStand } from '@/stand/composables/useStand'
 
 export type DeliveryMethod = 'courier' | 'pickup'
@@ -119,6 +119,12 @@ export type AddressBookEntry = {
    * Заполненные поля адреса — только для способа courier
    */
   address?: DeliveryAddress
+
+  /**
+   * Значения полей адреса в том виде, в каком их задаёт конфиг страны.
+   * Нужны вариантам, которые строят форму через useStandFields.
+   */
+  fields?: StandAddressFields
 
   /**
    * Пункт самовывоза — только для способа pickup
@@ -344,7 +350,19 @@ export function useCheckout() {
       email: entry.email,
       city: entry.city,
       addressLine: entry.addressLine,
-      address: entry.address,
+      // Прод-версия держит свой набор полей: она пока не переведена
+      // на конфиг страны. Раскладываем значения ядра в её форму.
+      address: entry.address && {
+        search: entry.address.street,
+        houseNumber: '',
+        apartment: entry.address.apartment,
+        floor: entry.address.floor,
+        entrance: entry.address.entrance,
+        intercom: entry.address.intercom,
+        postalCode: entry.address.postal,
+        district: '',
+      },
+      fields: entry.address,
       pickupPointId: entry.pickupPointId,
       methodLabel: t(entry.methodKey),
       price: entry.price,

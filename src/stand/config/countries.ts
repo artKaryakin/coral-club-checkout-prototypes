@@ -1,39 +1,77 @@
 import type { CountryCode, CountryConfig } from './types'
+import { usStates } from './usStates'
 
 /**
- * Набор и ПОРЯДОК полей по странам.
+ * Набор и ПОРЯДОК полей по странам — в формате, привычном для рынка.
+ *
+ * Форма не переводится с русского на другие языки, а собирается заново под
+ * каждый рынок. Три образца, на которые ориентировались:
+ *
+ *  - RU/KZ — курьерская доставка по городу: адрес одной строкой, дальше
+ *    квартира, подъезд, этаж, домофон и комментарий курьеру. Улица и дом
+ *    отдельными полями не разносятся — так их не вводят ни в одном
+ *    из привычных сервисов;
+ *  - DE/PL/CZ — почтовая доставка: строка адреса, необязательная квартира,
+ *    индекс и город. Имя и фамилия — отдельные поля, «отчества» нет;
+ *  - US — то же самое плюс штат отдельным селектом.
  *
  * Два правила, общие для всех рынков:
- *  1. Строка полного автокомплита — первый элемент формы.
- *  2. Почтовый индекс стоит ВЫШЕ города и региона, а город и регион
- *     заполняются автоматически и вручную не вводятся.
+ *  1. Строка адреса с подсказками — первый элемент формы.
+ *  2. Индекс стоит ВЫШЕ города и региона, а город и регион заполняются
+ *     автоматически и вручную не вводятся. Это и есть предмет редизайна:
+ *     ручной ввод города — самая дорогая ошибка в текущей форме.
  *
  * Порядок массива = порядок полей на экране. Менять порядок для страны —
  * правка одной строки здесь, во всех вариантах интерфейса сразу.
  */
+
+/** Курьерская доставка по городу: RU и KZ отличаются только данными. */
+const cisAddress: CountryConfig['address'] = [
+  { key: 'addressLabel' },
+  { key: 'street', required: true },
+  { key: 'apartment', half: true },
+  { key: 'entrance', half: true },
+  { key: 'floor', half: true },
+  { key: 'intercom', half: true },
+  { key: 'postal', autofilled: true, required: true, half: true },
+  { key: 'city', autofilled: true, required: true, half: true },
+  { key: 'comment' },
+]
+
+const cisRecipient: CountryConfig['recipient'] = [
+  { key: 'recipientName', required: true },
+  { key: 'recipientPhone', required: true },
+  { key: 'recipientEmail', required: true },
+]
+
+/** Почтовая доставка в Европе: строка адреса, квартира, индекс, город. */
+const euAddress: CountryConfig['address'] = [
+  { key: 'street', required: true },
+  { key: 'apartment' },
+  { key: 'postal', required: true, half: true },
+  { key: 'city', autofilled: true, required: true, half: true },
+]
+
+/** В Европе и США имя и фамилия — разные поля, отчества нет. */
+const euRecipient: CountryConfig['recipient'] = [
+  { key: 'recipientFirstName', required: true, half: true },
+  { key: 'recipientLastName', required: true, half: true },
+  { key: 'recipientPhone', required: true },
+  { key: 'recipientEmail', required: true },
+]
+
 export const countries: Record<CountryCode, CountryConfig> = {
   ru: {
     code: 'ru',
     flag: '🇷🇺',
     currency: 'RUB',
     intlLocale: 'ru-RU',
-    city: 'Москва, Москва',
+    city: 'Москва',
     mapCenter: { lat: 55.7522, lng: 37.6156 },
     locale: 'ru',
     provider: 'dadata',
-    address: [
-      { key: 'lookup' },
-      { key: 'street', required: true },
-      { key: 'house', required: true },
-      { key: 'apartment' },
-      { key: 'postal', required: true },
-      { key: 'city', autofilled: true, required: true },
-    ],
-    recipient: [
-      { key: 'recipientName', required: true },
-      { key: 'recipientPhone', required: true },
-      { key: 'recipientEmail' },
-    ],
+    address: cisAddress,
+    recipient: cisRecipient,
   },
 
   kz: {
@@ -45,19 +83,8 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 43.2389, lng: 76.8897 },
     locale: 'ru',
     provider: 'twogis',
-    address: [
-      { key: 'lookup' },
-      { key: 'street', required: true },
-      { key: 'house', required: true },
-      { key: 'apartment' },
-      { key: 'postal', required: true },
-      { key: 'city', autofilled: true, required: true },
-    ],
-    recipient: [
-      { key: 'recipientName', required: true },
-      { key: 'recipientPhone', required: true },
-      { key: 'recipientEmail' },
-    ],
+    address: cisAddress,
+    recipient: cisRecipient,
   },
 
   de: {
@@ -66,22 +93,11 @@ export const countries: Record<CountryCode, CountryConfig> = {
     currency: 'EUR',
     intlLocale: 'de-DE',
     city: 'Berlin',
-    mapCenter: { lat: 52.5200, lng: 13.4050 },
+    mapCenter: { lat: 52.52, lng: 13.405 },
     locale: 'de',
     provider: 'loqate',
-    address: [
-      { key: 'lookup' },
-      { key: 'street', required: true },
-      { key: 'house', required: true },
-      { key: 'apartment' },
-      { key: 'postal', required: true },
-      { key: 'city', autofilled: true, required: true },
-    ],
-    recipient: [
-      { key: 'recipientName', required: true },
-      { key: 'recipientPhone', required: true },
-      { key: 'recipientEmail' },
-    ],
+    address: euAddress,
+    recipient: euRecipient,
   },
 
   pl: {
@@ -93,19 +109,8 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 52.2297, lng: 21.0122 },
     locale: 'pl',
     provider: 'loqate',
-    address: [
-      { key: 'lookup' },
-      { key: 'street', required: true },
-      { key: 'house', required: true },
-      { key: 'apartment' },
-      { key: 'postal', required: true },
-      { key: 'city', autofilled: true, required: true },
-    ],
-    recipient: [
-      { key: 'recipientName', required: true },
-      { key: 'recipientPhone', required: true },
-      { key: 'recipientEmail' },
-    ],
+    address: euAddress,
+    recipient: euRecipient,
   },
 
   cz: {
@@ -117,19 +122,8 @@ export const countries: Record<CountryCode, CountryConfig> = {
     mapCenter: { lat: 50.0755, lng: 14.4378 },
     locale: 'cs',
     provider: 'loqate',
-    address: [
-      { key: 'lookup' },
-      { key: 'street', required: true },
-      { key: 'house', required: true },
-      { key: 'apartment' },
-      { key: 'postal', required: true },
-      { key: 'city', autofilled: true, required: true },
-    ],
-    recipient: [
-      { key: 'recipientName', required: true },
-      { key: 'recipientPhone', required: true },
-      { key: 'recipientEmail' },
-    ],
+    address: euAddress,
+    recipient: euRecipient,
   },
 
   us: {
@@ -137,33 +131,21 @@ export const countries: Record<CountryCode, CountryConfig> = {
     flag: '🇺🇸',
     currency: 'USD',
     intlLocale: 'en-US',
-    city: 'New York, NY',
-    mapCenter: { lat: 40.7128, lng: -74.0060 },
+    city: 'New York',
+    mapCenter: { lat: 40.7128, lng: -74.006 },
     locale: 'en',
     provider: 'loqate',
-    // В США номер дома входит в street line — отдельного поля «дом» нет.
-    // Штат выводится из ZIP и вручную не выбирается.
+    // Номер дома входит в строку адреса — отдельного поля «дом» нет.
+    // Город и штат выводятся из ZIP и вручную не вводятся.
     address: [
-      { key: 'lookup' },
       { key: 'street', required: true },
       { key: 'apartment' },
-      { key: 'postal', required: true },
-      { key: 'city', autofilled: true, required: true },
+      { key: 'postal', required: true, half: true },
+      { key: 'city', autofilled: true, required: true, half: true },
       { key: 'region', type: 'select', autofilled: true, required: true },
     ],
-    recipient: [
-      { key: 'recipientName', required: true },
-      { key: 'recipientPhone', required: true },
-      { key: 'recipientEmail' },
-    ],
-    regions: [
-      { value: 'CA', label: 'California' },
-      { value: 'NY', label: 'New York' },
-      { value: 'TX', label: 'Texas' },
-      { value: 'FL', label: 'Florida' },
-      { value: 'IL', label: 'Illinois' },
-      // Полный список штатов и территорий — при подключении провайдера.
-    ],
+    recipient: euRecipient,
+    regions: usStates,
   },
 }
 

@@ -40,6 +40,7 @@ function toProfiles(): DeliveryProfile[] {
     id: entry.id,
     method: entry.method,
     typeLabel: entry.methodLabel,
+    fields: entry.fields,
     name: entry.fullName,
     addressLine: entry.addressLine,
     priceLabel: `${t('delivery.eta')}, ${
@@ -62,13 +63,22 @@ const text = computed(() => ({
 
 const addressBookEntries = ref<DeliveryProfile[]>(toProfiles())
 
+/**
+ * У пользователя с сохранёнными адресами один из них выбран на старте —
+ * иначе он встречает пустой экран «Добавить адрес» и сценарий выбора
+ * из книги вообще не запускается.
+ */
+function defaultSelectedId() {
+  return addressBookEntries.value[0]?.id
+}
+
 watch([country, user], () => {
   addressBookEntries.value = toProfiles()
-  selectedEntryId.value = undefined
+  selectedEntryId.value = defaultSelectedId()
   editingEntryId.value = undefined
 })
 
-const selectedEntryId = ref<string>()
+const selectedEntryId = ref<string | undefined>(addressBookEntries.value[0]?.id)
 const editingEntryId = ref<string>()
 const isAddressBookOpen = ref(false)
 const isDialogOpen = ref(false)

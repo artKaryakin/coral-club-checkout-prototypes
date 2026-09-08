@@ -1,3 +1,5 @@
+import type { FieldKey } from '@/stand/config/types'
+
 export type DeliveryProfileMethod = 'courier' | 'pickup'
 
 /**
@@ -8,6 +10,13 @@ export type DeliveryProfileMethod = 'courier' | 'pickup'
 export type DeliveryProfile = {
   id: string
   method: DeliveryProfileMethod
+
+  /**
+   * Значения полей адреса по ключам конфига страны. Нужны, чтобы форма
+   * редактирования открывалась заполненной — состав полей у каждой страны
+   * свой, поэтому не отдельные поля, а словарь.
+   */
+  fields?: Partial<Record<FieldKey, string>>
 
   /**
    * Подпись типа над именем: «Courier», «Office», «SDEK» и т.п.
