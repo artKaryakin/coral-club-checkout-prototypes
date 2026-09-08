@@ -5,11 +5,14 @@ import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
+import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import type { FieldKey } from '@/stand/config/types'
+import { applySuggestion, reverseAddress } from '@/stand/suggest'
+import type { AddressSuggestion } from '@/stand/suggest'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
@@ -216,8 +219,13 @@ const values = ref<Partial<Record<FieldKey, string>>>({})
 const { fields: addressFields } = useStandFields('address')
 const { fields: recipientFields } = useStandFields('recipient')
 
+/** Точка выбранного адреса. Пока адрес не выбран, карта стоит на центре города. */
+const addressPoint = ref<MapPoint>()
+
 function seedValues() {
   const profile = props.editProfile
+
+  addressPoint.value = undefined
 
   if (!profile) {
     values.value = {}
@@ -251,6 +259,54 @@ const addressSearch = computed({
     values.value = { ...values.value, street: value }
   },
 })
+
+/**
+ * Поиск на карте — то же поле, что и в форме, только названное по-другому.
+ * Брать его из конфига важно: подсказки, клавиатура и разбор подсказки
+ * должны вести себя одинаково на обоих шагах.
+ */
+const searchField = computed(() => {
+  const field = addressFields.value.find((item) => item.key === 'street')
+
+  return field ? { ...field, label: text.value.findAddress } : undefined
+})
+
+const courierCenter = computed<MapPoint>(() => addressPoint.value ?? mapCenter.value)
+
+const courierMarkers = computed(() => [{ id: 'address', ...courierCenter.value }])
+
+let reverseController: AbortController | undefined
+
+function fillFromSuggestion(suggestion: AddressSuggestion) {
+  values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value)
+}
+
+/** Выбор подсказки — адрес в поля, метка на карту. */
+function onSuggestionSelect(suggestion: AddressSuggestion) {
+  fillFromSuggestion(suggestion)
+
+  if (suggestion.lat !== undefined && suggestion.lng !== undefined) {
+    addressPoint.value = { lat: suggestion.lat, lng: suggestion.lng }
+  }
+}
+
+/**
+ * Тычок в карту — обратное геокодирование. Метка встаёт сразу, адрес
+ * подставляется, когда придёт ответ: ждать ответа, чтобы сдвинуть метку,
+ * значит показать залипшую карту.
+ */
+async function onMapSelect(point: MapPoint) {
+  addressPoint.value = point
+
+  reverseController?.abort()
+  reverseController = new AbortController()
+
+  const suggestion = await reverseAddress(point, country.value, reverseController.signal)
+
+  if (suggestion) {
+    fillFromSuggestion(suggestion)
+  }
+}
 
 const recipientDisplayName = computed(() =>
   values.value.recipientName?.trim() ||
@@ -375,10 +431,11 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <div class="cc3-modal-delivery-dialog__map">
               <Cc3Map
                 v-if="method === 'courier'"
-                :center="mapCenter"
+                :center="courierCenter"
                 :zoom="14"
-                :markers="[{ id: 'city', lat: mapCenter.lat, lng: mapCenter.lng }]"
+                :markers="courierMarkers"
                 :height="380"
+                @select="onMapSelect"
               >
                 <template #marker>
                   <Cc3MapPin variant="address" icon="delivery-truck" />
@@ -405,11 +462,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
             <template v-if="method === 'courier'">
               <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">
-                  {{ text.findAddress }}
-                  <span class="cc3-modal-delivery-dialog__required">*</span>
-                </span>
-                <Cc3InputField v-model="addressSearch" type="text" :placeholder="text.addressPlaceholder" />
+                <Cc3StandField
+                  v-if="searchField"
+                  v-model="addressSearch"
+                  :field="searchField"
+                  @select="onSuggestionSelect"
+                />
               </div>
 
               <div class="cc3-modal-delivery-dialog__variants">
@@ -482,6 +540,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :key="field.key"
                 v-model="values[field.key]"
                 :field="field"
+                @select="onSuggestionSelect"
               />
             </div>
 

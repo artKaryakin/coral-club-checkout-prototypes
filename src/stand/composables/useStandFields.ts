@@ -32,6 +32,7 @@ export function useStandFields(group: FieldGroup) {
         autocomplete: autocompleteByKey[field.key],
         required: field.required ?? false,
         autofilled: field.autofilled ?? false,
+        prefilled: field.prefilled ?? false,
         half: field.half ?? false,
         options:
           field.key === 'region'

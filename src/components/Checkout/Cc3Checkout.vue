@@ -4,7 +4,6 @@ import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 
 import Cc3CheckoutAddressTabs from './Cc3CheckoutAddressTabs.vue'
 import Cc3CheckoutCity from './Cc3CheckoutCity.vue'
-import Cc3CheckoutComment from './Cc3CheckoutComment.vue'
 import Cc3CheckoutConsent from './Cc3CheckoutConsent.vue'
 import Cc3CheckoutDelivery from './Cc3CheckoutDelivery.vue'
 import Cc3CheckoutPayment from './Cc3CheckoutPayment.vue'
@@ -60,7 +59,6 @@ const text = computed(() => ({
           <Cc3CheckoutPayment />
         </div>
 
-        <Cc3CheckoutComment />
         <Cc3CheckoutConsent />
         <Cc3CheckoutSubmit />
       </div>

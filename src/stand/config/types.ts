@@ -47,6 +47,13 @@ export interface FieldConfig {
   required?: boolean
   /** Заполняется автоматически по индексу или из подсказки, вручную не вводится. */
   autofilled?: boolean
+  /**
+   * Подставляется из подсказки, но остаётся обычным полем: значение можно
+   * дописать и исправить, формат не проверяется. Отличается от autofilled
+   * тем, что подсказка может ничего не вернуть — тогда пользователь вводит
+   * значение сам, и поле не должно ему мешать.
+   */
+  prefilled?: boolean
   /** Своя ширина в сетке варианта: половина строки вместо целой. */
   half?: boolean
 }
@@ -61,6 +68,7 @@ export interface StandField {
   autocomplete: string
   required: boolean
   autofilled: boolean
+  prefilled: boolean
   half: boolean
   options?: { value: string; label: string }[]
 }
@@ -95,6 +103,8 @@ export interface StandPickupPoint {
 export interface StandAddressFields {
   addressLabel: string
   street: string
+  /** Отдельным полем только там, где так принято вводить адрес. */
+  house?: string
   apartment: string
   entrance: string
   floor: string
@@ -137,8 +147,14 @@ export interface CountryConfig {
   /** Город по умолчанию и центр карты — на старте показывается он. */
   city: string
   mapCenter: { lat: number; lng: number }
-  /** Провайдер подсказок адресов для этой страны. */
-  provider: 'dadata' | 'loqate' | 'google' | 'twogis'
+  /**
+   * Провайдер подсказок адресов для этой страны.
+   *
+   * Значение целевое, для прода. На стенде живая реализация пока одна —
+   * бесплатный слой photon (OSM); остальные коды подставляют её же, пока
+   * не появится ключ. Смена провайдера для страны — правка одной строки.
+   */
+  provider: 'dadata' | 'loqate' | 'google' | 'twogis' | 'photon'
   address: FieldConfig[]
   recipient: FieldConfig[]
   /** Варианты для полей типа select (регионы, штаты). */
