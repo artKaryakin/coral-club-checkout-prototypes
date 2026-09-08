@@ -11,19 +11,32 @@ export type CountryCode = 'ru' | 'kz' | 'de' | 'pl' | 'cz' | 'us'
 export type LocaleCode = 'ru' | 'en' | 'de' | 'pl' | 'cs'
 
 export type FieldKey =
-  | 'lookup'
+  | 'addressLabel'
   | 'street'
   | 'house'
   | 'apartment'
+  | 'entrance'
+  | 'floor'
+  | 'intercom'
   | 'postal'
   | 'city'
   | 'region'
-  | 'country'
+  | 'comment'
   | 'recipientName'
+  | 'recipientFirstName'
+  | 'recipientLastName'
   | 'recipientPhone'
   | 'recipientEmail'
 
-export type FieldType = 'text' | 'select' | 'autocomplete' | 'phone' | 'email'
+export type FieldType =
+  | 'text'
+  | 'select'
+  | 'autocomplete'
+  | 'phone'
+  | 'email'
+  | 'textarea'
+  /** Набор взаимоисключающих кнопок — «Дом / Работа / Своё название». */
+  | 'chips'
 
 export type FieldGroup = 'address' | 'recipient'
 
@@ -34,6 +47,8 @@ export interface FieldConfig {
   required?: boolean
   /** Заполняется автоматически по индексу или из подсказки, вручную не вводится. */
   autofilled?: boolean
+  /** Своя ширина в сетке варианта: половина строки вместо целой. */
+  half?: boolean
 }
 
 /** Готовое к рендеру поле — то, что получает вариант интерфейса. */
@@ -41,9 +56,12 @@ export interface StandField {
   key: FieldKey
   type: FieldType
   label: string
+  /** Подсказка внутри поля — местный формат адреса, а не «введите значение». */
+  placeholder: string
   autocomplete: string
   required: boolean
   autofilled: boolean
+  half: boolean
   options?: { value: string; label: string }[]
 }
 
@@ -70,16 +88,21 @@ export interface StandPickupPoint {
   lng: number
 }
 
-/** Заполненные поля адреса — только для курьерской доставки. */
+/**
+ * Заполненные поля адреса — только для курьерской доставки.
+ * Ключи совпадают с FieldKey: это те же поля, но со значениями.
+ */
 export interface StandAddressFields {
-  search: string
-  houseNumber: string
+  addressLabel: string
+  street: string
   apartment: string
-  floor: string
   entrance: string
+  floor: string
   intercom: string
-  postalCode: string
-  district: string
+  postal: string
+  city: string
+  region: string
+  comment: string
 }
 
 /**
@@ -128,29 +151,39 @@ export interface CountryConfig {
  * это заметно быстрее ручного ввода и меньше опечаток.
  */
 export const autocompleteByKey: Record<FieldKey, string> = {
-  lookup: 'off',
+  addressLabel: 'off',
   street: 'address-line1',
   house: 'address-line1',
   apartment: 'address-line2',
+  entrance: 'off',
+  floor: 'off',
+  intercom: 'off',
   postal: 'postal-code',
   city: 'address-level2',
   region: 'address-level1',
-  country: 'country-name',
+  comment: 'off',
   recipientName: 'name',
+  recipientFirstName: 'given-name',
+  recipientLastName: 'family-name',
   recipientPhone: 'tel',
   recipientEmail: 'email',
 }
 
 export const defaultTypeByKey: Record<FieldKey, FieldType> = {
-  lookup: 'autocomplete',
-  street: 'text',
+  addressLabel: 'chips',
+  street: 'autocomplete',
   house: 'text',
   apartment: 'text',
+  entrance: 'text',
+  floor: 'text',
+  intercom: 'text',
   postal: 'text',
   city: 'text',
   region: 'text',
-  country: 'text',
+  comment: 'textarea',
   recipientName: 'text',
+  recipientFirstName: 'text',
+  recipientLastName: 'text',
   recipientPhone: 'phone',
   recipientEmail: 'email',
 }

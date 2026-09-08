@@ -18,21 +18,33 @@ import type { CountryCode, StandAddress, StandAddressFields } from './types'
  * разобрать чужой формат адреса.
  */
 
+/**
+ * Значения полей адреса. Ключи совпадают с FieldKey — это те же поля,
+ * которые отдаёт useStandFields, только уже заполненные.
+ *
+ * Заполнены ровно те, что есть в форме этой страны: в России — подъезд,
+ * этаж и домофон, в США — штат. Лишние остаются пустыми и в форму
+ * не попадают.
+ */
 function fields(
-  search: string,
-  houseNumber: string,
+  street: string,
   apartment: string,
-  postalCode: string,
+  postal: string,
+  city: string,
+  extra: Partial<StandAddressFields> = {},
 ): StandAddressFields {
   return {
-    search,
-    houseNumber,
+    addressLabel: 'home',
+    street,
     apartment,
-    floor: '',
     entrance: '',
+    floor: '',
     intercom: '',
-    postalCode,
-    district: '',
+    postal,
+    city,
+    region: '',
+    comment: '',
+    ...extra,
   }
 }
 
@@ -46,9 +58,14 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Иванов Иван Иванович',
       phone: '+7 999 111-22-33',
       email: 'qa.auto.checkout+ru@example.com',
-      city: 'Москва, Москва',
+      city: 'Москва',
       addressLine: 'проспект Берёзовой Рощи, 12, кв. 45, Москва, 125252',
-      address: fields('проспект Берёзовой Рощи', '12', '45', '125252'),
+      address: fields('Москва, проспект Берёзовой Рощи, 12', '45', '125252', 'Москва', {
+        entrance: '2',
+        floor: '5',
+        intercom: '45К',
+        comment: 'Код от подъезда 1234',
+      }),
       price: 1349,
     },
     {
@@ -58,9 +75,13 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Иванова Мария Петровна',
       phone: '+7 999 222-33-44',
       email: 'qa.auto.checkout+ru@example.com',
-      city: 'Москва, Москва',
+      city: 'Москва',
       addressLine: 'Ленинградский проспект, 80, кв. 12, Москва, 125315',
-      address: fields('Ленинградский проспект', '80', '12', '125315'),
+      address: fields('Москва, Ленинградский проспект, 80', '12', '125315', 'Москва', {
+        addressLabel: 'work',
+        entrance: '1',
+        floor: '3',
+      }),
       price: 1349,
     },
     {
@@ -70,9 +91,14 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Петров Сергей Николаевич',
       phone: '+7 999 333-44-55',
       email: 'qa.auto.checkout+ru@example.com',
-      city: 'Москва, Москва',
+      city: 'Москва',
       addressLine: 'Кутузовский проспект, 24, кв. 3, Москва, 121165',
-      address: fields('Кутузовский проспект', '24', '3', '121165'),
+      address: fields('Москва, Кутузовский проспект, 24', '3', '121165', 'Москва', {
+        addressLabel: 'custom',
+        entrance: '4',
+        floor: '2',
+        intercom: '3В',
+      }),
       price: 1349,
     },
     {
@@ -82,7 +108,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Иванов Иван Иванович',
       phone: '+7 999 111-22-33',
       email: 'qa.auto.checkout+ru@example.com',
-      city: 'Москва, Москва',
+      city: 'Москва',
       addressLine: 'ул. Академика Виноградова, 5, Москва, 117133',
       pickupPointId: 'ru-cdek-vinogradova',
       price: 0,
@@ -94,7 +120,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Иванов Иван Иванович',
       phone: '+7 999 111-22-33',
       email: 'qa.auto.checkout+ru@example.com',
-      city: 'Москва, Москва',
+      city: 'Москва',
       addressLine: 'Варшавское шоссе, 132, Москва, 117405',
       pickupPointId: 'ru-fivepost-varshavskoe',
       price: 0,
@@ -106,7 +132,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Иванов Иван Иванович',
       phone: '+7 999 111-22-33',
       email: 'qa.auto.checkout+ru@example.com',
-      city: 'Москва, Москва',
+      city: 'Москва',
       addressLine: 'Хорошевское шоссе, 32к2, Москва, 123007',
       pickupPointId: 'ru-office-horoshevskoe',
       price: 0,
@@ -124,7 +150,11 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+kz@example.com',
       city: 'Алматы',
       addressLine: 'ул. Абая, 150, кв. 25, Алматы, 050009',
-      address: fields('улица Абая', '150', '25', '050009'),
+      address: fields('Алматы, ул. Абая, 150', '25', '050009', 'Алматы', {
+        entrance: '3',
+        floor: '7',
+        intercom: '25',
+      }),
       price: 2500,
     },
     {
@@ -136,7 +166,11 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+kz@example.com',
       city: 'Алматы',
       addressLine: 'пр. Достык, 89, кв. 14, Алматы, 050051',
-      address: fields('проспект Достык', '89', '14', '050051'),
+      address: fields('Алматы, пр. Достык, 89', '14', '050051', 'Алматы', {
+        addressLabel: 'work',
+        entrance: '1',
+        floor: '4',
+      }),
       price: 2500,
     },
     {
@@ -148,7 +182,10 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+kz@example.com',
       city: 'Алматы',
       addressLine: 'ул. Жандосова, 58, кв. 7, Алматы, 050035',
-      address: fields('улица Жандосова', '58', '7', '050035'),
+      address: fields('Алматы, ул. Жандосова, 58', '7', '050035', 'Алматы', {
+        addressLabel: 'custom',
+        floor: '2',
+      }),
       price: 2500,
     },
     {
@@ -200,7 +237,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+de@example.com',
       city: 'Berlin',
       addressLine: 'Kastanienallee 42, 10435 Berlin',
-      address: fields('Kastanienallee', '42', '3 OG', '10435'),
+      address: fields('Kastanienallee 42', '3. OG', '10435', 'Berlin'),
       price: 4.9,
     },
     {
@@ -212,7 +249,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+de@example.com',
       city: 'Berlin',
       addressLine: 'Friedrichstraße 120, 10117 Berlin',
-      address: fields('Friedrichstraße', '120', '', '10117'),
+      address: fields('Friedrichstraße 120', '', '10117', 'Berlin'),
       price: 4.9,
     },
     {
@@ -224,7 +261,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+de@example.com',
       city: 'Berlin',
       addressLine: 'Karl-Marx-Allee 78, 10243 Berlin',
-      address: fields('Karl-Marx-Allee', '78', '12', '10243'),
+      address: fields('Karl-Marx-Allee 78', '12', '10243', 'Berlin'),
       price: 4.9,
     },
     {
@@ -276,7 +313,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+pl@example.com',
       city: 'Warszawa',
       addressLine: 'ul. Marszałkowska 84/92 m. 15, 00-514 Warszawa',
-      address: fields('ulica Marszałkowska', '84/92', '15', '00-514'),
+      address: fields('ul. Marszałkowska 84/92', 'm. 15', '00-514', 'Warszawa'),
       price: 19.9,
     },
     {
@@ -288,7 +325,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+pl@example.com',
       city: 'Warszawa',
       addressLine: 'ul. Puławska 42 m. 8, 02-508 Warszawa',
-      address: fields('ulica Puławska', '42', '8', '02-508'),
+      address: fields('ul. Puławska 42', 'm. 8', '02-508', 'Warszawa'),
       price: 19.9,
     },
     {
@@ -300,7 +337,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+pl@example.com',
       city: 'Warszawa',
       addressLine: 'al. Jerozolimskie 123 m. 30, 02-017 Warszawa',
-      address: fields('aleje Jerozolimskie', '123', '30', '02-017'),
+      address: fields('al. Jerozolimskie 123', 'm. 30', '02-017', 'Warszawa'),
       price: 19.9,
     },
     {
@@ -352,7 +389,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+cz@example.com',
       city: 'Praha',
       addressLine: 'Vinohradská 112, 130 00 Praha 3',
-      address: fields('Vinohradská', '112', '9', '130 00'),
+      address: fields('Vinohradská 112', 'byt 9', '130 00', 'Praha'),
       price: 99,
     },
     {
@@ -364,7 +401,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+cz@example.com',
       city: 'Praha',
       addressLine: 'Korunní 58, 120 00 Praha 2',
-      address: fields('Korunní', '58', '', '120 00'),
+      address: fields('Korunní 58', '', '120 00', 'Praha'),
       price: 99,
     },
     {
@@ -376,7 +413,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+cz@example.com',
       city: 'Praha',
       addressLine: 'Sokolovská 200, 190 00 Praha 9',
-      address: fields('Sokolovská', '200', '4', '190 00'),
+      address: fields('Sokolovská 200', 'byt 4', '190 00', 'Praha'),
       price: 99,
     },
     {
@@ -426,9 +463,9 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'John Miller',
       phone: '+1 212 111 2233',
       email: 'qa.auto.checkout+us@example.com',
-      city: 'New York, NY',
+      city: 'New York',
       addressLine: '350 5th Ave, Apt 21B, New York, NY 10118',
-      address: fields('350 5th Ave', '', 'Apt 21B', '10118'),
+      address: fields('350 5th Ave', 'Apt 21B', '10118', 'New York', { region: 'NY' }),
       price: 6.99,
     },
     {
@@ -438,9 +475,9 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'Sarah Johnson',
       phone: '+1 212 222 3344',
       email: 'qa.auto.checkout+us@example.com',
-      city: 'New York, NY',
+      city: 'New York',
       addressLine: '1 Astor Pl, Apt 5C, New York, NY 10003',
-      address: fields('1 Astor Pl', '', 'Apt 5C', '10003'),
+      address: fields('1 Astor Pl', 'Apt 5C', '10003', 'New York', { region: 'NY' }),
       price: 6.99,
     },
     {
@@ -450,9 +487,9 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'David Brown',
       phone: '+1 212 333 4455',
       email: 'qa.auto.checkout+us@example.com',
-      city: 'New York, NY',
+      city: 'New York',
       addressLine: '200 W 57th St, Apt 12A, New York, NY 10019',
-      address: fields('200 W 57th St', '', 'Apt 12A', '10019'),
+      address: fields('200 W 57th St', 'Apt 12A', '10019', 'New York', { region: 'NY' }),
       price: 6.99,
     },
     {
@@ -462,7 +499,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'John Miller',
       phone: '+1 212 111 2233',
       email: 'qa.auto.checkout+us@example.com',
-      city: 'New York, NY',
+      city: 'New York',
       addressLine: 'USPS James A. Farley Station, 421 8th Ave, New York, NY 10001',
       pickupPointId: 'us-usps-farley',
       price: 0,
@@ -474,7 +511,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'John Miller',
       phone: '+1 212 111 2233',
       email: 'qa.auto.checkout+us@example.com',
-      city: 'New York, NY',
+      city: 'New York',
       addressLine: 'USPS Cooper Station, 93 4th Ave, New York, NY 10003',
       pickupPointId: 'us-usps-cooper',
       price: 0,
@@ -486,7 +523,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       recipientName: 'John Miller',
       phone: '+1 212 111 2233',
       email: 'qa.auto.checkout+us@example.com',
-      city: 'New York, NY',
+      city: 'New York',
       addressLine: '1120 Avenue of the Americas, New York, NY 10036',
       pickupPointId: 'us-office-sixth-avenue',
       price: 0,

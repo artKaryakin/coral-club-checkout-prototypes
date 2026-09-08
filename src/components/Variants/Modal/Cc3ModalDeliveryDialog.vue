@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
+import Cc3StandFields from '@/stand/components/Cc3StandFields.vue'
+import type { FieldKey } from '@/stand/config/types'
 import { useStand } from '@/stand/composables/useStand'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
@@ -32,7 +34,7 @@ const emit = defineEmits<{
 
 const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels, formatMoneyRounded } =
   useCheckout()
-const { t } = useStand()
+const { t, country } = useStand()
 
 const text = computed(() => ({
   back: t('common.back'),
@@ -43,6 +45,7 @@ const text = computed(() => ({
   findAddress: t('common.findAddress'),
   openUntil: t('pickup.openUntil'),
   addressSection: t('address.title'),
+  addressPlaceholder: t('field.street.placeholder'),
   house: t('address.house'),
   apartment: t('address.apartment'),
   floor: t('address.floor'),
@@ -76,11 +79,7 @@ function initialStep(): Step {
 
 const method = ref<Method>(props.editProfile?.method ?? 'courier')
 const step = ref<Step>(initialStep())
-const citySearch = ref(
-  props.editProfile?.method === 'courier'
-    ? props.editProfile.addressLine
-    : 'Khoroshevskoye Sh., Moscow, Russia',
-)
+
 
 // Варианты курьерской доставки — копия и цены из макета. Не то же самое,
 // что Cc3CheckoutDeliveryVariant в проде: там другой текст и это
@@ -212,15 +211,53 @@ const pickupMapMarkers = computed(() =>
 
 // Данные формы — демо, в общее состояние useCheckout не пишутся, чтобы
 // не задевать прод (там свои recipient/deliveryAddress с другой формой).
-const recipientName = ref(props.editProfile?.name ?? 'Ignat Ignatov')
-const recipientPhone = ref(props.editProfile?.phone ?? '(961) 12-34-567')
-const recipientEmail = ref(props.editProfile?.email ?? 'test@gmail.com')
-const houseNumber = ref('12')
-const apartment = ref('')
-const floor = ref('')
-const entrance = ref('')
-const intercom = ref('')
-const indexCode = ref('123007')
+//
+// Состав полей задаёт страна, поэтому значения лежат в общем объекте по
+// ключам полей, а не отдельными ref на каждое: набор ключей меняется от
+// рынка к рынку. Пустое значение показывает плейсхолдер с местным
+// примером — «Москва, ул. Москворечье, 43» или «350 5th Ave».
+const values = ref<Partial<Record<FieldKey, string>>>({})
+
+function seedValues() {
+  const profile = props.editProfile
+
+  if (!profile) {
+    values.value = {}
+
+    return
+  }
+
+  const [firstName = '', ...rest] = profile.name.trim().split(/\s+/)
+
+  values.value = {
+    ...profile.fields,
+    street: profile.fields?.street ?? (profile.method === 'courier' ? profile.addressLine : ''),
+    recipientName: profile.name,
+    recipientFirstName: firstName,
+    recipientLastName: rest.join(' '),
+    recipientPhone: profile.phone,
+    recipientEmail: profile.email,
+  }
+}
+
+seedValues()
+
+// Смена страны — это другой набор полей и другой формат адреса.
+// Значения предыдущей страны в новую форму не переносятся.
+watch(country, seedValues)
+
+/** Строка поиска на первом шаге — то же поле адреса, что и в форме. */
+const addressSearch = computed({
+  get: () => values.value.street ?? '',
+  set: (value: string) => {
+    values.value = { ...values.value, street: value }
+  },
+})
+
+const recipientDisplayName = computed(() =>
+  values.value.recipientName?.trim() ||
+  [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
+)
 const isFavorite = ref(props.editProfile?.isFavorite ?? true)
 const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
@@ -243,12 +280,12 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
       id,
       method: 'courier',
       typeLabel: t('delivery.method.courier'),
-      name: recipientName.value,
-      addressLine: [citySearch.value, houseNumber.value].filter(Boolean).join(', '),
+      name: recipientDisplayName.value,
+      addressLine: values.value.street ?? '',
       priceLabel: variant?.title ?? '',
       isFavorite: isFavorite.value,
-      phone: recipientPhone.value,
-      email: recipientEmail.value,
+      phone: values.value.recipientPhone ?? '',
+      email: values.value.recipientEmail ?? '',
     }
   }
 
@@ -256,12 +293,12 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
     id,
     method: 'pickup',
     typeLabel: pickupDetailView.value?.title ?? t('delivery.pickup.title'),
-    name: recipientName.value,
+    name: recipientDisplayName.value,
     addressLine: pickupDetailView.value?.address ?? '',
     priceLabel: pickupDetailView.value?.priceLabel ?? '',
     isFavorite: isFavorite.value,
-    phone: recipientPhone.value,
-    email: recipientEmail.value,
+    phone: values.value.recipientPhone ?? '',
+    email: values.value.recipientEmail ?? '',
   }
 })
 
@@ -374,7 +411,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                   {{ text.findAddress }}
                   <span class="cc3-modal-delivery-dialog__required">*</span>
                 </span>
-                <Cc3InputField v-model="citySearch" type="text" />
+                <Cc3InputField v-model="addressSearch" type="text" :placeholder="text.addressPlaceholder" />
               </div>
 
               <div class="cc3-modal-delivery-dialog__variants">
@@ -441,79 +478,11 @@ function onOverlayKeydown(event: KeyboardEvent) {
           <template v-else-if="step === 'address-form'">
             <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.addressSection }}</h3>
 
-            <div class="cc3-modal-delivery-dialog__field">
-              <span class="cc3-modal-delivery-dialog__label">
-                {{ text.findAddress }} <span class="cc3-modal-delivery-dialog__required">*</span>
-              </span>
-              <Cc3InputField v-model="citySearch" type="text" />
-            </div>
-
-            <div class="cc3-modal-delivery-dialog__row">
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">
-                  {{ text.house }} <span class="cc3-modal-delivery-dialog__required">*</span>
-                </span>
-                <Cc3InputField v-model="houseNumber" type="text" />
-              </div>
-
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">{{ text.apartment }}</span>
-                <Cc3InputField v-model="apartment" type="text" />
-              </div>
-            </div>
-
-            <div class="cc3-modal-delivery-dialog__row">
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">{{ text.floor }}</span>
-                <Cc3InputField v-model="floor" type="text" />
-              </div>
-
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">{{ text.entrance }}</span>
-                <Cc3InputField v-model="entrance" type="text" />
-              </div>
-            </div>
-
-            <div class="cc3-modal-delivery-dialog__row">
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">{{ text.intercom }}</span>
-                <Cc3InputField v-model="intercom" type="text" />
-              </div>
-
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">
-                  {{ text.postal }} <span class="cc3-modal-delivery-dialog__required">*</span>
-                </span>
-                <Cc3InputField v-model="indexCode" type="text" />
-              </div>
-            </div>
+            <Cc3StandFields v-model="values" group="address" />
 
             <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
-            <div class="cc3-modal-delivery-dialog__field">
-              <span class="cc3-modal-delivery-dialog__label">
-                {{ text.nameSurname }} <span class="cc3-modal-delivery-dialog__required">*</span>
-              </span>
-              <Cc3InputField v-model="recipientName" type="text" />
-            </div>
-
-            <div class="cc3-modal-delivery-dialog__field">
-              <span class="cc3-modal-delivery-dialog__label">
-                {{ text.phone }} <span class="cc3-modal-delivery-dialog__required">*</span>
-              </span>
-              <Cc3InputField v-model="recipientPhone" type="tel">
-                <template #prefix>
-                  <span class="cc3-modal-delivery-dialog__phone-prefix">+7</span>
-                </template>
-              </Cc3InputField>
-            </div>
-
-            <div class="cc3-modal-delivery-dialog__field">
-              <span class="cc3-modal-delivery-dialog__label">
-                {{ text.email }} <span class="cc3-modal-delivery-dialog__required">*</span>
-              </span>
-              <Cc3InputField v-model="recipientEmail" type="email" />
-            </div>
+            <Cc3StandFields v-model="values" group="recipient" />
 
             <label class="cc3-modal-delivery-dialog__favorite">
               <span>{{ text.favorite }}</span>
@@ -568,30 +537,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <div v-if="isRecipientVisible" class="cc3-modal-delivery-dialog__recipient">
                 <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
-                <div class="cc3-modal-delivery-dialog__field">
-                  <span class="cc3-modal-delivery-dialog__label">
-                    {{ text.nameSurname }} <span class="cc3-modal-delivery-dialog__required">*</span>
-                  </span>
-                  <Cc3InputField v-model="recipientName" type="text" />
-                </div>
-
-                <div class="cc3-modal-delivery-dialog__field">
-                  <span class="cc3-modal-delivery-dialog__label">
-                    {{ text.phone }} <span class="cc3-modal-delivery-dialog__required">*</span>
-                  </span>
-                  <Cc3InputField v-model="recipientPhone" type="tel">
-                    <template #prefix>
-                      <span class="cc3-modal-delivery-dialog__phone-prefix">+7</span>
-                    </template>
-                  </Cc3InputField>
-                </div>
-
-                <div class="cc3-modal-delivery-dialog__field">
-                  <span class="cc3-modal-delivery-dialog__label">
-                    {{ text.email }} <span class="cc3-modal-delivery-dialog__required">*</span>
-                  </span>
-                  <Cc3InputField v-model="recipientEmail" type="email" />
-                </div>
+                <Cc3StandFields v-model="values" group="recipient" />
               </div>
             </Transition>
           </template>

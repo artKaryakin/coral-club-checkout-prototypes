@@ -5,8 +5,21 @@
       <span v-if="field.required" class="cc3-stand-field__required">*</span>
     </label>
 
+    <div v-if="field.type === 'chips'" class="cc3-stand-field__chips">
+      <button
+        v-for="option in options"
+        :key="option.value"
+        type="button"
+        class="cc3-stand-field__chip"
+        :class="{ 'cc3-stand-field__chip--active': value === option.value }"
+        @click="value = option.value"
+      >
+        {{ option.label }}
+      </button>
+    </div>
+
     <select
-      v-if="field.type === 'select'"
+      v-else-if="field.type === 'select'"
       :id="fieldId"
       v-model="value"
       class="cc3-stand-field__control"
@@ -14,10 +27,21 @@
       :autocomplete="field.autocomplete"
       :disabled="field.autofilled"
     >
+      <option value="" disabled>{{ field.placeholder }}</option>
       <option v-for="option in options" :key="option.value" :value="option.value">
         {{ option.label }}
       </option>
     </select>
+
+    <textarea
+      v-else-if="field.type === 'textarea'"
+      :id="fieldId"
+      v-model="value"
+      class="cc3-stand-field__control cc3-stand-field__control--textarea"
+      :name="field.key"
+      :placeholder="field.placeholder"
+      rows="3"
+    />
 
     <input
       v-else
@@ -26,6 +50,7 @@
       class="cc3-stand-field__control"
       :name="field.key"
       :type="inputType"
+      :placeholder="field.placeholder"
       :autocomplete="field.autocomplete"
       :readonly="field.autofilled"
       :inputmode="inputMode"
@@ -49,6 +74,9 @@ import { useStand } from '../composables/useStand'
  *
  * Поле с autofilled заполняется по индексу или из подсказки и вручную не
  * вводится — визуально это должно быть отличимо от введённого руками.
+ *
+ * Плейсхолдер приходит из конфига страны и показывает местный формат адреса.
+ * Это подсказка, а не замена подписи: label остаётся на месте всегда.
  */
 const props = defineProps<{ field: StandField }>()
 
@@ -79,6 +107,7 @@ const inputMode = computed(() => {
 const modifiers = computed(() => ({
   'cc3-stand-field--autofilled': props.field.autofilled,
   'cc3-stand-field--required': props.field.required,
+  'cc3-stand-field--half': props.field.half,
   [`cc3-stand-field--key--${props.field.key}`]: true,
 }))
 </script>
@@ -112,6 +141,31 @@ const modifiers = computed(() => ({
     border-style: solid;
     border-width: 1px;
     border-radius: var(--st-global-radius-md);
+
+    &--textarea {
+      resize: vertical;
+    }
+  }
+
+  &__chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--st-global-distance-space-inset-sm);
+  }
+
+  &__chip {
+    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-lg);
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-neutral-secondary);
+    border: none;
+    border-radius: var(--st-global-radius-lg);
+    cursor: pointer;
+
+    &--active {
+      color: var(--st-content-foreground-color-primary-secondary);
+      background-color: var(--st-content-background-color-primary-subtle);
+    }
   }
 
   &__hint {
