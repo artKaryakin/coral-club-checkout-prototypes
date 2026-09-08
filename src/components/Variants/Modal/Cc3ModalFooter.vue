@@ -1,8 +1,26 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import coralclubLogoFooter from '@/assets/modal/coralclub-logo-footer.svg'
 import socialVk from '@/assets/modal/social-vk.svg'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const { country, locale } = useStand()
+
+const text = computed(() => ({
+  marketing: t('consent.marketing'),
+  prefix: t('consent.prefix'),
+  privacy: t('consent.privacy'),
+  and: t('consent.and'),
+  terms: t('consent.terms'),
+  submit: t('submit.button'),
+  copyright: t('footer.copyright'),
+  language: `${t(`country.${country.value}`)} | ${locale.value.toUpperCase()}`,
+}))
+
 
 const { acceptMarketing, acceptTerms, isReady } = useCheckout()
 </script>
@@ -12,15 +30,15 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
     <div class="cc3-modal-footer__consent">
       <label class="cc3-modal-footer__cell">
         <span class="cc3-modal-footer__cell-text">
-          I want to receive emails about discounts and promotions.
+          {{ text.marketing }}
         </span>
         <input v-model="acceptMarketing" type="checkbox" class="cc3-modal-footer__checkbox" />
       </label>
 
       <label class="cc3-modal-footer__cell">
         <span class="cc3-modal-footer__cell-text">
-          By placing an order, you agree to the <a href="#">Privacy Policy</a> and accept the
-          <a href="#">Terms of Sale</a>.
+          {{ text.prefix }} <a href="#">{{ text.privacy }}</a> {{ text.and }}
+          <a href="#">{{ text.terms }}</a>.
         </span>
         <input v-model="acceptTerms" type="checkbox" class="cc3-modal-footer__checkbox" />
       </label>
@@ -28,7 +46,7 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
 
     <div class="cc3-modal-footer__cta-wrap">
       <button type="button" class="cc3-modal-footer__cta" :disabled="!isReady">
-        Proceed to payment
+        {{ text.submit }}
       </button>
     </div>
 
@@ -36,17 +54,17 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
       <div class="cc3-modal-footer__legal">
         <img :src="coralclubLogoFooter" alt="Coral Club" class="cc3-modal-footer__logo" />
         <p class="cc3-modal-footer__copyright">
-          1999 - 2024 © Coral Club. All rights reserved. Official website of Coral Club
+          {{ text.copyright }}
         </p>
       </div>
 
       <div class="cc3-modal-footer__links">
         <p class="cc3-modal-footer__lang">
           <Cc3Icon name="location-map" :size="24" />
-          Russia | Eng
+          {{ text.language }}
         </p>
 
-        <a href="#" class="cc3-modal-footer__link">Privacy Policy</a>
+        <a href="#" class="cc3-modal-footer__link">{{ text.privacy }}</a>
         <a href="tel:88001000577" class="cc3-modal-footer__link">8 (800) 100 05 77</a>
 
         <img :src="socialVk" alt="" class="cc3-modal-footer__social" />

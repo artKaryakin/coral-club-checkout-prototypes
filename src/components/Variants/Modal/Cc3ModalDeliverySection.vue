@@ -51,6 +51,15 @@ function toProfiles(): DeliveryProfile[] {
   }))
 }
 
+const text = computed(() => ({
+  title: t('delivery.section.title'),
+  addAddress: t('delivery.addAddress'),
+  change: t('common.change'),
+  hours: t('pickup.hours'),
+  hoursWeekday: t('pickup.hours.weekday'),
+  hoursWeekend: t('pickup.hours.weekend'),
+}))
+
 const addressBookEntries = ref<DeliveryProfile[]>(toProfiles())
 
 watch([country, user], () => {
@@ -142,12 +151,12 @@ function onDialogDelete(id: string) {
 
 <template>
   <section class="cc3-modal-delivery">
-    <h2 v-if="!isFilled" class="cc3-modal-delivery__title">Delivery</h2>
+    <h2 v-if="!isFilled" class="cc3-modal-delivery__title">{{ text.title }}</h2>
 
     <div v-if="!isFilled" class="cc3-modal-delivery__empty">
       <button type="button" class="cc3-modal-delivery__add" @click="openDialog">
         <Cc3Icon name="plus-md" :size="24" />
-        Add delivery address
+        {{ text.addAddress }}
       </button>
     </div>
 
@@ -155,7 +164,7 @@ function onDialogDelete(id: string) {
       <div class="cc3-modal-delivery__row">
         <span class="cc3-modal-delivery__method">{{ selectedEntry.typeLabel }}</span>
         <button type="button" class="cc3-modal-delivery__change" @click="openAddressBook">
-          Change
+          {{ text.change }}
         </button>
       </div>
 
@@ -195,11 +204,11 @@ function onDialogDelete(id: string) {
       </template>
 
       <div v-else class="cc3-modal-delivery__hours">
-        <p class="cc3-modal-delivery__hours-title">Working hours:</p>
+        <p class="cc3-modal-delivery__hours-title">{{ text.hours }}</p>
         <p class="cc3-modal-delivery__hours-text">
-          Mon-Fri 10:00 AM - 9:00 PM
+          {{ text.hoursWeekday }}
           <br />
-          Sat-Sun 10:00 AM - 8:00 PM
+          {{ text.hoursWeekend }}
         </p>
       </div>
     </div>

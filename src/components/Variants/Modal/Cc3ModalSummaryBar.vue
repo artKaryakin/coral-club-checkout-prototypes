@@ -1,6 +1,15 @@
 <script setup lang="ts">
+import { computed } from 'vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const text = computed(() => ({
+  title: t('summary.title'),
+}))
+
 
 const { summary, isSummaryDetailsOpen } = useCheckout()
 </script>
@@ -12,7 +21,7 @@ const { summary, isSummaryDetailsOpen } = useCheckout()
     @click="isSummaryDetailsOpen = !isSummaryDetailsOpen"
   >
     <span class="cc3-modal-summary-bar__label">
-      Order summary
+      {{ text.title }}
       <Cc3Icon
         name="chevron-down"
         :size="24"

@@ -1,26 +1,34 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import paypalIcon from '@/assets/payment-icons/paypal.png'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useStand } from '@/stand/composables/useStand'
+
+const { t } = useStand()
+
+const methods = computed<Method[]>(() => [
+  { id: 'bank-transfer', name: t('payment.umoney') },
+  { id: 'bank-card', name: t('payment.card') },
+  { id: 'paypal', name: 'PayPal' },
+])
+
+const text = computed(() => ({
+  title: t('payment.title'),
+}))
+
 
 type Method = {
   id: string
   name: string
 }
 
-const methods: Method[] = [
-  { id: 'bank-transfer', name: 'Bank transfer' },
-  { id: 'bank-card', name: 'Bank card' },
-  { id: 'paypal', name: 'PayPal' },
-]
-
 const selected = ref('bank-transfer')
 </script>
 
 <template>
   <section class="cc3-modal-payment">
-    <h2 class="cc3-modal-payment__title">Payment Methods</h2>
+    <h2 class="cc3-modal-payment__title">{{ text.title }}</h2>
 
     <div class="cc3-modal-payment__list">
       <button
