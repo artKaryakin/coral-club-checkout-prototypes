@@ -47,7 +47,7 @@ const { summary } = useCheckout()
   &__body {
     display: flex;
     flex-direction: column;
-    gap: var(--st-global-distance-space-inset-md);
+    gap: var(--st-global-distance-space-inset-2xl);
 
     padding-top: var(--st-global-distance-space-inset-2xl);
 
