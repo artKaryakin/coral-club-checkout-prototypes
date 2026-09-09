@@ -33,40 +33,42 @@ const emit = defineEmits<{
 <template>
   <div class="cc3-inline-address-book">
     <div class="cc3-inline-address-book__list">
-      <label v-for="entry in entries" :key="entry.id" class="cc3-inline-address-book__card">
-        <span class="cc3-inline-address-book__card-main">
-          <span class="cc3-inline-address-book__card-type">{{ entry.typeLabel }}</span>
+      <div v-for="entry in entries" :key="entry.id" class="cc3-inline-address-book__card">
+        <label class="cc3-inline-address-book__card-select">
+          <span class="cc3-inline-address-book__card-main">
+            <span class="cc3-inline-address-book__card-type">{{ entry.typeLabel }}</span>
 
-          <span class="cc3-inline-address-book__card-name">
-            <Cc3Icon
-              name="heart"
-              :size="16"
-              class="cc3-inline-address-book__card-heart"
-              :class="{ 'cc3-inline-address-book__card-heart--active': entry.isFavorite }"
-            />
-            {{ entry.name }}
+            <span class="cc3-inline-address-book__card-name">
+              <Cc3Icon
+                name="heart"
+                :size="16"
+                class="cc3-inline-address-book__card-heart"
+                :class="{ 'cc3-inline-address-book__card-heart--active': entry.isFavorite }"
+              />
+              {{ entry.name }}
+            </span>
+
+            <span class="cc3-inline-address-book__card-address">{{ entry.addressLine }}</span>
+            <span class="cc3-inline-address-book__card-price">{{ entry.priceLabel }}</span>
           </span>
 
-          <span class="cc3-inline-address-book__card-address">{{ entry.addressLine }}</span>
-          <span class="cc3-inline-address-book__card-price">{{ entry.priceLabel }}</span>
+          <input
+            type="radio"
+            name="cc3-inline-address-book"
+            class="cc3-inline-address-book__radio"
+            :checked="entry.id === selectedId"
+            @change="emit('select', entry.id)"
+          />
+        </label>
 
-          <button
-            type="button"
-            class="cc3-inline-address-book__card-edit"
-            @click.stop.prevent="emit('edit', entry.id)"
-          >
-            {{ text.edit }}
-          </button>
-        </span>
-
-        <input
-          type="radio"
-          name="cc3-inline-address-book"
-          class="cc3-inline-address-book__radio"
-          :checked="entry.id === selectedId"
-          @change="emit('select', entry.id)"
-        />
-      </label>
+        <button
+          type="button"
+          class="cc3-inline-address-book__card-edit"
+          @click="emit('edit', entry.id)"
+        >
+          {{ text.edit }}
+        </button>
+      </div>
 
       <button type="button" class="cc3-inline-address-book__add" @click="emit('add')">
         <Cc3Icon name="plus-md" :size="24" />
@@ -94,18 +96,30 @@ const emit = defineEmits<{
 
   &__card {
     display: flex;
-    align-items: center;
-    gap: var(--st-global-distance-space-inset-md);
+    flex-direction: column;
 
     padding: 0 var(--st-global-distance-space-inset-2xl);
     width: 100%;
 
     border-bottom: 1px solid var(--st-content-border-color-neutral-implicit);
-    cursor: pointer;
 
     &:last-of-type {
       border-bottom: none;
     }
+  }
+
+  // Отдельный label только вокруг радио и невзаимодействующего контента:
+  // если сюда же попадёт кнопка «Изменить», label свяжется именно с ней
+  // (первый в DOM labelable-потомок), а не с радио — клик по названию или
+  // адресу станет открывать редактирование вместо выбора карточки.
+  &__card-select {
+    display: flex;
+    align-items: center;
+    gap: var(--st-global-distance-space-inset-md);
+
+    width: 100%;
+
+    cursor: pointer;
   }
 
   &__card-main {
