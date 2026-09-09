@@ -589,13 +589,17 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
   &__chips {
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: nowrap;
     gap: var(--st-global-distance-space-inset-md);
 
     padding-bottom: var(--st-global-distance-space-inset-xl);
+
+    overflow-x: auto;
   }
 
   &__chip {
+    flex-shrink: 0;
+
     padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-xl);
 
     @include font('label-sm');
