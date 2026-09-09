@@ -2,7 +2,16 @@
 <html lang="ru" dir="ltr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!--
+      Стенд показывают на телефоне и он должен вести себя как приложение:
+      ширина по экрану, без масштабирования всей страницы. Зум оставлен
+      только карте — она обрабатывает жесты сама.
+      viewport-fit=cover — под вырезы и «шторки» iPhone.
+    -->
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+    />
     <title>Coral Club — локальная разработка</title>
   </head>
   <body>

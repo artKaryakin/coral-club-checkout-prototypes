@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
@@ -47,6 +47,7 @@ const text = computed(() => ({
   courier: t('delivery.courier.title'),
   pickup: t('delivery.pickup.title'),
   findAddress: t('common.findAddress'),
+  variantsHint: t('delivery.variants.hint'),
   openUntil: t('pickup.openUntil'),
   addressSection: t('address.title'),
   addressPlaceholder: t('field.street.placeholder'),
@@ -222,10 +223,27 @@ const { fields: recipientFields } = useStandFields('recipient')
 /** Точка выбранного адреса. Пока адрес не выбран, карта стоит на центре города. */
 const addressPoint = ref<MapPoint>()
 
+/**
+ * Город из выбранной подсказки или из тычка в карту.
+ *
+ * Хранится отдельно от полей формы: в России отдельного поля города нет,
+ * город живёт внутри строки адреса, а знать его всё равно нужно — от него
+ * зависят доступные способы доставки.
+ */
+const resolvedCity = ref('')
+
+/**
+ * Способы доставки показываются только после того, как адрес определён.
+ * Пока города нет, любой список сроков и цен — выдумка: они считаются
+ * от города, и показывать их «на всякий случай» значит врать респонденту.
+ */
+const isAddressResolved = computed(() => resolvedCity.value.length > 0)
+
 function seedValues() {
   const profile = props.editProfile
 
   addressPoint.value = undefined
+  resolvedCity.value = profile ? (profile.fields?.city ?? profile.addressLine) : ''
 
   if (!profile) {
     values.value = {}
@@ -279,6 +297,10 @@ let reverseController: AbortController | undefined
 
 function fillFromSuggestion(suggestion: AddressSuggestion) {
   values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value)
+
+  if (suggestion.city) {
+    resolvedCity.value = suggestion.city
+  }
 }
 
 /** Выбор подсказки — адрес в поля, метка на карту. */
@@ -359,6 +381,22 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
 function confirm() {
   emit('confirm', confirmedProfile.value)
 }
+
+/**
+ * Пока модалка открыта, страница под ней не прокручивается.
+ * Без этого на телефоне палец, не попавший по содержимому модалки,
+ * возит чекаут за ней — выглядит как сломанная вёрстка.
+ */
+let bodyOverflow = ''
+
+onMounted(() => {
+  bodyOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+})
+
+onBeforeUnmount(() => {
+  document.body.style.overflow = bodyOverflow
+})
 
 function deleteProfile() {
   isDeleteConfirmOpen.value = false
@@ -470,7 +508,11 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 />
               </div>
 
-              <div class="cc3-modal-delivery-dialog__variants">
+              <p v-if="!isAddressResolved" class="cc3-modal-delivery-dialog__variants-hint">
+                {{ text.variantsHint }}
+              </p>
+
+              <div v-else class="cc3-modal-delivery-dialog__variants">
                 <label
                   v-for="variant in courierVariants"
                   :key="variant.id"
@@ -679,10 +721,16 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
   width: 100%;
   max-width: 375px;
-  height: 100%;
+
+  // 100dvh, а не 100vh: на телефоне адресная строка сворачивается, и при
+  // 100vh низ модалки с кнопкой уезжает под неё.
+  height: 100dvh;
   margin: 0 auto;
 
   overflow-y: auto;
+
+  // Прокрутка не «протекает» на страницу под модалкой и не тянет её за палец.
+  overscroll-behavior: contain;
 
   background-color: var(--st-content-background-color-default-solid-normal);
 
@@ -825,6 +873,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-secondary);
+  }
+
+  &__variants-hint {
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 
   &__variants {

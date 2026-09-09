@@ -11,19 +11,14 @@ import type { DeliveryProfile } from './deliveryProfile'
 
 // Даты/время после подтверждения — демо-подстановка, реального выбора слота
 // пока нет ни в модалке, ни в этом блоке.
-type DateChip = { label: string; value: string }
-type TimeChip = { label: string; value: string }
+//
+// Слоты показываются только в России: на остальных рынках доставка почтовая,
+// день и интервал там не выбирают, и предлагать их — показывать сценарий,
+// которого у респондента не бывает.
+type Chip = { label: string; value: string }
 
-const dateChips: DateChip[] = [
-  { label: 'Tomorrow', value: 'tomorrow' },
-  { label: 'Aug 28, Fri', value: 'aug28' },
-  { label: 'Aug 29, Sat', value: 'aug29' },
-]
-
-const timeChips: TimeChip[] = [
-  { label: '12:00 PM - 11:00 PM', value: 'noon' },
-  { label: '1:00 PM - 12:00 AM', value: 'afternoon' },
-]
+const dateSlots = ['day1', 'day2', 'day3']
+const timeSlots = ['time1', 'time2']
 
 // Адресная книга приходит из ядра стенда: состав задаёт страна, наличие —
 // тип пользователя. Оформление карточек по макету Figma (узел 2171:41208)
@@ -51,6 +46,9 @@ function toProfiles(): DeliveryProfile[] {
     email: entry.email,
   }))
 }
+
+/** Слоты дня и времени есть только на российском рынке. */
+const hasDeliverySlots = computed(() => country.value === 'ru')
 
 const text = computed(() => ({
   title: t('delivery.section.title'),
@@ -82,8 +80,16 @@ const selectedEntryId = ref<string | undefined>(addressBookEntries.value[0]?.id)
 const editingEntryId = ref<string>()
 const isAddressBookOpen = ref(false)
 const isDialogOpen = ref(false)
-const selectedDate = ref(dateChips[0].value)
-const selectedTime = ref(timeChips[0].value)
+const dateChips = computed<Chip[]>(() =>
+  dateSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
+)
+
+const timeChips = computed<Chip[]>(() =>
+  timeSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
+)
+
+const selectedDate = ref(dateSlots[0])
+const selectedTime = ref(timeSlots[0])
 
 const isFilled = computed(() => selectedEntryId.value !== undefined)
 const selectedEntry = computed(() =>
@@ -185,7 +191,7 @@ function onDialogDelete(id: string) {
 
       <p class="cc3-modal-delivery__price">{{ selectedEntry.priceLabel }}</p>
 
-      <template v-if="selectedEntry.method === 'courier'">
+      <template v-if="selectedEntry.method === 'courier' && hasDeliverySlots">
         <div class="cc3-modal-delivery__chips">
           <button
             v-for="chip in dateChips"
@@ -213,7 +219,7 @@ function onDialogDelete(id: string) {
         </div>
       </template>
 
-      <div v-else class="cc3-modal-delivery__hours">
+      <div v-else-if="selectedEntry.method === 'pickup'" class="cc3-modal-delivery__hours">
         <p class="cc3-modal-delivery__hours-title">{{ text.hours }}</p>
         <p class="cc3-modal-delivery__hours-text">
           {{ text.hoursWeekday }}
