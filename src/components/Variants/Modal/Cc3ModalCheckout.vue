@@ -47,9 +47,24 @@ const { summary } = useCheckout()
   &__body {
     display: flex;
     flex-direction: column;
-    gap: var(--st-global-distance-space-inset-md);
+    gap: var(--st-global-distance-space-inset-2xl);
 
     padding-top: var(--st-global-distance-space-inset-2xl);
+
+    // Серый разделитель между блоками, как в макете — у всех секций,
+    // кроме первой (доставка идёт сразу за сводкой заказа, без линии).
+    // Контейнер разделителя в фигме высотой 24px, а не просто линия
+    // впритык — иначе она прилипает к заголовку следующего блока.
+    > :not(:first-child) {
+      border-top: 1px solid var(--st-content-border-color-neutral-implicit);
+      padding-top: var(--st-global-distance-space-inset-2xl);
+    }
+
+    // Блоку доставки перед линией не хватало ровно 4px — остальным блокам
+    // хватает отступа из gap выше.
+    > :first-child {
+      padding-bottom: 4px;
+    }
   }
 }
 </style>
