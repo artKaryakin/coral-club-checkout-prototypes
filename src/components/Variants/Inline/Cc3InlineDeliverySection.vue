@@ -105,6 +105,10 @@ function openBook() {
   mode.value = 'book'
 }
 
+function onCloseBook() {
+  mode.value = 'summary'
+}
+
 function onAddNew() {
   editingEntryId.value = undefined
   mode.value = 'form'
@@ -232,6 +236,7 @@ function deleteEntry(id: string) {
       @select="onSelectEntry"
       @edit="onEditEntry"
       @add="onAddNew"
+      @close="onCloseBook"
     />
 
     <Cc3InlineDeliveryForm

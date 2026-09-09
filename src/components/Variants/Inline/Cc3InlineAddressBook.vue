@@ -14,6 +14,8 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
 const { t } = useStand()
 
 const text = computed(() => ({
+  title: t('addressBook.title'),
+  close: t('common.close'),
   addAddress: t('delivery.addAddress'),
   edit: t('common.edit'),
 }))
@@ -27,11 +29,20 @@ const emit = defineEmits<{
   select: [id: string]
   edit: [id: string]
   add: []
+  close: []
 }>()
 </script>
 
 <template>
   <div class="cc3-inline-address-book">
+    <div class="cc3-inline-address-book__header">
+      <h2 class="cc3-inline-address-book__title">{{ text.title }}</h2>
+
+      <button type="button" class="cc3-inline-address-book__close" @click="emit('close')">
+        {{ text.close }}
+      </button>
+    </div>
+
     <div class="cc3-inline-address-book__list">
       <div class="cc3-inline-address-book__cards">
         <div v-for="entry in entries" :key="entry.id" class="cc3-inline-address-book__card">
@@ -83,6 +94,33 @@ const emit = defineEmits<{
 <style lang="scss">
 .cc3-inline-address-book {
   padding: 0 var(--st-global-distance-space-inset-2xl);
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: var(--st-global-distance-space-inset-sm) 0 var(--st-global-distance-space-inset-md);
+  }
+
+  &__title {
+    margin: 0;
+
+    @include font('heading-xxs');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__close {
+    padding: var(--st-global-distance-space-inset-lg);
+
+    @include font('label-sm');
+
+    color: var(--st-action-foreground-color-positive-normal);
+    background: none;
+    border: none;
+    cursor: pointer;
+  }
 
   &__list {
     display: flex;
