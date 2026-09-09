@@ -33,41 +33,43 @@ const emit = defineEmits<{
 <template>
   <div class="cc3-inline-address-book">
     <div class="cc3-inline-address-book__list">
-      <div v-for="entry in entries" :key="entry.id" class="cc3-inline-address-book__card">
-        <label class="cc3-inline-address-book__card-select">
-          <span class="cc3-inline-address-book__card-main">
-            <span class="cc3-inline-address-book__card-type">{{ entry.typeLabel }}</span>
+      <div class="cc3-inline-address-book__cards">
+        <div v-for="entry in entries" :key="entry.id" class="cc3-inline-address-book__card">
+          <label class="cc3-inline-address-book__card-select">
+            <span class="cc3-inline-address-book__card-main">
+              <span class="cc3-inline-address-book__card-type">{{ entry.typeLabel }}</span>
 
-            <span class="cc3-inline-address-book__card-name">
-              <Cc3Icon
-                name="heart"
-                :size="16"
-                class="cc3-inline-address-book__card-heart"
-                :class="{ 'cc3-inline-address-book__card-heart--active': entry.isFavorite }"
-              />
-              {{ entry.name }}
+              <span class="cc3-inline-address-book__card-name">
+                <Cc3Icon
+                  name="heart"
+                  :size="16"
+                  class="cc3-inline-address-book__card-heart"
+                  :class="{ 'cc3-inline-address-book__card-heart--active': entry.isFavorite }"
+                />
+                {{ entry.name }}
+              </span>
+
+              <span class="cc3-inline-address-book__card-address">{{ entry.addressLine }}</span>
+              <span class="cc3-inline-address-book__card-price">{{ entry.priceLabel }}</span>
             </span>
 
-            <span class="cc3-inline-address-book__card-address">{{ entry.addressLine }}</span>
-            <span class="cc3-inline-address-book__card-price">{{ entry.priceLabel }}</span>
-          </span>
+            <input
+              type="radio"
+              name="cc3-inline-address-book"
+              class="cc3-inline-address-book__radio"
+              :checked="entry.id === selectedId"
+              @change="emit('select', entry.id)"
+            />
+          </label>
 
-          <input
-            type="radio"
-            name="cc3-inline-address-book"
-            class="cc3-inline-address-book__radio"
-            :checked="entry.id === selectedId"
-            @change="emit('select', entry.id)"
-          />
-        </label>
-
-        <button
-          type="button"
-          class="cc3-inline-address-book__card-edit"
-          @click="emit('edit', entry.id)"
-        >
-          {{ text.edit }}
-        </button>
+          <button
+            type="button"
+            class="cc3-inline-address-book__card-edit"
+            @click="emit('edit', entry.id)"
+          >
+            {{ text.edit }}
+          </button>
+        </div>
       </div>
 
       <button type="button" class="cc3-inline-address-book__add" @click="emit('add')">
@@ -83,14 +85,21 @@ const emit = defineEmits<{
   padding: 0 var(--st-global-distance-space-inset-2xl);
 
   &__list {
-    // Высота — примерно на 3 карточки: длиннее список не должен раздвигать
-    // страницу, «Добавить адрес доставки» должен оставаться в пределах
-    // экрана и открываться прокруткой внутри блока, а не всей страницы.
-    max-height: 460px;
+    display: flex;
+    flex-direction: column;
 
     background-color: var(--st-content-background-color-default-subtle-normal);
     border: 1px solid var(--st-content-border-color-neutral-implicit);
     border-radius: var(--st-global-radius-md);
+    overflow: hidden;
+  }
+
+  &__cards {
+    // Высота — примерно на 3 карточки: длиннее список не должен раздвигать
+    // страницу, а должен прокручиваться сам. «Добавить адрес доставки» —
+    // вне этого блока, поэтому остаётся на виду при любой прокрутке.
+    max-height: 460px;
+
     overflow-y: auto;
   }
 
@@ -192,6 +201,7 @@ const emit = defineEmits<{
 
   &__add {
     display: flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     gap: var(--st-global-distance-space-inline-sm);
@@ -205,6 +215,7 @@ const emit = defineEmits<{
     color: var(--st-action-foreground-color-positive-normal);
     background: none;
     border: none;
+    border-top: 1px solid var(--st-content-border-color-neutral-implicit);
     cursor: pointer;
   }
 }
