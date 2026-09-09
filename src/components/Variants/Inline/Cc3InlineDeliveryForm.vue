@@ -190,11 +190,6 @@ function deleteProfile() {
       />
     </div>
 
-    <label class="cc3-inline-delivery-form__favorite">
-      <span>{{ text.favorite }}</span>
-      <input v-model="isFavorite" type="checkbox" class="cc3-inline-delivery-form__checkbox" />
-    </label>
-
     <template v-if="isAddressResolved">
       <h3 class="cc3-inline-delivery-form__section-title">{{ text.variantsTitle }}</h3>
 
@@ -217,6 +212,11 @@ function deleteProfile() {
       </div>
     </template>
     <p v-else class="cc3-inline-delivery-form__variants-hint">{{ text.variantsHint }}</p>
+
+    <label class="cc3-inline-delivery-form__favorite">
+      <span>{{ text.favorite }}</span>
+      <input v-model="isFavorite" type="checkbox" class="cc3-inline-delivery-form__checkbox" />
+    </label>
 
     <div class="cc3-inline-delivery-form__actions">
       <template v-if="editProfile">
