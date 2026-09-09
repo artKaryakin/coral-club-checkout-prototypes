@@ -5,13 +5,17 @@ import type { CountryCode, StandAddress, StandAddressFields } from './types'
  *
  * Состав одинаковый во всех странах — так концепты сравниваются на равных:
  *
- *   3 адреса курьерской доставки (получатель + адрес);
- *   2 пункта выдачи службы доставки;
- *   1 офис компании.
+ *   4 адреса курьерской доставки: 3 платных и 1 бесплатный;
+ *   3 пункта выдачи: 2 бесплатных и 1 платный;
+ *   1 офис компании, бесплатно.
  *
- * Шесть карточек — это уже не «пара штук», список приходится просматривать,
- * но и не восемь, где включается скролл. Ровно та середина, на которой видно
- * разницу между вариантами.
+ * Восемь карточек — список не помещается на экран целиком, приходится
+ * прокручивать и сравнивать. Это и проверяем: как человек выбирает из
+ * восьми, а не из двух.
+ *
+ * Платные и бесплатные варианты есть и у курьера, и у пункта выдачи.
+ * Без этого цена не участвует в выборе вообще: все курьерские стоят
+ * одинаково, все пункты бесплатны — и сравнивать нечего.
  *
  * Форматы адресов, имена и телефоны — местные. Респондент должен читать
  * карточку как свою, иначе проверяется не интерфейс, а способность
@@ -137,6 +141,33 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       pickupPointId: 'ru-office-horoshevskoe',
       price: 0,
     },
+    {
+      id: 'ru-courier-profsoyuznaya',
+      method: 'courier',
+      methodKey: 'delivery.method.courier',
+      recipientName: 'Иванов Иван Иванович',
+      phone: '+7 999 111-22-33',
+      email: 'qa.auto.checkout+ru@example.com',
+      city: 'Москва',
+      addressLine: 'Профсоюзная улица, 104, кв. 77, Москва, 117321',
+      address: fields('Москва, Профсоюзная улица, 104', '77', '117321', 'Москва', {
+        entrance: '1',
+        floor: '9',
+      }),
+      price: 0,
+    },
+    {
+      id: 'ru-point-cdek-paid',
+      method: 'pickup',
+      methodKey: 'delivery.method.point',
+      recipientName: 'Иванов Иван Иванович',
+      phone: '+7 999 111-22-33',
+      email: 'qa.auto.checkout+ru@example.com',
+      city: 'Москва',
+      addressLine: 'ул. Руднёвка, 14, Москва, 111672',
+      pickupPointId: 'ru-cdek-rudnevka',
+      price: 199,
+    },
   ],
 
   kz: [
@@ -224,6 +255,33 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       pickupPointId: 'kz-office-alfarabi',
       price: 0,
     },
+    {
+      id: 'kz-courier-samal',
+      method: 'courier',
+      methodKey: 'delivery.method.courier',
+      recipientName: 'Ахметов Данияр Маратович',
+      phone: '+7 701 111-22-33',
+      email: 'qa.auto.checkout+kz@example.com',
+      city: 'Алматы',
+      addressLine: 'мкр. Самал-2, 33, кв. 18, Алматы, 050051',
+      address: fields('Алматы, мкр. Самал-2, 33', '18', '050051', 'Алматы', {
+        entrance: '2',
+        floor: '6',
+      }),
+      price: 0,
+    },
+    {
+      id: 'kz-point-cdek-paid',
+      method: 'pickup',
+      methodKey: 'delivery.method.point',
+      recipientName: 'Ахметов Данияр Маратович',
+      phone: '+7 701 111-22-33',
+      email: 'qa.auto.checkout+kz@example.com',
+      city: 'Алматы',
+      addressLine: 'ул. Абая, 68, Алматы, 050008',
+      pickupPointId: 'kz-cdek-abaya',
+      price: 500,
+    },
   ],
 
   de: [
@@ -299,6 +357,30 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       addressLine: 'Kurfürstendamm 194, 10707 Berlin',
       pickupPointId: 'de-office-kurfuerstendamm',
       price: 0,
+    },
+    {
+      id: 'de-courier-schoenhauser',
+      method: 'courier',
+      methodKey: 'delivery.method.courier',
+      recipientName: 'Anna Schmidt',
+      phone: '+49 151 1112233',
+      email: 'qa.auto.checkout+de@example.com',
+      city: 'Berlin',
+      addressLine: 'Schönhauser Allee 36, 10435 Berlin',
+      address: fields('Schönhauser Allee 36', '2. OG', '10435', 'Berlin'),
+      price: 0,
+    },
+    {
+      id: 'de-point-packstation-paid',
+      method: 'pickup',
+      methodKey: 'delivery.method.point',
+      recipientName: 'Anna Schmidt',
+      phone: '+49 151 1112233',
+      email: 'qa.auto.checkout+de@example.com',
+      city: 'Berlin',
+      addressLine: 'Packstation 407, Schönhauser Allee 118, 10439 Berlin',
+      pickupPointId: 'de-dhl-packstation-407',
+      price: 2.9,
     },
   ],
 
@@ -376,6 +458,30 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       pickupPointId: 'pl-office-domaniewska',
       price: 0,
     },
+    {
+      id: 'pl-courier-krucza',
+      method: 'courier',
+      methodKey: 'delivery.method.courier',
+      recipientName: 'Anna Kowalska',
+      phone: '+48 501 111 222',
+      email: 'qa.auto.checkout+pl@example.com',
+      city: 'Warszawa',
+      addressLine: 'ul. Krucza 16/22 m. 4, 00-526 Warszawa',
+      address: fields('ul. Krucza 16/22', 'm. 4', '00-526', 'Warszawa'),
+      price: 0,
+    },
+    {
+      id: 'pl-point-inpost-paid',
+      method: 'pickup',
+      methodKey: 'delivery.method.point',
+      recipientName: 'Anna Kowalska',
+      phone: '+48 501 111 222',
+      email: 'qa.auto.checkout+pl@example.com',
+      city: 'Warszawa',
+      addressLine: 'Paczkomat WAW77B, ul. Wilcza 35, 00-544 Warszawa',
+      pickupPointId: 'pl-inpost-waw77b',
+      price: 9.9,
+    },
   ],
 
   cz: [
@@ -452,6 +558,30 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       pickupPointId: 'cz-office-naprikope',
       price: 0,
     },
+    {
+      id: 'cz-courier-karlovo',
+      method: 'courier',
+      methodKey: 'delivery.method.courier',
+      recipientName: 'Jana Nováková',
+      phone: '+420 601 111 222',
+      email: 'qa.auto.checkout+cz@example.com',
+      city: 'Praha',
+      addressLine: 'Karlovo náměstí 10, 120 00 Praha 2',
+      address: fields('Karlovo náměstí 10', 'byt 6', '120 00', 'Praha'),
+      price: 0,
+    },
+    {
+      id: 'cz-point-zasilkovna-paid',
+      method: 'pickup',
+      methodKey: 'delivery.method.point',
+      recipientName: 'Jana Nováková',
+      phone: '+420 601 111 222',
+      email: 'qa.auto.checkout+cz@example.com',
+      city: 'Praha',
+      addressLine: 'Zásilkovna, Karlovo náměstí 24, 120 00 Praha 2',
+      pickupPointId: 'cz-zasilkovna-karlovo',
+      price: 49,
+    },
   ],
 
   us: [
@@ -527,6 +657,30 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       addressLine: '1120 Avenue of the Americas, New York, NY 10036',
       pickupPointId: 'us-office-sixth-avenue',
       price: 0,
+    },
+    {
+      id: 'us-courier-west-34th',
+      method: 'courier',
+      methodKey: 'delivery.method.courier',
+      recipientName: 'John Miller',
+      phone: '+1 212 111 2233',
+      email: 'qa.auto.checkout+us@example.com',
+      city: 'New York',
+      addressLine: '15 W 34th St, Apt 8D, New York, NY 10001',
+      address: fields('15 W 34th St', 'Apt 8D', '10001', 'New York', { region: 'NY' }),
+      price: 0,
+    },
+    {
+      id: 'us-point-usps-paid',
+      method: 'pickup',
+      methodKey: 'delivery.method.point',
+      recipientName: 'John Miller',
+      phone: '+1 212 111 2233',
+      email: 'qa.auto.checkout+us@example.com',
+      city: 'New York',
+      addressLine: 'USPS Midtown Station, 340 W 42nd St, New York, NY 10036',
+      pickupPointId: 'us-usps-madison',
+      price: 3.99,
     },
   ],
 }

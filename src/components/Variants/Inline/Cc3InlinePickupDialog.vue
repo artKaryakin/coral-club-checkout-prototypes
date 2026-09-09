@@ -460,8 +460,15 @@ function onOverlayKeydown(event: KeyboardEvent) {
   display: flex;
   flex-direction: column;
 
+  // Макет собран под 375px, но телефон бывает шире: на 390 по краям
+  // оставалось по 8px фона, на 430 — по 28. Поэтому на телефоне блок
+  // тянется во всю ширину, а рамка в 375px остаётся только на десктопе,
+  // где стенд смотрят как превью мобильного экрана.
   width: 100%;
-  max-width: 375px;
+
+  @include mediaMinWidth('sm') {
+    max-width: 375px;
+  }
 
   height: 100dvh;
   margin: 0 auto;

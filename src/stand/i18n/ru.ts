@@ -154,6 +154,7 @@ export default {
   'summary.more': 'ещё {count}',
   'summary.delivery': 'Доставка',
   'summary.pickupPoint': 'Пункт выдачи ({code})',
+  'summary.itemsPoints': '{count} товаров, {points} баллов',
   'summary.total': 'Итого:',
   'summary.promoPlaceholder': 'Промокод',
   'summary.continueShopping': 'Продолжить покупки',
@@ -185,7 +186,7 @@ export default {
 
   // Поля адресной формы — состав и порядок задаёт countries.ts,
   // подписи и примеры ввода — местные для каждого рынка
-  'field.autofilled.hint': 'Заполняется автоматически',
+  'field.autofilled.hint': 'Заполнится из подсказки, можно исправить',
   'suggest.loading': 'Ищем адрес…',
   'suggest.empty': 'Ничего не найдено — введите адрес вручную',
   'suggest.error': 'Сервис подсказок недоступен, показаны примеры',

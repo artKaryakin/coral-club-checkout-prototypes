@@ -8,9 +8,10 @@ import type { CountryCode, StandPickupPoint } from './types'
  * выбор пункта проверяется в вакууме. Координаты приблизительные, они нужны
  * только чтобы точки не легли в одну кучу на карте.
  *
- * У каждой страны минимум два пункта службы доставки и один офис компании —
- * ровно то, что лежит в адресной книге у пользователя с сохранёнными
- * адресами (см. addresses.ts).
+ * У каждой страны офис компании и три пункта службы доставки: два с
+ * бесплатной выдачей и один платный. Платный нужен не для полноты картины —
+ * без него респондент ни разу не сравнивает пункты по цене, а это одно
+ * из двух решений, которые он на самом деле принимает.
  */
 export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
   ru: [
@@ -43,6 +44,16 @@ export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
       phone: '+7 495 797-42-81',
       lat: 55.6072,
       lng: 37.6091,
+    },
+    {
+      id: 'ru-cdek-rudnevka',
+      provider: 'cdek',
+      address: 'Москва, ул. Руднёвка, 14',
+      price: 199,
+      code: 'MSK318',
+      phone: '+7 495 797-42-81',
+      lat: 55.7167,
+      lng: 37.8833,
     },
   ],
 
@@ -77,6 +88,16 @@ export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
       lat: 43.2612,
       lng: 76.9435,
     },
+    {
+      id: 'kz-cdek-abaya',
+      provider: 'cdek',
+      address: 'Алматы, ул. Абая, 68',
+      price: 500,
+      code: 'ALA221',
+      phone: '+7 727 355-44-00',
+      lat: 43.2405,
+      lng: 76.9128,
+    },
   ],
 
   de: [
@@ -109,6 +130,16 @@ export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
       phone: '+49 228 4333112',
       lat: 52.5401,
       lng: 13.4109,
+    },
+    {
+      id: 'de-dhl-packstation-407',
+      provider: 'dhl',
+      address: 'Schönhauser Allee 118, 10439 Berlin',
+      price: 2.9,
+      code: '407',
+      phone: '+49 228 4333112',
+      lat: 52.5488,
+      lng: 13.4132,
     },
   ],
 
@@ -143,6 +174,16 @@ export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
       lat: 52.2149,
       lng: 20.9635,
     },
+    {
+      id: 'pl-inpost-waw77b',
+      provider: 'inpost',
+      address: 'ul. Wilcza 35, 00-544 Warszawa',
+      price: 9.9,
+      code: 'WAW77B',
+      phone: '+48 722 444 000',
+      lat: 52.2231,
+      lng: 21.0143,
+    },
   ],
 
   cz: [
@@ -176,6 +217,16 @@ export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
       lat: 50.1053,
       lng: 14.4926,
     },
+    {
+      id: 'cz-zasilkovna-karlovo',
+      provider: 'zasilkovna',
+      address: 'Karlovo náměstí 24, 120 00 Praha 2',
+      price: 49,
+      code: '3317',
+      phone: '+420 216 216 516',
+      lat: 50.0759,
+      lng: 14.4197,
+    },
   ],
 
   us: [
@@ -208,6 +259,16 @@ export const pickupPoints: Record<CountryCode, StandPickupPoint[]> = {
       phone: '+1 800 275 8777',
       lat: 40.7305,
       lng: -73.9905,
+    },
+    {
+      id: 'us-usps-madison',
+      provider: 'usps',
+      address: '340 W 42nd St, New York, NY 10036',
+      price: 3.99,
+      code: '10036',
+      phone: '+1 800 275 8777',
+      lat: 40.7573,
+      lng: -73.9915,
     },
   ],
 }
