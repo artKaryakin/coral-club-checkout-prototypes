@@ -194,27 +194,25 @@ function deleteProfile() {
       />
     </div>
 
-    <template v-if="isAddressResolved">
-      <h3 class="cc3-inline-delivery-form__section-title">{{ text.variantsTitle }}</h3>
+    <h3 class="cc3-inline-delivery-form__section-title">{{ text.variantsTitle }}</h3>
 
-      <div class="cc3-inline-delivery-form__variants">
-        <label v-for="variant in courierVariants" :key="variant.id" class="cc3-inline-delivery-form__cell">
-          <span class="cc3-inline-delivery-form__cell-content">
-            <span class="cc3-inline-delivery-form__cell-title">{{ variant.title }}</span>
-            <span v-if="variant.caption" class="cc3-inline-delivery-form__cell-caption">
-              {{ variant.caption }}
-            </span>
+    <div v-if="isAddressResolved" class="cc3-inline-delivery-form__variants">
+      <label v-for="variant in courierVariants" :key="variant.id" class="cc3-inline-delivery-form__cell">
+        <span class="cc3-inline-delivery-form__cell-content">
+          <span class="cc3-inline-delivery-form__cell-title">{{ variant.title }}</span>
+          <span v-if="variant.caption" class="cc3-inline-delivery-form__cell-caption">
+            {{ variant.caption }}
           </span>
-          <input
-            v-model="selectedCourierVariant"
-            type="radio"
-            name="inline-courier-variant"
-            :value="variant.id"
-            class="cc3-inline-delivery-form__radio"
-          />
-        </label>
-      </div>
-    </template>
+        </span>
+        <input
+          v-model="selectedCourierVariant"
+          type="radio"
+          name="inline-courier-variant"
+          :value="variant.id"
+          class="cc3-inline-delivery-form__radio"
+        />
+      </label>
+    </div>
     <p v-else class="cc3-inline-delivery-form__variants-hint">{{ text.variantsHint }}</p>
 
     <label class="cc3-inline-delivery-form__favorite">
@@ -315,10 +313,13 @@ function deleteProfile() {
 
   &__variants-hint {
     margin: 0;
+    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-3xl);
 
-    @include font('body-sm');
+    @include font('label-sm');
 
     color: var(--st-content-foreground-color-neutral-tetriary);
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border-radius: var(--st-global-radius-lg);
   }
 
   &__variants {

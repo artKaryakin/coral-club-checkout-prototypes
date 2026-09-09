@@ -47,6 +47,7 @@ const text = computed(() => ({
   courier: t('delivery.courier.title'),
   pickup: t('delivery.pickup.title'),
   findAddress: t('common.findAddress'),
+  variantsTitle: t('delivery.variants'),
   variantsHint: t('delivery.variants.hint'),
   openUntil: t('pickup.openUntil'),
   addressSection: t('address.title'),
@@ -518,6 +519,8 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 />
               </div>
 
+              <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.variantsTitle }}</h3>
+
               <p v-if="!isAddressResolved" class="cc3-modal-delivery-dialog__variants-hint">
                 {{ text.variantsHint }}
               </p>
@@ -887,10 +890,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
   &__variants-hint {
     margin: 0;
+    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-3xl);
 
-    @include font('body-sm');
+    @include font('label-sm');
 
     color: var(--st-content-foreground-color-neutral-tetriary);
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border-radius: var(--st-global-radius-lg);
   }
 
   &__variants {
