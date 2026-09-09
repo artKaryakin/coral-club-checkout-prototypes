@@ -172,7 +172,7 @@ function back() {
   step.value = 'picker'
 }
 
-const isFavorite = ref(props.editProfile?.isFavorite ?? true)
+const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
 

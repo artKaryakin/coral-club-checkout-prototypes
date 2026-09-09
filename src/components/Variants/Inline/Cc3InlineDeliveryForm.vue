@@ -119,7 +119,7 @@ const recipientDisplayName = computed(() =>
   [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
 )
 
-const isFavorite = ref(props.editProfile?.isFavorite ?? true)
+const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isDeleteConfirmOpen = ref(false)
 
 const confirmedProfile = computed<DeliveryProfile>(() => {

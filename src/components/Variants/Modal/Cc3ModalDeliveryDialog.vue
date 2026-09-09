@@ -344,7 +344,7 @@ const recipientDisplayName = computed(() =>
   values.value.recipientName?.trim() ||
   [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
 )
-const isFavorite = ref(props.editProfile?.isFavorite ?? true)
+const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
 
