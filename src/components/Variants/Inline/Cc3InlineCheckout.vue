@@ -53,8 +53,11 @@ const { summary } = useCheckout()
 
     // Серый разделитель между блоками, как в макете — у всех секций,
     // кроме первой (доставка идёт сразу за сводкой заказа, без линии).
+    // Контейнер разделителя в фигме высотой 24px, а не просто линия
+    // впритык — иначе она прилипает к заголовку следующего блока.
     > :not(:first-child) {
       border-top: 1px solid var(--st-content-border-color-neutral-implicit);
+      padding-top: var(--st-global-distance-space-inset-2xl);
     }
   }
 }
