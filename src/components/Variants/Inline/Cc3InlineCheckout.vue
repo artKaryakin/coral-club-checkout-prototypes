@@ -40,7 +40,16 @@ const { summary } = useCheckout()
   flex-direction: column;
 
   margin: 0 auto;
-  max-width: 375px;
+
+  // Макет собран под 375px, но телефон бывает шире: на 390 по краям
+  // оставалось по 8px фона, на 430 — по 28. Поэтому на телефоне блок
+  // тянется во всю ширину, а рамка в 375px остаётся только на десктопе,
+  // где стенд смотрят как превью мобильного экрана.
+  width: 100%;
+
+  @include mediaMinWidth('sm') {
+    max-width: 375px;
+  }
 
   background-color: var(--st-content-background-color-default-solid-normal);
 

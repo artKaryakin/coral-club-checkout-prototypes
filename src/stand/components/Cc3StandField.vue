@@ -32,7 +32,6 @@
       class="cc3-stand-field__select"
       :name="field.key"
       :autocomplete="field.autocomplete"
-      :disabled="field.autofilled"
     >
       <option value="" disabled>{{ field.placeholder }}</option>
       <option v-for="option in options" :key="option.value" :value="option.value">
@@ -58,7 +57,6 @@
       :type="inputType"
       :placeholder="placeholder"
       :autocomplete="field.autocomplete"
-      :readonly="field.autofilled"
       :inputmode="inputMode"
     />
 
@@ -94,10 +92,11 @@ import Cc3StandFieldSuggest from './Cc3StandFieldSuggest.vue'
  * неправильная клавиатура. Дивы вместо полей — самая частая ошибка при
  * вёрстке по макету.
  *
- * Поле с autofilled заполняется по индексу или из подсказки и вручную не
- * вводится — визуально это должно быть отличимо от введённого руками.
- * Поле с prefilled тоже заполняется из подсказки, но остаётся обычным:
- * подсказка может не отдать значение, и тогда его вводят руками.
+ * Ни одно поле не блокируется. Подсказка подставляет значение, но человек
+ * всегда может его дописать или исправить: провайдер ошибается, дом бывает
+ * с литерой, индекс — не тот, а заблокированное поле в этот момент
+ * превращается в тупик. Отличие autofilled от prefilled осталось только
+ * в подписи: у первого под полем сказано, что значение подставится само.
  *
  * Поле типа autocomplete показывает подсказки адреса. Список и запрос
  * разнесены: запрос и выбранная строка здесь, отображение — в
@@ -128,9 +127,9 @@ const isListOpen = computed(
   () => isSuggest.value && isFocused.value && (items.value.length > 0 || status.value !== 'idle'),
 )
 
-// Подпись есть только у полей, которые нельзя ввести руками: она объясняет,
-// почему поле заблокировано. У prefilled поля объяснять нечего — оно ведёт
-// себя как обычное, и подпись под ним только шумит.
+// Подпись объясняет, что значение подставится из подсказки и вводить его
+// руками не обязательно. У prefilled поля объяснять нечего — оно ведёт себя
+// как обычное, и подпись под ним только шумит.
 const hint = computed(() => (props.field.autofilled ? t('field.autofilled.hint') : ''))
 
 const options = computed(() => props.field.options ?? [])
