@@ -56,11 +56,6 @@ const selected = ref('bank-transfer')
 
           <span class="cc3-modal-payment__name">{{ method.name }}</span>
         </span>
-
-        <span v-if="method.id === 'bank-card'" class="cc3-modal-payment__brands">
-          <span class="cc3-modal-payment__brand">Mastercard</span>
-          <span class="cc3-modal-payment__brand">Visa</span>
-        </span>
       </button>
     </div>
   </section>
@@ -140,26 +135,5 @@ const selected = ref('bank-transfer')
     color: var(--st-content-foreground-color-neutral-primary);
   }
 
-  &__brands {
-    display: flex;
-    gap: var(--st-global-distance-space-inline-sm);
-  }
-
-  &__brand {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    padding: 0 var(--st-global-distance-space-inset-xs);
-    height: 24px;
-
-    @include font('label-xxs');
-    white-space: nowrap;
-
-    color: var(--st-content-foreground-color-neutral-secondary);
-    background-color: var(--st-content-background-color-default-solid-normal);
-    border: 1px solid var(--st-content-border-color-neutral-implicit);
-    border-radius: var(--st-global-radius-xs);
-  }
 }
 </style>
