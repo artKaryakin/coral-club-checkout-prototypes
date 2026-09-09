@@ -46,7 +46,7 @@
       v-model="value"
       class="cc3-stand-field__textarea"
       :name="field.key"
-      :placeholder="field.placeholder"
+      :placeholder="placeholder"
       rows="3"
     />
 
@@ -56,7 +56,7 @@
       v-model="value"
       :name="field.key"
       :type="inputType"
-      :placeholder="field.placeholder"
+      :placeholder="placeholder"
       :autocomplete="field.autocomplete"
       :readonly="field.autofilled"
       :inputmode="inputMode"
@@ -134,6 +134,11 @@ const isListOpen = computed(
 const hint = computed(() => (props.field.autofilled ? t('field.autofilled.hint') : ''))
 
 const options = computed(() => props.field.options ?? [])
+
+// Плейсхолдер-пример (формат адреса, ФИО, email) сбивает — похож на уже
+// введённое значение. Оставляем его только у телефона: это маска ввода,
+// а не образец, и без неё непонятно, в каком формате набирать номер.
+const placeholder = computed(() => (props.field.type === 'phone' ? props.field.placeholder : ''))
 
 const inputType = computed(() => {
   if (props.field.type === 'phone') return 'tel'
