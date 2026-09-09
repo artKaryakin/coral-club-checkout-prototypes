@@ -110,11 +110,11 @@ const emit = defineEmits<{
     padding: 0 var(--st-global-distance-space-inset-2xl);
     width: 100%;
 
+    // Граница снизу — у каждой карточки, включая последнюю (как в фигме):
+    // список обрезан по высоте и прокручивается, поэтому «последняя видимая»
+    // карточка не обязательно последняя в массиве — свой бордер у кнопки
+    // «Добавить адрес» удвоил бы линию на границе обрезки.
     border-bottom: 1px solid var(--st-content-border-color-neutral-implicit);
-
-    &:last-of-type {
-      border-bottom: none;
-    }
   }
 
   // Отдельный label только вокруг радио и невзаимодействующего контента:
@@ -215,7 +215,6 @@ const emit = defineEmits<{
     color: var(--st-action-foreground-color-positive-normal);
     background: none;
     border: none;
-    border-top: 1px solid var(--st-content-border-color-neutral-implicit);
     cursor: pointer;
   }
 }
