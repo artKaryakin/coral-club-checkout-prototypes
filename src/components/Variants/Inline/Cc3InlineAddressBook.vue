@@ -81,10 +81,15 @@ const emit = defineEmits<{
   padding: 0 var(--st-global-distance-space-inset-2xl);
 
   &__list {
+    // Высота — примерно на 3 карточки: длиннее список не должен раздвигать
+    // страницу, «Добавить адрес доставки» должен оставаться в пределах
+    // экрана и открываться прокруткой внутри блока, а не всей страницы.
+    max-height: 460px;
+
     background-color: var(--st-content-background-color-default-subtle-normal);
     border: 1px solid var(--st-content-border-color-neutral-implicit);
     border-radius: var(--st-global-radius-md);
-    overflow: hidden;
+    overflow-y: auto;
   }
 
   &__card {
