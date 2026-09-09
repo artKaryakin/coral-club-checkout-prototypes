@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch } from 'vue'
 
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
@@ -62,6 +62,7 @@ function defaultSelectedId() {
 const selectedEntryId = ref<string | undefined>(defaultSelectedId())
 const editingEntryId = ref<string>()
 const isPickupDialogOpen = ref(false)
+const sectionRef = ref<HTMLElement>()
 
 /**
  * Пустая книга — форма курьера разворачивается сразу, без промежуточной
@@ -145,6 +146,10 @@ function upsertProfile(profile: DeliveryProfile) {
   editingEntryId.value = undefined
   isPickupDialogOpen.value = false
   mode.value = 'summary'
+
+  // Форма курьера длиннее свёрнутой карточки: без этого после сохранения
+  // страница остаётся проскроленной туда, где раньше были её нижние поля.
+  void nextTick(() => sectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' }))
 }
 
 function deleteEntry(id: string) {
@@ -166,7 +171,7 @@ function deleteEntry(id: string) {
 </script>
 
 <template>
-  <section class="cc3-inline-delivery">
+  <section ref="sectionRef" class="cc3-inline-delivery">
     <template v-if="mode === 'summary' && selectedEntry">
       <div class="cc3-inline-delivery__row">
         <span class="cc3-inline-delivery__method">{{ selectedEntry.typeLabel }}</span>
