@@ -154,6 +154,7 @@ export default {
   'summary.more': 'dalších {count}',
   'summary.delivery': 'Doprava',
   'summary.pickupPoint': 'Výdejní místo ({code})',
+  'summary.itemsPoints': '{count} produktů, {points} bodů',
   'summary.total': 'Celkem:',
   'summary.promoPlaceholder': 'Slevový kód',
   'summary.continueShopping': 'Pokračovat v nákupu',

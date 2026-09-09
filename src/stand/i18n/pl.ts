@@ -154,6 +154,7 @@ export default {
   'summary.more': 'jeszcze {count}',
   'summary.delivery': 'Dostawa',
   'summary.pickupPoint': 'Punkt odbioru ({code})',
+  'summary.itemsPoints': '{count} produktów, {points} punktów',
   'summary.total': 'Razem:',
   'summary.promoPlaceholder': 'Kod promocyjny',
   'summary.continueShopping': 'Kontynuuj zakupy',

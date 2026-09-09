@@ -12,6 +12,10 @@ const text = computed(() => ({
   subtotal: t('summary.items', { count: summary.value.itemsCount }),
   shipping: t('summary.delivery'),
   total: t('summary.total'),
+  itemsPoints: t('summary.itemsPoints', {
+    count: summary.value.itemsCount,
+    points: summary.value.points,
+  }),
   promoPlaceholder: t('summary.promoPlaceholder'),
   apply: t('common.apply'),
 }))
@@ -48,7 +52,7 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
     </button>
 
     <p class="cc3-modal-order-summary__count">
-      {{ summary.itemsCount }} products, {{ summary.points }} points
+      {{ text.itemsPoints }}
     </p>
 
     <dl class="cc3-modal-order-summary__rows">
