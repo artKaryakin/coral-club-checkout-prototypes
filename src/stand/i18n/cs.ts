@@ -185,7 +185,7 @@ export default {
 
   // Поля адресной формы — состав и порядок задаёт countries.ts,
   // подписи и примеры ввода — местные для каждого рынка
-  'field.autofilled.hint': 'Vyplní se automaticky',
+  'field.autofilled.hint': 'Doplní se z návrhu, lze upravit',
   'suggest.loading': 'Hledáme…',
   'suggest.empty': 'Nic nenalezeno — zadejte adresu ručně',
   'suggest.error': 'Služba našeptávače není dostupná, zobrazeny příklady',
