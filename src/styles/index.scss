@@ -15,12 +15,16 @@
 html,
 body {
   overflow-x: hidden;
-  overscroll-behavior: none;
 
   width: 100%;
 }
 
 html {
+  // На body это же свойство не ставим: Chrome на десктопе иногда путает
+  // цепочку скролла, если overscroll-behavior стоит и на html, и на body
+  // одновременно, и перестаёт прокручивать документ вообще.
+  overscroll-behavior: none;
+
   // Иначе iOS увеличивает шрифты при повороте в альбомную ориентацию
   // и вёрстка, собранная под 375px, разъезжается.
   text-size-adjust: 100%;
