@@ -220,6 +220,16 @@ const values = ref<Partial<Record<FieldKey, string>>>({})
 const { fields: addressFields } = useStandFields('address')
 const { fields: recipientFields } = useStandFields('recipient')
 
+/**
+ * У нас нет флоу с типами адреса «Дом / Работа / Своё название» — только
+ * пометка «любимый» сердечком, которая потом показывается в адресной книге.
+ * Поле addressLabel есть в конфиге СНГ-рынков (src/stand/config/countries.ts),
+ * но в этой форме не рендерится — состав и порядок остальных полей не трогаем.
+ */
+const renderedAddressFields = computed(() =>
+  addressFields.value.filter((field) => field.key !== 'addressLabel'),
+)
+
 /** Точка выбранного адреса. Пока адрес не выбран, карта стоит на центре города. */
 const addressPoint = ref<MapPoint>()
 
@@ -578,7 +588,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
             <div class="cc3-modal-delivery-dialog__fields">
               <Cc3StandField
-                v-for="field in addressFields"
+                v-for="field in renderedAddressFields"
                 :key="field.key"
                 v-model="values[field.key]"
                 :field="field"

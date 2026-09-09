@@ -119,7 +119,7 @@ export default {
   'address.mapHide': 'Skrýt mapu',
   'address.mapHintClick': 'Klepnutím na mapu označte místo doručení. Mapu lze posouvat a přibližovat.',
   'address.mapHintPoint': 'Bod na mapě: {point}. Pole adresy níže vyplňte ručně — určení adresy ze souřadnic přijde spolu se službou geokódování.',
-  'address.favorite': 'Nastavit jako výchozí adresu',
+  'address.favorite': 'Označit jako oblíbenou adresu',
   'delivery.title': 'Způsob doručení',
   'delivery.courier.eta': '1–2 dny',
   'delivery.pickup.eta': '1–3 dny',
