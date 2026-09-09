@@ -50,6 +50,7 @@ const text = computed(() => ({
   variantsTitle: t('delivery.variants'),
   variantsHint: t('delivery.variants.hint'),
   openUntil: t('pickup.openUntil'),
+  pickupEmpty: t('pickup.empty'),
   addressSection: t('address.title'),
   addressPlaceholder: t('field.street.placeholder'),
   recipientSection: t('group.recipient.title'),
@@ -140,6 +141,21 @@ function selectPoint(id: string) {
 const activePickupPoint = computed(() =>
   pickupPointsFormat.value.find((point) => point.id === selectedPickupPointId.value),
 )
+
+/**
+ * Выбранный пункт всегда должен быть виден в списке. Фильтр по службе
+ * и смена страны меняют состав списка — если выбранный из него выпал,
+ * выбор переезжает на первый доступный. Иначе внизу висит карточка
+ * пункта, которого на карте уже нет.
+ */
+watch([filteredPickupPoints, country], () => {
+  const visible = filteredPickupPoints.value
+
+  if (!visible.some((point) => point.id === selectedPickupPointId.value)) {
+    selectedPickupPointId.value = visible[0]?.id
+  }
+})
+
 
 const activePickupPointPriceFormatRounded = computed(() =>
   activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
@@ -569,20 +585,27 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 </button>
               </div>
 
-              <button
-                v-if="activePickupPoint"
-                type="button"
-                class="cc3-modal-delivery-dialog__point"
-                @click="selectPoint(activePickupPoint.id)"
-              >
-                <span class="cc3-modal-delivery-dialog__point-name">
-                  {{ activePickupPoint.name }}
-                </span>
-                <span class="cc3-modal-delivery-dialog__point-address">
-                  {{ activePickupPoint.address }}
-                </span>
-                <span class="cc3-modal-delivery-dialog__point-hours">{{ text.openUntil }}</span>
-              </button>
+              <div v-if="filteredPickupPoints.length" class="cc3-modal-delivery-dialog__points">
+                <button
+                  v-for="point in filteredPickupPoints"
+                  :key="point.id"
+                  type="button"
+                  class="cc3-modal-delivery-dialog__point"
+                  :class="{
+                    'cc3-modal-delivery-dialog__point--selected':
+                      point.id === selectedPickupPointId,
+                  }"
+                  @click="selectPoint(point.id)"
+                >
+                  <span class="cc3-modal-delivery-dialog__point-name">{{ point.name }}</span>
+                  <span class="cc3-modal-delivery-dialog__point-address">{{ point.address }}</span>
+                  <span class="cc3-modal-delivery-dialog__point-meta">
+                    {{ text.openUntil }} · {{ point.priceFormat }}
+                  </span>
+                </button>
+              </div>
+
+              <p v-else class="cc3-modal-delivery-dialog__empty">{{ text.pickupEmpty }}</p>
             </template>
           </template>
 
@@ -976,18 +999,49 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
+  // Список пунктов под картой прокручивается сам, а не тянет за собой всё
+  // окно: карта должна оставаться на экране, пока человек выбирает пункт.
+  &__points {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-sm);
+
+    padding-bottom: var(--st-global-distance-space-inset-2xl);
+    max-height: 45vh;
+
+    overflow-y: auto;
+  }
+
   &__point {
     display: flex;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-xs);
 
-    padding: var(--st-global-distance-space-inset-md) 0 var(--st-global-distance-space-inset-2xl);
+    padding: var(--st-global-distance-space-inset-md);
     width: 100%;
 
     text-align: left;
     background: none;
-    border: none;
+    border: 2px solid transparent;
+    border-radius: var(--st-global-radius-lg);
     cursor: pointer;
+
+    &--selected {
+      border-color: var(--st-action-foreground-color-positive-normal);
+    }
+  }
+
+  &__point-meta {
+    color: var(--st-content-foreground-color-neutral-tetriary);
+  }
+
+  &__empty {
+    margin: 0;
+
+    padding: var(--st-global-distance-space-inset-md) 0
+      var(--st-global-distance-space-inset-2xl);
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 
   &__point-name {

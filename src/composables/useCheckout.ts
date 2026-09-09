@@ -396,7 +396,12 @@ export function useCheckout() {
 
         return byProvider && bySearch
       })
-      .map((point) => ({ ...point, priceFormat: money(point.price) }))
+      // Ноль пишем словом: «0,00 ₽» в списке пунктов читается как ошибка,
+      // а не как «доставка до пункта бесплатна».
+      .map((point) => ({
+        ...point,
+        priceFormat: point.price > 0 ? money(point.price) : t('delivery.free'),
+      }))
   })
 
   const isPickup = computed(() => deliveryMethod.value === 'pickup')
