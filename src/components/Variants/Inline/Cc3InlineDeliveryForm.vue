@@ -43,18 +43,22 @@ const text = computed(() => ({
   remove: t('common.delete'),
 }))
 
-type CourierVariant = { id: string; title: string; caption?: string }
+type CourierVariant = { id: string; title: string; summary: string; caption?: string }
 
 const COURIER_PRICE = 149
 
+// summary — то же самое, но без названия способа доставки: в карточке
+// сводки оно не нужно, там уже есть заголовок «Курьер».
 const courierVariants = computed<CourierVariant[]>(() => [
   {
     id: 'standard',
     title: t('delivery.variant.standard', { price: formatMoneyRounded(COURIER_PRICE) }),
+    summary: t('delivery.variant.standard.summary', { price: formatMoneyRounded(COURIER_PRICE) }),
   },
   {
     id: 'express',
     title: t('delivery.variant.express'),
+    summary: t('delivery.variant.express.summary'),
     caption: t('delivery.variant.expressNote'),
   },
 ])
@@ -131,7 +135,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
     typeLabel: t('delivery.method.courier'),
     name: recipientDisplayName.value,
     addressLine: values.value.street ?? '',
-    priceLabel: variant?.title ?? '',
+    priceLabel: variant?.summary ?? '',
     isFavorite: isFavorite.value,
     phone: values.value.recipientPhone ?? '',
     email: values.value.recipientEmail ?? '',
