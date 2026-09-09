@@ -289,6 +289,21 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
       <div class="cc3-inline-pickup-dialog__body">
         <template v-if="step === 'picker'">
+          <div class="cc3-inline-pickup-dialog__chips">
+            <button
+              v-for="filter in providerFilters"
+              :key="filter.id"
+              type="button"
+              class="cc3-inline-pickup-dialog__chip"
+              :class="{
+                'cc3-inline-pickup-dialog__chip--active': isProviderFilterActive(filter.id),
+              }"
+              @click="onProviderFilterClick(filter.id)"
+            >
+              {{ filter.label }}
+            </button>
+          </div>
+
           <div v-if="view === 'map'" class="cc3-inline-pickup-dialog__map">
             <Cc3Map :center="mapCenter" :zoom="9" :markers="pickupMapMarkers" :height="380">
               <template #marker="{ marker }">
@@ -315,21 +330,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
             >
               <span class="cc3-inline-pickup-dialog__point-name">{{ point.name }}</span>
               <span class="cc3-inline-pickup-dialog__point-address">{{ point.address }}</span>
-            </button>
-          </div>
-
-          <div class="cc3-inline-pickup-dialog__chips">
-            <button
-              v-for="filter in providerFilters"
-              :key="filter.id"
-              type="button"
-              class="cc3-inline-pickup-dialog__chip"
-              :class="{
-                'cc3-inline-pickup-dialog__chip--active': isProviderFilterActive(filter.id),
-              }"
-              @click="onProviderFilterClick(filter.id)"
-            >
-              {{ filter.label }}
             </button>
           </div>
 
