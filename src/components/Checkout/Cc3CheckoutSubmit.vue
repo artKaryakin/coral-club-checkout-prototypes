@@ -2,8 +2,12 @@
 import { computed } from 'vue'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
+import { useStandOrder } from '@/stand/composables/useStandOrder'
 
 const { t } = useStand()
+
+// Прод замеряется наравне с концептами: без его времени сравнивать не с чем.
+const { createOrder } = useStandOrder()
 
 const text = computed(() => ({
   button: t('submit.button'),
@@ -19,7 +23,12 @@ const { isReady } = useCheckout()
 
 <template>
   <div class="cc3-checkout-submit">
-    <button type="submit" class="cc3-checkout-submit__button" :disabled="!isReady">
+    <button
+      type="button"
+      class="cc3-checkout-submit__button"
+      :disabled="!isReady"
+      @click="createOrder"
+    >
       {{ text.button }}
     </button>
 

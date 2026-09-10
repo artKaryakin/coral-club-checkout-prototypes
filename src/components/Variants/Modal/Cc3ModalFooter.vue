@@ -5,8 +5,13 @@ import socialVk from '@/assets/modal/social-vk.svg'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
+import { useStandOrder } from '@/stand/composables/useStandOrder'
 
 const { t } = useStand()
+
+// Кнопка заканчивает прохождение: останавливает секундомер, пишет строку в
+// журнал и показывает экран благодарности. Логика замера — в ядре стенда.
+const { createOrder } = useStandOrder()
 
 const { country, locale } = useStand()
 
@@ -45,7 +50,12 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
     </div>
 
     <div class="cc3-modal-footer__cta-wrap">
-      <button type="button" class="cc3-modal-footer__cta" :disabled="!isReady">
+      <button
+        type="button"
+        class="cc3-modal-footer__cta"
+        :disabled="!isReady"
+        @click="createOrder"
+      >
         {{ text.submit }}
       </button>
     </div>
