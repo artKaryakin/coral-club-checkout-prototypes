@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
@@ -8,6 +8,7 @@ import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
+import { useStandProfile } from '@/stand/composables/useStandProfile'
 import type { FieldKey } from '@/stand/config/types'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
@@ -34,7 +35,8 @@ const emit = defineEmits<{
 
 const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels } =
   useCheckout()
-const { t } = useStand()
+const { t, country } = useStand()
+const { recipientValues: profileRecipient } = useStandProfile()
 
 const text = computed(() => ({
   close: t('common.close'),
@@ -42,6 +44,7 @@ const text = computed(() => ({
   map: t('common.map'),
   list: t('common.list'),
   openUntil: t('pickup.openUntil'),
+  pickupEmpty: t('pickup.empty'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
@@ -49,7 +52,6 @@ const text = computed(() => ({
   contacts: t('pickup.contacts'),
   favorite: t('address.favorite'),
   recipientSection: t('group.recipient.title'),
-  addRecipient: t('recipient.add'),
   continue: t('common.continue'),
   save: t('common.save'),
   remove: t('common.delete'),
@@ -101,6 +103,21 @@ function selectPoint(id: string) {
 const activePickupPoint = computed(() =>
   pickupPointsFormat.value.find((point) => point.id === selectedPickupPointId.value),
 )
+
+/**
+ * Выбранный пункт всегда должен быть виден в списке. Фильтр по службе
+ * и смена страны меняют состав списка — если выбранный из него выпал,
+ * выбор переезжает на первый доступный. Иначе внизу висит карточка
+ * пункта, которого на карте уже нет.
+ */
+watch([filteredPickupPoints, country], () => {
+  const visible = filteredPickupPoints.value
+
+  if (!visible.some((point) => point.id === selectedPickupPointId.value)) {
+    selectedPickupPointId.value = visible[0]?.id
+  }
+})
+
 
 const activePickupPointPriceFormatRounded = computed(() =>
   activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
@@ -173,17 +190,41 @@ function back() {
 }
 
 const isFavorite = ref(props.editProfile?.isFavorite ?? false)
-const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
 
-// Получатель — необязательная часть pickup-флоу (кнопка «Add recipient»),
-// но поля те же самые из конфига страны, что и у курьера — переиспользуем
-// Cc3StandField, а не отдельную вёрстку под инпуты.
+// Получатель показывается всегда, а не по кнопке: в пункт выдачи посылку
+// нередко забирает не сам заказчик, и увидеть, кто там указан, важнее, чем
+// сэкономить четыре строки экрана. Поля те же самые из конфига страны, что
+// и у курьера — переиспользуем Cc3StandField, а не свою вёрстку инпутов.
 const { fields: recipientFields } = useStandFields('recipient')
-const recipientValues = ref<Partial<Record<FieldKey, string>>>({
-  recipientName: props.editProfile?.name ?? '',
-  recipientPhone: props.editProfile?.phone ?? '',
-  recipientEmail: props.editProfile?.email ?? '',
+const recipientValues = ref<Partial<Record<FieldKey, string>>>(seedRecipient())
+
+/**
+ * Новый пункт открывается с получателем из профиля, сохранённый — со своими
+ * данными. Имя разбирается на части, потому что состав полей зависит от
+ * страны: в СНГ это одно поле, в Европе и США — имя и фамилия отдельно.
+ */
+function seedRecipient(): Partial<Record<FieldKey, string>> {
+  const saved = props.editProfile
+
+  if (!saved) {
+    return { ...profileRecipient.value }
+  }
+
+  const [firstName = '', ...rest] = saved.name.trim().split(/\s+/)
+
+  return {
+    recipientName: saved.name,
+    recipientFirstName: firstName,
+    recipientLastName: rest.join(' '),
+    recipientPhone: saved.phone,
+    recipientEmail: saved.email,
+  }
+}
+
+// Смена страны — другой формат телефона и другое имя по умолчанию.
+watch(country, () => {
+  recipientValues.value = seedRecipient()
 })
 
 const recipientDisplayName = computed(() =>
@@ -317,7 +358,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </Cc3Map>
           </div>
 
-          <div v-else class="cc3-inline-pickup-dialog__list">
+          <div v-if="filteredPickupPoints.length" class="cc3-inline-pickup-dialog__list">
             <button
               v-for="point in filteredPickupPoints"
               :key="point.id"
@@ -330,19 +371,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
             >
               <span class="cc3-inline-pickup-dialog__point-name">{{ point.name }}</span>
               <span class="cc3-inline-pickup-dialog__point-address">{{ point.address }}</span>
+              <span class="cc3-inline-pickup-dialog__point-meta">
+                {{ text.openUntil }} · {{ point.priceFormat }}
+              </span>
             </button>
           </div>
 
-          <button
-            v-if="view === 'map' && activePickupPoint"
-            type="button"
-            class="cc3-inline-pickup-dialog__point"
-            @click="selectPoint(activePickupPoint.id)"
-          >
-            <span class="cc3-inline-pickup-dialog__point-name">{{ activePickupPoint.name }}</span>
-            <span class="cc3-inline-pickup-dialog__point-address">{{ activePickupPoint.address }}</span>
-            <span class="cc3-inline-pickup-dialog__point-hours">{{ text.openUntil }}</span>
-          </button>
+          <p v-else class="cc3-inline-pickup-dialog__empty">{{ text.pickupEmpty }}</p>
         </template>
 
         <template v-else-if="pickupDetailView">
@@ -378,30 +413,18 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <input v-model="isFavorite" type="checkbox" class="cc3-inline-pickup-dialog__checkbox" />
           </label>
 
-          <button
-            v-if="!isRecipientVisible"
-            type="button"
-            class="cc3-inline-pickup-dialog__add-recipient"
-            @click="isRecipientVisible = true"
-          >
-            <Cc3Icon name="plus-md" :size="20" />
-            {{ text.addRecipient }}
-          </button>
+          <div class="cc3-inline-pickup-dialog__recipient">
+            <h3 class="cc3-inline-pickup-dialog__section-title">{{ text.recipientSection }}</h3>
 
-          <Transition name="cc3-inline-pickup-dialog-recipient">
-            <div v-if="isRecipientVisible" class="cc3-inline-pickup-dialog__recipient">
-              <h3 class="cc3-inline-pickup-dialog__section-title">{{ text.recipientSection }}</h3>
-
-              <div class="cc3-inline-pickup-dialog__fields">
-                <Cc3StandField
-                  v-for="field in recipientFields"
-                  :key="field.key"
-                  v-model="recipientValues[field.key]"
-                  :field="field"
-                />
-              </div>
+            <div class="cc3-inline-pickup-dialog__fields">
+              <Cc3StandField
+                v-for="field in recipientFields"
+                :key="field.key"
+                v-model="recipientValues[field.key]"
+                :field="field"
+              />
             </div>
-          </Transition>
+          </div>
         </template>
       </div>
 
@@ -566,12 +589,29 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
+  // Список прокручивается сам, а не тянет за собой всё окно: в режиме карты
+  // он стоит под ней, и карта должна оставаться на экране.
   &__list {
     display: flex;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-md);
 
     padding-bottom: var(--st-global-distance-space-inset-xl);
+    max-height: 45vh;
+
+    overflow-y: auto;
+  }
+
+  &__point-meta {
+    color: var(--st-content-foreground-color-neutral-tetriary);
+  }
+
+  &__empty {
+    margin: 0;
+
+    padding-bottom: var(--st-global-distance-space-inset-xl);
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 
   &__list-item {
@@ -706,21 +746,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include cc3-modal-check-control;
   }
 
-  &__add-recipient {
-    display: flex;
-    align-items: center;
-    gap: var(--st-global-distance-space-inline-sm);
-
-    padding: var(--st-global-distance-space-inset-md) 0;
-
-    @include font('label-md');
-
-    color: var(--st-action-foreground-color-positive-normal);
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-
   &__recipient {
     padding-top: var(--st-global-distance-space-inset-md);
   }
@@ -785,16 +810,5 @@ function onOverlayKeydown(event: KeyboardEvent) {
     background-color: var(--st-content-background-color-default-solid-normal);
     border: 1px solid var(--st-action-border-color-neutral-subtle-normal);
   }
-}
-
-.cc3-inline-pickup-dialog-recipient-enter-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.cc3-inline-pickup-dialog-recipient-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 </style>

@@ -10,6 +10,7 @@ import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
+import { useStandProfile } from '@/stand/composables/useStandProfile'
 import type { FieldKey } from '@/stand/config/types'
 import { applySuggestion, reverseAddress } from '@/stand/suggest'
 import type { AddressSuggestion } from '@/stand/suggest'
@@ -39,6 +40,7 @@ const emit = defineEmits<{
 const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels, formatMoneyRounded } =
   useCheckout()
 const { t, country } = useStand()
+const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
   back: t('common.back'),
@@ -50,6 +52,7 @@ const text = computed(() => ({
   variantsTitle: t('delivery.variants'),
   variantsHint: t('delivery.variants.hint'),
   openUntil: t('pickup.openUntil'),
+  pickupEmpty: t('pickup.empty'),
   addressSection: t('address.title'),
   addressPlaceholder: t('field.street.placeholder'),
   recipientSection: t('group.recipient.title'),
@@ -59,7 +62,6 @@ const text = computed(() => ({
   hoursWeekend: t('pickup.hours.weekend'),
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
-  addRecipient: t('recipient.add'),
   continue: t('common.continue'),
   save: t('common.save'),
   remove: t('common.delete'),
@@ -140,6 +142,21 @@ function selectPoint(id: string) {
 const activePickupPoint = computed(() =>
   pickupPointsFormat.value.find((point) => point.id === selectedPickupPointId.value),
 )
+
+/**
+ * Выбранный пункт всегда должен быть виден в списке. Фильтр по службе
+ * и смена страны меняют состав списка — если выбранный из него выпал,
+ * выбор переезжает на первый доступный. Иначе внизу висит карточка
+ * пункта, которого на карте уже нет.
+ */
+watch([filteredPickupPoints, country], () => {
+  const visible = filteredPickupPoints.value
+
+  if (!visible.some((point) => point.id === selectedPickupPointId.value)) {
+    selectedPickupPointId.value = visible[0]?.id
+  }
+})
+
 
 const activePickupPointPriceFormatRounded = computed(() =>
   activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
@@ -250,6 +267,11 @@ const resolvedCity = ref('')
  */
 const isAddressResolved = computed(() => resolvedCity.value.length > 0)
 
+/**
+ * Новый адрес открывается с получателем из профиля, сохранённый — со своими
+ * данными. Пустой блок получателя человек читает как обязательный к
+ * заполнению и вводит себя заново, хотя магазин его уже знает.
+ */
 function seedValues() {
   const profile = props.editProfile
 
@@ -257,7 +279,7 @@ function seedValues() {
   resolvedCity.value = profile ? (profile.fields?.city ?? profile.addressLine) : ''
 
   if (!profile) {
-    values.value = {}
+    values.value = { ...recipientValues.value }
 
     return
   }
@@ -346,7 +368,6 @@ const recipientDisplayName = computed(() =>
   [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
 )
 const isFavorite = ref(props.editProfile?.isFavorite ?? false)
-const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
 
 function continueFromSearch() {
@@ -569,20 +590,27 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 </button>
               </div>
 
-              <button
-                v-if="activePickupPoint"
-                type="button"
-                class="cc3-modal-delivery-dialog__point"
-                @click="selectPoint(activePickupPoint.id)"
-              >
-                <span class="cc3-modal-delivery-dialog__point-name">
-                  {{ activePickupPoint.name }}
-                </span>
-                <span class="cc3-modal-delivery-dialog__point-address">
-                  {{ activePickupPoint.address }}
-                </span>
-                <span class="cc3-modal-delivery-dialog__point-hours">{{ text.openUntil }}</span>
-              </button>
+              <div v-if="filteredPickupPoints.length" class="cc3-modal-delivery-dialog__points">
+                <button
+                  v-for="point in filteredPickupPoints"
+                  :key="point.id"
+                  type="button"
+                  class="cc3-modal-delivery-dialog__point"
+                  :class="{
+                    'cc3-modal-delivery-dialog__point--selected':
+                      point.id === selectedPickupPointId,
+                  }"
+                  @click="selectPoint(point.id)"
+                >
+                  <span class="cc3-modal-delivery-dialog__point-name">{{ point.name }}</span>
+                  <span class="cc3-modal-delivery-dialog__point-address">{{ point.address }}</span>
+                  <span class="cc3-modal-delivery-dialog__point-meta">
+                    {{ text.openUntil }} · {{ point.priceFormat }}
+                  </span>
+                </button>
+              </div>
+
+              <p v-else class="cc3-modal-delivery-dialog__empty">{{ text.pickupEmpty }}</p>
             </template>
           </template>
 
@@ -649,30 +677,18 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
 
-            <button
-              v-if="!isRecipientVisible"
-              type="button"
-              class="cc3-modal-delivery-dialog__add-recipient"
-              @click="isRecipientVisible = true"
-            >
-              <Cc3Icon name="plus-md" :size="20" />
-              {{ text.addRecipient }}
-            </button>
+            <div class="cc3-modal-delivery-dialog__recipient">
+              <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
-            <Transition name="cc3-modal-delivery-dialog-recipient">
-              <div v-if="isRecipientVisible" class="cc3-modal-delivery-dialog__recipient">
-                <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
-
-                <div class="cc3-modal-delivery-dialog__fields">
-                  <Cc3StandField
-                    v-for="field in recipientFields"
-                    :key="field.key"
-                    v-model="values[field.key]"
-                    :field="field"
-                  />
-                </div>
+              <div class="cc3-modal-delivery-dialog__fields">
+                <Cc3StandField
+                  v-for="field in recipientFields"
+                  :key="field.key"
+                  v-model="values[field.key]"
+                  :field="field"
+                />
               </div>
-            </Transition>
+            </div>
           </template>
         </div>
 
@@ -976,18 +992,49 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
+  // Список пунктов под картой прокручивается сам, а не тянет за собой всё
+  // окно: карта должна оставаться на экране, пока человек выбирает пункт.
+  &__points {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-sm);
+
+    padding-bottom: var(--st-global-distance-space-inset-2xl);
+    max-height: 45vh;
+
+    overflow-y: auto;
+  }
+
   &__point {
     display: flex;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-xs);
 
-    padding: var(--st-global-distance-space-inset-md) 0 var(--st-global-distance-space-inset-2xl);
+    padding: var(--st-global-distance-space-inset-md);
     width: 100%;
 
     text-align: left;
     background: none;
-    border: none;
+    border: 2px solid transparent;
+    border-radius: var(--st-global-radius-lg);
     cursor: pointer;
+
+    &--selected {
+      border-color: var(--st-action-foreground-color-positive-normal);
+    }
+  }
+
+  &__point-meta {
+    color: var(--st-content-foreground-color-neutral-tetriary);
+  }
+
+  &__empty {
+    margin: 0;
+
+    padding: var(--st-global-distance-space-inset-md) 0
+      var(--st-global-distance-space-inset-2xl);
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 
   &__point-name {
@@ -1052,21 +1099,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
-    cursor: pointer;
-  }
-
-  &__add-recipient {
-    display: flex;
-    align-items: center;
-    gap: var(--st-global-distance-space-inline-sm);
-
-    padding: var(--st-global-distance-space-inset-md) 0;
-
-    @include font('label-md');
-
-    color: var(--st-action-foreground-color-positive-normal);
-    background: none;
-    border: none;
     cursor: pointer;
   }
 
@@ -1141,18 +1173,5 @@ function onOverlayKeydown(event: KeyboardEvent) {
     border-radius: var(--st-global-radius-md);
     cursor: pointer;
   }
-}
-
-// Плавное появление полей получателя по клику на «Add recipient» — чтобы
-// было видно, что это новые поля, а не перерисовка страницы.
-.cc3-modal-delivery-dialog-recipient-enter-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.cc3-modal-delivery-dialog-recipient-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 </style>
