@@ -3,7 +3,7 @@ import { computed } from 'vue'
 import Cc3StandProfileForm from '@/stand/components/Cc3StandProfileForm.vue'
 import { countries, countryCodes, localeNativeNames } from '@/stand/config/countries'
 import { userTypes } from '@/stand/config/users'
-import { logHref, profileHref, routeHref, standVariants, useStand } from '@/stand/composables/useStand'
+import { profileHref, routeHref, standVariants, useStand } from '@/stand/composables/useStand'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
 
 // Вход на стенд: страна → профиль → тип пользователя → версия чекаута.
@@ -107,11 +107,6 @@ const backHref = computed(() => {
 function onProfileSubmit() {
   window.location.hash = routeHref(country.value)
 }
-
-// Журнал прохождений — служебная ссылка модератора. Стоит на первом экране
-// внизу: искать её по памяти в адресной строке во время сессии некогда.
-const journalHref = computed(() => logHref())
-const journalLabel = computed(() => t('stand.log.link'))
 </script>
 
 <template>
@@ -148,10 +143,6 @@ const journalLabel = computed(() => t('stand.log.link'))
 
     <p v-if="step !== 'country'" class="cc3-prototype-index__back">
       <a :href="backHref" class="cc3-prototype-index__back-link">{{ backLabel }}</a>
-    </p>
-
-    <p class="cc3-prototype-index__journal">
-      <a :href="journalHref" class="cc3-prototype-index__journal-link">{{ journalLabel }}</a>
     </p>
   </div>
 </template>
@@ -287,16 +278,6 @@ const journalLabel = computed(() => t('stand.log.link'))
     &:hover {
       color: var(--st-content-foreground-color-primary-secondary);
     }
-  }
-
-  &__journal {
-    margin: 0;
-  }
-
-  &__journal-link {
-    @include font('label-sm');
-
-    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 }
 </style>

@@ -1,12 +1,12 @@
 import { computed, ref } from 'vue'
 import type { CountryCode, LocaleCode, StandProfile } from '../config/types'
 import type { UserType } from '../config/users'
-import { standLogLimit, standLogUrl } from '../config/logging'
+import { standLogAttempts, standLogUrl } from '../config/logging'
 import { testProfile } from '../config/profiles'
 import type { StandVariant } from './useStand'
 
 /**
- * Прохождение сценария: секундомер и журнал.
+ * Прохождение сценария: секундомер и отправка строки в журнал.
  *
  * Замеряем ровно то, что сравниваем, — сколько времени человек тратит от
  * открытия чекаута до создания заказа. Секундомер стартует, когда открылся
@@ -16,6 +16,9 @@ import type { StandVariant } from './useStand'
  *
  * Смена любой оси на ходу начинает замер заново — это уже другой кейс,
  * и склеивать его с предыдущим нельзя.
+ *
+ * Журнал живёт только в Google-таблице. В браузере не остаётся ничего:
+ * прогоны со всех устройств лежат в одном месте, и нечего забыть выгрузить.
  */
 
 export interface StandRun {
@@ -35,43 +38,28 @@ export interface StandRun {
   orderNumber: string
   /** Прогон заполнен кнопкой «Тест-данные» — не настоящий респондент. */
   isTest: boolean
-  /** Строка доехала до Google-таблицы. */
-  sent: boolean
 }
 
-const STORAGE_KEY = 'cc3-stand-runs'
+/** Что с отправкой строки прямо сейчас. */
+export type SendState = 'idle' | 'sending' | 'sent' | 'failed'
 
-function readRuns(): StandRun[] {
-  try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
-
-    return raw ? (JSON.parse(raw) as StandRun[]) : []
-  } catch {
-    return []
-  }
-}
-
-function writeRuns(value: StandRun[]) {
-  try {
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(value))
-  } catch {
-    // Хранилище недоступно — журнал живёт до перезагрузки. Ронять из-за
-    // этого прохождение нельзя: замер важнее его сохранности.
-  }
-}
-
-// Журнал и текущий замер общие на всё приложение: секундомер запускает
-// корневой компонент, останавливает кнопка в подвале, а показывает журнал
-// третий экран.
-const runs = ref<StandRun[]>(readRuns())
+// Замер общий на всё приложение: секундомер запускает корневой компонент,
+// останавливает кнопка в подвале, а результат показывает третий экран.
 const startedAt = ref<number>()
 const finishedRun = ref<StandRun>()
+const sendState = ref<SendState>('idle')
 
 /** Ключ текущего кейса — по нему видно, что оси переключили на ходу. */
 const runKey = ref<string>()
 
 function orderNumber(at: number): string {
   return `CC-${at.toString(36).toUpperCase().slice(-6)}`
+}
+
+function wait(ms: number) {
+  return new Promise((resolve) => {
+    window.setTimeout(resolve, ms)
+  })
 }
 
 /**
@@ -83,28 +71,39 @@ function orderNumber(at: number): string {
  *
  * keepalive: прохождение заканчивается на экране благодарности, и вкладку
  * нередко закрывают сразу — без него запрос не успевает уйти.
+ *
+ * Попыток несколько, с растущей паузой: строку негде продублировать, а
+ * секундной потери сети в переговорке достаточно, чтобы прогон пропал.
+ * Дальше первой попытки Apps Script может ответить дублем — это лучше,
+ * чем потерянное прохождение: дубли в таблице видно по времени старта.
  */
 async function sendRun(run: StandRun): Promise<boolean> {
   if (!standLogUrl) {
     return false
   }
 
-  try {
-    await fetch(standLogUrl, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-      body: JSON.stringify(run),
-      keepalive: true,
-    })
+  for (let attempt = 0; attempt < standLogAttempts; attempt += 1) {
+    if (attempt > 0) {
+      await wait(attempt * 1500)
+    }
 
-    return true
-  } catch {
-    return false
+    try {
+      await fetch(standLogUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(run),
+        keepalive: true,
+      })
+
+      return true
+    } catch {
+      // Следующая попытка. Ответ не читаем: у веб-приложения Apps Script
+      // ответ приходит после редиректа, и отличить «не дошло» от «дошло,
+      // но ответ не прочитался» всё равно нельзя.
+    }
   }
-}
 
-function persist() {
-  writeRuns(runs.value)
+  return false
 }
 
 export function useStandRun() {
@@ -120,18 +119,20 @@ export function useStandRun() {
     runKey.value = key
     startedAt.value = Date.now()
     finishedRun.value = undefined
+    sendState.value = 'idle'
   }
 
   function resetRun() {
     runKey.value = undefined
     startedAt.value = undefined
     finishedRun.value = undefined
+    sendState.value = 'idle'
   }
 
   /**
-   * Заказ создан. Строка сначала попадает в журнал браузера и только потом
-   * уходит в таблицу: отправка может не дойти, а прохождение к этому моменту
-   * уже состоялось, и терять его нельзя.
+   * Заказ создан. Экран благодарности показывается сразу, не дожидаясь
+   * ответа таблицы: прохождение к этому моменту уже состоялось, и держать
+   * человека перед пустым экраном из-за сети незачем.
    */
   async function finishRun(context: {
     country: CountryCode
@@ -158,54 +159,63 @@ export function useStandRun() {
       phone: context.profile.phone,
       orderNumber: orderNumber(finishedAtMs),
       isTest: context.profile.email === testProfile.email,
-      sent: false,
     }
 
-    runs.value = [run, ...runs.value].slice(0, standLogLimit)
     finishedRun.value = run
-    persist()
-
-    if (await sendRun(run)) {
-      markSent(run.id)
-    }
+    sendState.value = 'sending'
+    sendState.value = (await sendRun(run)) ? 'sent' : 'failed'
   }
 
-  function markSent(id: string) {
-    runs.value = runs.value.map((item) => (item.id === id ? { ...item, sent: true } : item))
+  /** Повторная отправка руками — с экрана благодарности. */
+  async function retrySend() {
+    const run = finishedRun.value
 
-    if (finishedRun.value?.id === id) {
-      finishedRun.value = { ...finishedRun.value, sent: true }
+    if (!run || sendState.value === 'sending') {
+      return
     }
 
-    persist()
+    sendState.value = 'sending'
+    sendState.value = (await sendRun(run)) ? 'sent' : 'failed'
   }
 
-  /** Повторная отправка строки, которая не доехала с первого раза. */
-  async function resend(id: string) {
-    const run = runs.value.find((item) => item.id === id)
+  /**
+   * Строка для ручного переноса, если отправка так и не прошла.
+   * Разделитель — табуляция: так она вставляется в таблицу колонками.
+   */
+  const runAsText = computed(() => {
+    const run = finishedRun.value
 
-    if (run && (await sendRun(run))) {
-      markSent(id)
+    if (!run) {
+      return ''
     }
-  }
 
-  function clearRuns() {
-    runs.value = []
-    persist()
-  }
-
-  const isFinished = computed(() => Boolean(finishedRun.value))
+    return [
+      run.startedAt,
+      run.finishedAt,
+      run.durationMs,
+      Math.round(run.durationMs / 1000),
+      run.country,
+      run.user,
+      run.variant,
+      run.locale,
+      run.firstName,
+      run.lastName,
+      run.email,
+      run.phone,
+      run.orderNumber,
+      run.isTest ? 'да' : 'нет',
+    ].join('\t')
+  })
 
   return {
-    runs: computed(() => runs.value),
     finishedRun: computed(() => finishedRun.value),
-    isFinished,
-    isLogEnabled: computed(() => Boolean(standLogUrl)),
+    isFinished: computed(() => Boolean(finishedRun.value)),
+    sendState: computed(() => sendState.value),
+    runAsText,
     beginRun,
     finishRun,
     resetRun,
-    resend,
-    clearRuns,
+    retrySend,
   }
 }
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
-import { logHref, routeHref, useStand } from '../composables/useStand'
+import { routeHref, useStand } from '../composables/useStand'
 import { formatDuration, useStandRun } from '../composables/useStandRun'
 import { countries } from '../config/countries'
 
@@ -17,7 +17,7 @@ import { countries } from '../config/countries'
  * такая же часть чекаута, как и форма.
  */
 const { t, country, user, locale } = useStand()
-const { finishedRun, resetRun, isLogEnabled } = useStandRun()
+const { finishedRun, resetRun, sendState, retrySend, runAsText } = useStandRun()
 
 const text = computed(() => ({
   title: t('thanks.title'),
@@ -25,8 +25,11 @@ const text = computed(() => ({
   order: t('thanks.order'),
   details: t('thanks.details'),
   again: t('thanks.again'),
-  log: t('thanks.log'),
   notSent: t('thanks.notSent'),
+  retry: t('thanks.retry'),
+  copy: t('thanks.copy'),
+  copied: t('thanks.copied'),
+  sending: t('thanks.sending'),
   name: t('thanks.field.name'),
   email: t('thanks.field.email'),
   phone: t('thanks.field.phone'),
@@ -76,12 +79,30 @@ const orderLabel = computed(() =>
   finishedRun.value ? t('thanks.order', { number: finishedRun.value.orderNumber }) : '',
 )
 
-// Строка не доехала до таблицы — модератор должен знать об этом сразу, а не
-// обнаружить пропажу при разборе результатов.
-const isUnsent = computed(() => isLogEnabled.value && finishedRun.value?.sent === false)
+/**
+ * Строка никуда не сохраняется, кроме таблицы, поэтому неудачная отправка —
+ * это потерянное прохождение. Модератор должен узнать об этом сейчас, пока
+ * респондент ещё в комнате, а не при разборе результатов через неделю.
+ */
+const isSending = computed(() => sendState.value === 'sending')
+const isFailed = computed(() => sendState.value === 'failed')
+
+const isCopied = ref(false)
+
+async function copyRun() {
+  try {
+    await navigator.clipboard.writeText(runAsText.value)
+    isCopied.value = true
+  } catch {
+    // Буфер обмена недоступен (нет https или запрещён) — строка всё равно
+    // видна на экране, её можно выделить и скопировать руками.
+    isCopied.value = false
+  }
+}
+
+const copyLabel = computed(() => (isCopied.value ? text.value.copied : text.value.copy))
 
 const indexHref = computed(() => routeHref())
-const journalHref = computed(() => logHref())
 const localeCode = computed(() => locale.value)
 
 function again() {
@@ -105,14 +126,26 @@ function again() {
         </div>
       </dl>
 
-      <p v-if="isUnsent" class="cc3-stand-thank-you__warning">{{ text.notSent }}</p>
+      <p v-if="isSending" class="cc3-stand-thank-you__sending">{{ text.sending }}</p>
+
+      <div v-else-if="isFailed" class="cc3-stand-thank-you__warning">
+        <p class="cc3-stand-thank-you__warning-text">{{ text.notSent }}</p>
+
+        <code class="cc3-stand-thank-you__row-text">{{ runAsText }}</code>
+
+        <div class="cc3-stand-thank-you__warning-actions">
+          <button type="button" class="cc3-stand-thank-you__ghost" @click="retrySend">
+            {{ text.retry }}
+          </button>
+          <button type="button" class="cc3-stand-thank-you__ghost" @click="copyRun">
+            {{ copyLabel }}
+          </button>
+        </div>
+      </div>
 
       <div class="cc3-stand-thank-you__actions">
         <a :href="indexHref" class="cc3-stand-thank-you__button" @click="again">
           {{ text.again }}
-        </a>
-        <a :href="journalHref" class="cc3-stand-thank-you__link" @click="again">
-          {{ text.log }}
         </a>
       </div>
     </div>
@@ -217,15 +250,67 @@ function again() {
     overflow-wrap: anywhere;
   }
 
-  &__warning {
+  &__sending {
     margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
+  }
+
+  &__warning {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-md);
+
+    margin-top: var(--st-global-distance-space-stack-sm);
     padding: var(--st-global-distance-space-inset-md);
+
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border: 1px solid var(--st-content-foreground-color-negative-primary);
+    border-radius: var(--st-global-radius-md);
+  }
+
+  &__warning-text {
+    margin: 0;
 
     @include font('body-sm');
 
     color: var(--st-content-foreground-color-negative-primary);
-    background-color: var(--st-content-background-color-neutral-subtle);
+  }
+
+  // Строка целиком на экране: если и копирование не сработает, её можно
+  // выделить и перенести руками. Прохождение важнее аккуратности вёрстки.
+  &__row-text {
+    padding: var(--st-global-distance-space-inset-sm);
+
+    @include font('body-xs');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+    background-color: var(--st-content-background-color-neutral-primary);
+    border-radius: var(--st-global-radius-sm);
+    overflow-wrap: anywhere;
+  }
+
+  &__warning-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--st-global-distance-space-inset-md);
+  }
+
+  &__ghost {
+    padding: var(--st-global-distance-space-inset-sm)
+      var(--st-global-distance-space-inset-xl);
+
+    font-family: inherit;
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background: none;
+    border: 1px solid var(--st-content-border-color-neutral-secondary);
     border-radius: var(--st-global-radius-md);
+    cursor: pointer;
   }
 
   &__actions {

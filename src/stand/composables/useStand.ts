@@ -34,12 +34,6 @@ export const standVariants: StandVariant[] = ['prod', 'modal', 'inline']
  */
 const PROFILE_SEGMENT = 'profile'
 
-/**
- * Журнал прохождений — служебный экран модератора, а не шаг выбора.
- * Стоит на первом сегменте: он ничего не знает ни про страну, ни про версию.
- */
-const LOG_SEGMENT = 'log'
-
 /** Незаконченный выбор: то, что уже указано в адресе. */
 export interface StandSelection {
   country?: CountryCode
@@ -47,8 +41,6 @@ export interface StandSelection {
   variant?: StandVariant
   /** Открыт шаг заполнения профиля, тип пользователя ещё не выбран. */
   profileStep?: boolean
-  /** Открыт служебный экран журнала прохождений. */
-  logScreen?: boolean
 }
 
 /** Полностью определённая конфигурация — с ней открывается прототип. */
@@ -100,7 +92,6 @@ function parseHash(): StandSelection {
     user: isUserType(second) ? second : undefined,
     variant: isVariant(third) ? third : undefined,
     profileStep: second === PROFILE_SEGMENT,
-    logScreen: first === LOG_SEGMENT,
   }
 
   if (legacy && selection.country && selection.user && selection.variant) {
@@ -146,11 +137,6 @@ export function profileHref(country: CountryCode): string {
   return `#/${country}/${PROFILE_SEGMENT}`
 }
 
-/** Ссылка на журнал прохождений. */
-export function logHref(): string {
-  return `#/${LOG_SEGMENT}`
-}
-
 export function useStand() {
   const selection = computed(() => currentSelection.value)
 
@@ -174,8 +160,6 @@ export function useStand() {
   })
 
   const hasSavedAddresses = computed(() => user.value === 'saved')
-
-  const isLogScreen = computed(() => currentSelection.value.logScreen === true)
 
   const isModal = computed(() => variant.value === 'modal')
   const isInline = computed(() => variant.value === 'inline')
@@ -202,7 +186,6 @@ export function useStand() {
     locale,
     countryConfig,
     hasSavedAddresses,
-    isLogScreen,
     isModal,
     isInline,
     isProd,

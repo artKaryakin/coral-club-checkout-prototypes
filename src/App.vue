@@ -4,14 +4,13 @@ import Cc3PrototypeIndex from '@/components/Cc3PrototypeIndex.vue'
 import Cc3Checkout from '@/components/Checkout/Cc3Checkout.vue'
 import Cc3InlineCheckout from '@/components/Variants/Inline/Cc3InlineCheckout.vue'
 import Cc3ModalCheckout from '@/components/Variants/Modal/Cc3ModalCheckout.vue'
-import Cc3StandLog from '@/stand/components/Cc3StandLog.vue'
 import Cc3StandThankYou from '@/stand/components/Cc3StandThankYou.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandRun } from '@/stand/composables/useStandRun'
 
 // Без варианта в адресе показываем список сценариев. С вариантом —
 // свой корневой компонент на каждый прототип.
-const { route, isModal, isInline, isLogScreen } = useStand()
+const { route, isModal, isInline } = useStand()
 
 // Секундомер запускается здесь, а не внутри версии: замер должен начинаться
 // в один и тот же момент во всех трёх, иначе времена несравнимы. Момент —
@@ -37,8 +36,7 @@ watch(
 </script>
 
 <template>
-  <Cc3StandLog v-if="isLogScreen" />
-  <Cc3StandThankYou v-else-if="isFinished" />
+  <Cc3StandThankYou v-if="isFinished" />
   <Cc3ModalCheckout v-else-if="isModal" />
   <Cc3InlineCheckout v-else-if="isInline" />
   <Cc3Checkout v-else-if="route" />
