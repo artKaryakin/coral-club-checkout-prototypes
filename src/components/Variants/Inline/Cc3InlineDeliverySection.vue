@@ -16,7 +16,7 @@ import Cc3InlinePickupDialog from './Cc3InlinePickupDialog.vue'
  * а не попапом. Попапом остаётся только выбор пункта самовывоза — ему
  * нужна карта на весь экран (см. Cc3InlinePickupDialog).
  */
-withDefaults(
+const props = withDefaults(
   defineProps<{
     /**
      * Варианты доставки показываются не в форме адреса, а отдельным блоком
@@ -100,6 +100,16 @@ watch([country, user], () => {
 
 const selectedEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === selectedEntryId.value),
+)
+
+/**
+ * Цена уходит из карточки только там, где её показывает отдельный блок
+ * вариантов доставки, то есть у курьера. У пункта выдачи такого блока нет:
+ * цена и срок принадлежат самому пункту, и убрать их — значит оставить
+ * человека без единственного числа на экране.
+ */
+const isPriceVisible = computed(
+  () => !props.optionsInCheckout || selectedEntry.value?.method === 'pickup',
 )
 
 // Пока адрес выбирают или редактируют, снаружи он считается не выбранным:
@@ -218,7 +228,7 @@ function deleteEntry(id: string) {
         <p class="cc3-inline-delivery__address">{{ selectedEntry.addressLine }}</p>
       </div>
 
-      <p v-if="!optionsInCheckout" class="cc3-inline-delivery__price">
+      <p v-if="isPriceVisible" class="cc3-inline-delivery__price">
         {{ selectedEntry.priceLabel }}
       </p>
 
