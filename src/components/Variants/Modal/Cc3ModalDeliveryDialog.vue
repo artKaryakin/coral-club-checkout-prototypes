@@ -10,6 +10,7 @@ import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
+import { useStandProfile } from '@/stand/composables/useStandProfile'
 import type { FieldKey } from '@/stand/config/types'
 import { applySuggestion, reverseAddress } from '@/stand/suggest'
 import type { AddressSuggestion } from '@/stand/suggest'
@@ -39,6 +40,7 @@ const emit = defineEmits<{
 const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels, formatMoneyRounded } =
   useCheckout()
 const { t, country } = useStand()
+const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
   back: t('common.back'),
@@ -60,7 +62,6 @@ const text = computed(() => ({
   hoursWeekend: t('pickup.hours.weekend'),
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
-  addRecipient: t('recipient.add'),
   continue: t('common.continue'),
   save: t('common.save'),
   remove: t('common.delete'),
@@ -266,6 +267,11 @@ const resolvedCity = ref('')
  */
 const isAddressResolved = computed(() => resolvedCity.value.length > 0)
 
+/**
+ * Новый адрес открывается с получателем из профиля, сохранённый — со своими
+ * данными. Пустой блок получателя человек читает как обязательный к
+ * заполнению и вводит себя заново, хотя магазин его уже знает.
+ */
 function seedValues() {
   const profile = props.editProfile
 
@@ -273,7 +279,7 @@ function seedValues() {
   resolvedCity.value = profile ? (profile.fields?.city ?? profile.addressLine) : ''
 
   if (!profile) {
-    values.value = {}
+    values.value = { ...recipientValues.value }
 
     return
   }
@@ -362,7 +368,6 @@ const recipientDisplayName = computed(() =>
   [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
 )
 const isFavorite = ref(props.editProfile?.isFavorite ?? false)
-const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
 
 function continueFromSearch() {
@@ -672,30 +677,18 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
             </label>
 
-            <button
-              v-if="!isRecipientVisible"
-              type="button"
-              class="cc3-modal-delivery-dialog__add-recipient"
-              @click="isRecipientVisible = true"
-            >
-              <Cc3Icon name="plus-md" :size="20" />
-              {{ text.addRecipient }}
-            </button>
+            <div class="cc3-modal-delivery-dialog__recipient">
+              <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
-            <Transition name="cc3-modal-delivery-dialog-recipient">
-              <div v-if="isRecipientVisible" class="cc3-modal-delivery-dialog__recipient">
-                <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
-
-                <div class="cc3-modal-delivery-dialog__fields">
-                  <Cc3StandField
-                    v-for="field in recipientFields"
-                    :key="field.key"
-                    v-model="values[field.key]"
-                    :field="field"
-                  />
-                </div>
+              <div class="cc3-modal-delivery-dialog__fields">
+                <Cc3StandField
+                  v-for="field in recipientFields"
+                  :key="field.key"
+                  v-model="values[field.key]"
+                  :field="field"
+                />
               </div>
-            </Transition>
+            </div>
           </template>
         </div>
 
@@ -1109,21 +1102,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     cursor: pointer;
   }
 
-  &__add-recipient {
-    display: flex;
-    align-items: center;
-    gap: var(--st-global-distance-space-inline-sm);
-
-    padding: var(--st-global-distance-space-inset-md) 0;
-
-    @include font('label-md');
-
-    color: var(--st-action-foreground-color-positive-normal);
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-
   &__recipient {
     padding-top: var(--st-global-distance-space-inset-md);
   }
@@ -1195,18 +1173,5 @@ function onOverlayKeydown(event: KeyboardEvent) {
     border-radius: var(--st-global-radius-md);
     cursor: pointer;
   }
-}
-
-// Плавное появление полей получателя по клику на «Add recipient» — чтобы
-// было видно, что это новые поля, а не перерисовка страницы.
-.cc3-modal-delivery-dialog-recipient-enter-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.cc3-modal-delivery-dialog-recipient-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 </style>

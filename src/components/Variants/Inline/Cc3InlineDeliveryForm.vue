@@ -5,6 +5,7 @@ import { useCheckout } from '@/composables/useCheckout'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
+import { useStandProfile } from '@/stand/composables/useStandProfile'
 import type { FieldKey } from '@/stand/config/types'
 import { applySuggestion } from '@/stand/suggest'
 import type { AddressSuggestion } from '@/stand/suggest'
@@ -30,6 +31,7 @@ const emit = defineEmits<{
 
 const { formatMoneyRounded } = useCheckout()
 const { t, country } = useStand()
+const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
   courier: t('delivery.courier.title'),
@@ -82,13 +84,18 @@ const values = ref<Partial<Record<FieldKey, string>>>({})
 const resolvedCity = ref('')
 const isAddressResolved = computed(() => resolvedCity.value.length > 0)
 
+/**
+ * Новый адрес открывается с получателем из профиля, сохранённый — со своими
+ * данными. Пустой блок получателя человек читает как обязательный к
+ * заполнению и вводит себя заново, хотя магазин его уже знает.
+ */
 function seedValues() {
   const profile = props.editProfile
 
   resolvedCity.value = profile ? (profile.fields?.city ?? profile.addressLine) : ''
 
   if (!profile) {
-    values.value = {}
+    values.value = { ...recipientValues.value }
 
     return
   }

@@ -1,17 +1,26 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { countryCodes } from '@/stand/config/countries'
+import Cc3StandProfileForm from '@/stand/components/Cc3StandProfileForm.vue'
+import { countries, countryCodes, localeNativeNames } from '@/stand/config/countries'
 import { userTypes } from '@/stand/config/users'
-import { routeHref, standVariants, useStand } from '@/stand/composables/useStand'
+import { profileHref, routeHref, standVariants, useStand } from '@/stand/composables/useStand'
+import { useStandProfile } from '@/stand/composables/useStandProfile'
 
-// Вход на стенд: страна → тип пользователя → версия чекаута.
+// Вход на стенд: страна → профиль → тип пользователя → версия чекаута.
 // Шаг не хранится в компоненте, а читается из адреса, поэтому кнопка «назад»
 // в браузере работает как возврат на предыдущий шаг, а любой шаг можно
 // отправить ссылкой.
+//
+// Профиль стоит вторым, сразу после страны: он задаёт язык всей остальной
+// формы, а сам профиль потом подставляется получателем внутри прототипа.
+// Шаг необязателен — полная ссылка вида #/ru/saved/modal открывает прототип
+// сразу, с профилем по умолчанию для этой страны.
 const { selection, country, user, t } = useStand()
+const { fullName } = useStandProfile()
 
 const step = computed(() => {
   if (!selection.value.country) return 'country'
+  if (selection.value.profileStep) return 'profile'
 
   return selection.value.user ? 'variant' : 'user'
 })
@@ -20,8 +29,14 @@ const steps = computed(() => [
   {
     key: 'country',
     label: t('stand.step.country'),
-    value: selection.value.country ? t(`country.${selection.value.country}`) : undefined,
+    value: selection.value.country ? countries[selection.value.country].nativeName : undefined,
     href: routeHref(),
+  },
+  {
+    key: 'profile',
+    label: t('stand.step.profile'),
+    value: step.value === 'country' || step.value === 'profile' ? undefined : fullName.value,
+    href: selection.value.country ? profileHref(selection.value.country) : routeHref(),
   },
   {
     key: 'user',
@@ -37,12 +52,16 @@ const steps = computed(() => [
   },
 ])
 
+// Страна названа на своём языке, под ней — язык, на котором откроется
+// интерфейс. Переводить названия стран на язык предыдущего выбора незачем:
+// на этом экране респондент ещё не выбрал язык, а свою страну он узнаёт
+// в любом окружении.
 const countryOptions = computed(() =>
   countryCodes.map((code) => ({
     key: code,
-    title: t(`country.${code}`),
-    hint: undefined,
-    href: routeHref(code),
+    title: `${countries[code].flag} ${countries[code].nativeName}`,
+    hint: localeNativeNames[countries[code].locale],
+    href: profileHref(code),
   })),
 )
 
@@ -71,15 +90,23 @@ const options = computed(() => {
   return variantOptions.value
 })
 
+const isProfileStep = computed(() => step.value === 'profile')
+
 const standTitle = computed(() => t('stand.title'))
 const backLabel = computed(() => t('stand.back'))
 const title = computed(() => t(`stand.${step.value}.title`))
 const hint = computed(() => t(`stand.${step.value}.hint`))
 const backHref = computed(() => {
-  if (step.value === 'user') return routeHref()
+  if (step.value === 'profile') return routeHref()
+  if (step.value === 'user') return profileHref(country.value)
 
   return routeHref(country.value)
 })
+
+/** Профиль сохранён — идём дальше, к выбору типа пользователя. */
+function onProfileSubmit() {
+  window.location.hash = routeHref(country.value)
+}
 </script>
 
 <template>
@@ -101,7 +128,9 @@ const backHref = computed(() => {
       <p class="cc3-prototype-index__hint">{{ hint }}</p>
     </header>
 
-    <ul class="cc3-prototype-index__list">
+    <Cc3StandProfileForm v-if="isProfileStep" @submit="onProfileSubmit" />
+
+    <ul v-else class="cc3-prototype-index__list">
       <li v-for="option in options" :key="option.key">
         <a :href="option.href" class="cc3-prototype-index__option">
           <span class="cc3-prototype-index__option-title">{{ option.title }}</span>

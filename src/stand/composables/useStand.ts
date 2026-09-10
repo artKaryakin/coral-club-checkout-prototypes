@@ -24,11 +24,23 @@ export type StandVariant = 'prod' | 'modal' | 'inline'
 
 export const standVariants: StandVariant[] = ['prod', 'modal', 'inline']
 
+/**
+ * Шаг с профилем стоит между страной и типом пользователя и занимает
+ * в адресе место типа пользователя: #/ru/profile.
+ *
+ * Отдельный сегмент нужен, чтобы шаг попал в историю браузера: без него
+ * профиль и выбор пользователя жили бы по одному адресу #/ru, и «назад»
+ * с третьего шага перепрыгивало бы сразу на выбор страны.
+ */
+const PROFILE_SEGMENT = 'profile'
+
 /** Незаконченный выбор: то, что уже указано в адресе. */
 export interface StandSelection {
   country?: CountryCode
   user?: UserType
   variant?: StandVariant
+  /** Открыт шаг заполнения профиля, тип пользователя ещё не выбран. */
+  profileStep?: boolean
 }
 
 /** Полностью определённая конфигурация — с ней открывается прототип. */
@@ -79,6 +91,7 @@ function parseHash(): StandSelection {
     country: isCountry(first) ? first : undefined,
     user: isUserType(second) ? second : undefined,
     variant: isVariant(third) ? third : undefined,
+    profileStep: second === PROFILE_SEGMENT,
   }
 
   if (legacy && selection.country && selection.user && selection.variant) {
@@ -117,6 +130,11 @@ window.addEventListener('hashchange', () => {
 /** Ссылка на любой шаг выбора: неуказанные оси просто отбрасываются. */
 export function routeHref(country?: CountryCode, user?: UserType, variant?: StandVariant): string {
   return `#/${[country, user, variant].filter(Boolean).join('/')}`
+}
+
+/** Ссылка на шаг заполнения профиля выбранной страны. */
+export function profileHref(country: CountryCode): string {
+  return `#/${country}/${PROFILE_SEGMENT}`
 }
 
 export function useStand() {

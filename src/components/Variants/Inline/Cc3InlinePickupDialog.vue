@@ -8,6 +8,7 @@ import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
+import { useStandProfile } from '@/stand/composables/useStandProfile'
 import type { FieldKey } from '@/stand/config/types'
 import { formatPriceRounded } from '@/utils/formatPrice'
 
@@ -35,6 +36,7 @@ const emit = defineEmits<{
 const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels } =
   useCheckout()
 const { t, country } = useStand()
+const { recipientValues: profileRecipient } = useStandProfile()
 
 const text = computed(() => ({
   close: t('common.close'),
@@ -50,7 +52,6 @@ const text = computed(() => ({
   contacts: t('pickup.contacts'),
   favorite: t('address.favorite'),
   recipientSection: t('group.recipient.title'),
-  addRecipient: t('recipient.add'),
   continue: t('common.continue'),
   save: t('common.save'),
   remove: t('common.delete'),
@@ -189,17 +190,41 @@ function back() {
 }
 
 const isFavorite = ref(props.editProfile?.isFavorite ?? false)
-const isRecipientVisible = ref(false)
 const isDeleteConfirmOpen = ref(false)
 
-// Получатель — необязательная часть pickup-флоу (кнопка «Add recipient»),
-// но поля те же самые из конфига страны, что и у курьера — переиспользуем
-// Cc3StandField, а не отдельную вёрстку под инпуты.
+// Получатель показывается всегда, а не по кнопке: в пункт выдачи посылку
+// нередко забирает не сам заказчик, и увидеть, кто там указан, важнее, чем
+// сэкономить четыре строки экрана. Поля те же самые из конфига страны, что
+// и у курьера — переиспользуем Cc3StandField, а не свою вёрстку инпутов.
 const { fields: recipientFields } = useStandFields('recipient')
-const recipientValues = ref<Partial<Record<FieldKey, string>>>({
-  recipientName: props.editProfile?.name ?? '',
-  recipientPhone: props.editProfile?.phone ?? '',
-  recipientEmail: props.editProfile?.email ?? '',
+const recipientValues = ref<Partial<Record<FieldKey, string>>>(seedRecipient())
+
+/**
+ * Новый пункт открывается с получателем из профиля, сохранённый — со своими
+ * данными. Имя разбирается на части, потому что состав полей зависит от
+ * страны: в СНГ это одно поле, в Европе и США — имя и фамилия отдельно.
+ */
+function seedRecipient(): Partial<Record<FieldKey, string>> {
+  const saved = props.editProfile
+
+  if (!saved) {
+    return { ...profileRecipient.value }
+  }
+
+  const [firstName = '', ...rest] = saved.name.trim().split(/\s+/)
+
+  return {
+    recipientName: saved.name,
+    recipientFirstName: firstName,
+    recipientLastName: rest.join(' '),
+    recipientPhone: saved.phone,
+    recipientEmail: saved.email,
+  }
+}
+
+// Смена страны — другой формат телефона и другое имя по умолчанию.
+watch(country, () => {
+  recipientValues.value = seedRecipient()
 })
 
 const recipientDisplayName = computed(() =>
@@ -388,30 +413,18 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <input v-model="isFavorite" type="checkbox" class="cc3-inline-pickup-dialog__checkbox" />
           </label>
 
-          <button
-            v-if="!isRecipientVisible"
-            type="button"
-            class="cc3-inline-pickup-dialog__add-recipient"
-            @click="isRecipientVisible = true"
-          >
-            <Cc3Icon name="plus-md" :size="20" />
-            {{ text.addRecipient }}
-          </button>
+          <div class="cc3-inline-pickup-dialog__recipient">
+            <h3 class="cc3-inline-pickup-dialog__section-title">{{ text.recipientSection }}</h3>
 
-          <Transition name="cc3-inline-pickup-dialog-recipient">
-            <div v-if="isRecipientVisible" class="cc3-inline-pickup-dialog__recipient">
-              <h3 class="cc3-inline-pickup-dialog__section-title">{{ text.recipientSection }}</h3>
-
-              <div class="cc3-inline-pickup-dialog__fields">
-                <Cc3StandField
-                  v-for="field in recipientFields"
-                  :key="field.key"
-                  v-model="recipientValues[field.key]"
-                  :field="field"
-                />
-              </div>
+            <div class="cc3-inline-pickup-dialog__fields">
+              <Cc3StandField
+                v-for="field in recipientFields"
+                :key="field.key"
+                v-model="recipientValues[field.key]"
+                :field="field"
+              />
             </div>
-          </Transition>
+          </div>
         </template>
       </div>
 
@@ -733,21 +746,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include cc3-modal-check-control;
   }
 
-  &__add-recipient {
-    display: flex;
-    align-items: center;
-    gap: var(--st-global-distance-space-inline-sm);
-
-    padding: var(--st-global-distance-space-inset-md) 0;
-
-    @include font('label-md');
-
-    color: var(--st-action-foreground-color-positive-normal);
-    background: none;
-    border: none;
-    cursor: pointer;
-  }
-
   &__recipient {
     padding-top: var(--st-global-distance-space-inset-md);
   }
@@ -812,16 +810,5 @@ function onOverlayKeydown(event: KeyboardEvent) {
     background-color: var(--st-content-background-color-default-solid-normal);
     border: 1px solid var(--st-action-border-color-neutral-subtle-normal);
   }
-}
-
-.cc3-inline-pickup-dialog-recipient-enter-active {
-  transition:
-    opacity 0.2s ease,
-    transform 0.2s ease;
-}
-
-.cc3-inline-pickup-dialog-recipient-enter-from {
-  opacity: 0;
-  transform: translateY(-8px);
 }
 </style>

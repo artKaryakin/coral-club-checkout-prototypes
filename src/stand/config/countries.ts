@@ -1,5 +1,21 @@
-import type { CountryCode, CountryConfig } from './types'
+import type { CountryCode, CountryConfig, LocaleCode } from './types'
 import { usStates } from './usStates'
+
+/**
+ * Название языка, написанное на нём самом.
+ *
+ * Показывается под названием страны на первом экране: страна задаёт язык
+ * интерфейса, и модератор должен видеть, на каком языке откроется прототип,
+ * не сверяясь с таблицей. Казахстан здесь честно даёт «русский» — интерфейс
+ * на казахский пока не переводится.
+ */
+export const localeNativeNames: Record<LocaleCode, string> = {
+  ru: 'русский',
+  en: 'English',
+  de: 'Deutsch',
+  pl: 'polski',
+  cs: 'čeština',
+}
 
 /**
  * Набор и ПОРЯДОК полей по странам — в формате, привычном для рынка.
@@ -89,6 +105,7 @@ const euRecipient: CountryConfig['recipient'] = [
 export const countries: Record<CountryCode, CountryConfig> = {
   ru: {
     code: 'ru',
+    nativeName: 'Россия',
     flag: '🇷🇺',
     currency: 'RUB',
     intlLocale: 'ru-RU',
@@ -102,6 +119,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   kz: {
     code: 'kz',
+    nativeName: 'Қазақстан',
     flag: '🇰🇿',
     currency: 'KZT',
     intlLocale: 'ru-KZ',
@@ -115,6 +133,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   de: {
     code: 'de',
+    nativeName: 'Deutschland',
     flag: '🇩🇪',
     currency: 'EUR',
     intlLocale: 'de-DE',
@@ -128,6 +147,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   pl: {
     code: 'pl',
+    nativeName: 'Polska',
     flag: '🇵🇱',
     currency: 'PLN',
     intlLocale: 'pl-PL',
@@ -141,6 +161,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   cz: {
     code: 'cz',
+    nativeName: 'Česko',
     flag: '🇨🇿',
     currency: 'CZK',
     intlLocale: 'cs-CZ',
@@ -154,6 +175,7 @@ export const countries: Record<CountryCode, CountryConfig> = {
 
   us: {
     code: 'us',
+    nativeName: 'United States',
     flag: '🇺🇸',
     currency: 'USD',
     intlLocale: 'en-US',
