@@ -58,6 +58,7 @@
       :placeholder="placeholder"
       :autocomplete="field.autocomplete"
       :inputmode="inputMode"
+      :invalid="invalid"
     />
 
     <Cc3StandFieldSuggest
@@ -107,7 +108,17 @@ import Cc3StandFieldSuggest from './Cc3StandFieldSuggest.vue'
  * Плейсхолдер приходит из конфига страны и показывает местный формат адреса.
  * Это подсказка, а не замена подписи: label остаётся на месте всегда.
  */
-const props = defineProps<{ field: StandField }>()
+const props = defineProps<{
+  field: StandField
+  /**
+   * Поле не заполнено или заполнено неверно. Решает форма, а не поле:
+   * когда показывать ошибку — до первой отправки или сразу — зависит от
+   * сценария, и поле не должно решать это за форму.
+   */
+  invalid?: boolean
+  /** Текст ошибки под полем. Без него подсветка остаётся без объяснения. */
+  error?: string
+}>()
 
 const emit = defineEmits<{ select: [suggestion: AddressSuggestion] }>()
 
@@ -130,7 +141,13 @@ const isListOpen = computed(
 // Подпись объясняет, что значение подставится из подсказки и вводить его
 // руками не обязательно. У prefilled поля объяснять нечего — оно ведёт себя
 // как обычное, и подпись под ним только шумит.
-const hint = computed(() => (props.field.autofilled ? t('field.autofilled.hint') : ''))
+const hint = computed(() => {
+  if (props.invalid && props.error) {
+    return props.error
+  }
+
+  return props.field.autofilled ? t('field.autofilled.hint') : ''
+})
 
 const options = computed(() => props.field.options ?? [])
 
@@ -230,6 +247,7 @@ function onKeydown(event: KeyboardEvent) {
 }
 
 const modifiers = computed(() => ({
+  'cc3-stand-field--invalid': props.invalid,
   'cc3-stand-field--autofilled': props.field.autofilled,
   'cc3-stand-field--prefilled': props.field.prefilled,
   'cc3-stand-field--required': props.field.required,
@@ -325,6 +343,17 @@ const modifiers = computed(() => ({
     @include font('body-xs');
 
     color: var(--st-content-foreground-color-neutral-tetriary);
+  }
+
+  // Подпись под невалидным полем — это текст ошибки, а не подсказка:
+  // серым его никто не прочтёт.
+  &--invalid &__hint {
+    color: var(--st-content-foreground-color-negative-primary);
+  }
+
+  &--invalid &__select,
+  &--invalid &__textarea {
+    border-color: var(--st-content-foreground-color-negative-primary);
   }
 }
 </style>
