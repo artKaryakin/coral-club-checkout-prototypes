@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
@@ -34,7 +34,7 @@ const emit = defineEmits<{
 
 const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels } =
   useCheckout()
-const { t } = useStand()
+const { t, country } = useStand()
 
 const text = computed(() => ({
   close: t('common.close'),
@@ -42,6 +42,7 @@ const text = computed(() => ({
   map: t('common.map'),
   list: t('common.list'),
   openUntil: t('pickup.openUntil'),
+  pickupEmpty: t('pickup.empty'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
@@ -101,6 +102,21 @@ function selectPoint(id: string) {
 const activePickupPoint = computed(() =>
   pickupPointsFormat.value.find((point) => point.id === selectedPickupPointId.value),
 )
+
+/**
+ * Выбранный пункт всегда должен быть виден в списке. Фильтр по службе
+ * и смена страны меняют состав списка — если выбранный из него выпал,
+ * выбор переезжает на первый доступный. Иначе внизу висит карточка
+ * пункта, которого на карте уже нет.
+ */
+watch([filteredPickupPoints, country], () => {
+  const visible = filteredPickupPoints.value
+
+  if (!visible.some((point) => point.id === selectedPickupPointId.value)) {
+    selectedPickupPointId.value = visible[0]?.id
+  }
+})
+
 
 const activePickupPointPriceFormatRounded = computed(() =>
   activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
@@ -317,7 +333,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </Cc3Map>
           </div>
 
-          <div v-else class="cc3-inline-pickup-dialog__list">
+          <div v-if="filteredPickupPoints.length" class="cc3-inline-pickup-dialog__list">
             <button
               v-for="point in filteredPickupPoints"
               :key="point.id"
@@ -330,19 +346,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
             >
               <span class="cc3-inline-pickup-dialog__point-name">{{ point.name }}</span>
               <span class="cc3-inline-pickup-dialog__point-address">{{ point.address }}</span>
+              <span class="cc3-inline-pickup-dialog__point-meta">
+                {{ text.openUntil }} · {{ point.priceFormat }}
+              </span>
             </button>
           </div>
 
-          <button
-            v-if="view === 'map' && activePickupPoint"
-            type="button"
-            class="cc3-inline-pickup-dialog__point"
-            @click="selectPoint(activePickupPoint.id)"
-          >
-            <span class="cc3-inline-pickup-dialog__point-name">{{ activePickupPoint.name }}</span>
-            <span class="cc3-inline-pickup-dialog__point-address">{{ activePickupPoint.address }}</span>
-            <span class="cc3-inline-pickup-dialog__point-hours">{{ text.openUntil }}</span>
-          </button>
+          <p v-else class="cc3-inline-pickup-dialog__empty">{{ text.pickupEmpty }}</p>
         </template>
 
         <template v-else-if="pickupDetailView">
@@ -566,12 +576,29 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
+  // Список прокручивается сам, а не тянет за собой всё окно: в режиме карты
+  // он стоит под ней, и карта должна оставаться на экране.
   &__list {
     display: flex;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-md);
 
     padding-bottom: var(--st-global-distance-space-inset-xl);
+    max-height: 45vh;
+
+    overflow-y: auto;
+  }
+
+  &__point-meta {
+    color: var(--st-content-foreground-color-neutral-tetriary);
+  }
+
+  &__empty {
+    margin: 0;
+
+    padding-bottom: var(--st-global-distance-space-inset-xl);
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
   }
 
   &__list-item {
