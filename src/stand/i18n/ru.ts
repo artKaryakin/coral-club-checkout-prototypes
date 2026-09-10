@@ -75,7 +75,7 @@ export default {
   'common.zoomIn': 'Приблизить',
   'common.zoomOut': 'Отдалить',
   'common.findAddress': 'Найти адрес',
-  'delivery.variants.hint': 'Укажите адрес — покажем доступные способы доставки',
+  'delivery.variants.hint': 'Укажите адрес, чтобы увидеть варианты доставки',
   'delivery.slot.day1': 'Завтра',
   'delivery.slot.day2': '28 авг, пт',
   'delivery.slot.day3': '29 авг, сб',
