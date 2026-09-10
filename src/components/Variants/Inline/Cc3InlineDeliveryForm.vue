@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
-import { useCheckout } from '@/composables/useCheckout'
+import { useCourierVariants } from '@/composables/useCourierVariants'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
@@ -12,6 +12,7 @@ import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3ModalConfirmDialog from '../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../Modal/deliveryProfile'
+import Cc3InlineDeliveryOptions from './Cc3InlineDeliveryOptions.vue'
 
 /**
  * Форма адреса курьера — разворачивается прямо в теле страницы, без
@@ -19,9 +20,18 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
  * Самовывоз в неё не заходит: клик по сегменту Pickup сразу открывает
  * Cc3InlinePickupDialog, у него своя карта и свой список пунктов.
  */
-const props = defineProps<{
-  editProfile?: DeliveryProfile
-}>()
+const props = withDefaults(
+  defineProps<{
+    editProfile?: DeliveryProfile
+    /**
+     * Варианты доставки показываются в этой же форме. В концепте inline-alt
+     * они переехали в тело чекаута, и здесь их быть не должно: человек ещё
+     * вводит адрес, а сроки и цены считаются от него.
+     */
+    withOptions?: boolean
+  }>(),
+  { editProfile: undefined, withOptions: true },
+)
 
 const emit = defineEmits<{
   confirm: [profile: DeliveryProfile]
@@ -29,8 +39,8 @@ const emit = defineEmits<{
   'open-pickup': []
 }>()
 
-const { formatMoneyRounded } = useCheckout()
 const { t, country } = useStand()
+const { courierVariants } = useCourierVariants()
 const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
@@ -39,31 +49,10 @@ const text = computed(() => ({
   addressSection: t('address.title'),
   recipientSection: t('group.recipient.title'),
   favorite: t('address.favorite'),
-  variantsHint: t('delivery.variants.hint'),
   variantsTitle: t('delivery.variants'),
   save: t('common.save'),
   remove: t('common.delete'),
 }))
-
-type CourierVariant = { id: string; title: string; summary: string; caption?: string }
-
-const COURIER_PRICE = 149
-
-// summary — то же самое, но без названия способа доставки: в карточке
-// сводки оно не нужно, там уже есть заголовок «Курьер».
-const courierVariants = computed<CourierVariant[]>(() => [
-  {
-    id: 'standard',
-    title: t('delivery.variant.standard', { price: formatMoneyRounded(COURIER_PRICE) }),
-    summary: t('delivery.variant.standard.summary', { price: formatMoneyRounded(COURIER_PRICE) }),
-  },
-  {
-    id: 'express',
-    title: t('delivery.variant.express'),
-    summary: t('delivery.variant.express.summary'),
-    caption: t('delivery.variant.expressNote'),
-  },
-])
 
 const selectedCourierVariant = ref('standard')
 
@@ -201,26 +190,15 @@ function deleteProfile() {
       />
     </div>
 
-    <h3 class="cc3-inline-delivery-form__section-title">{{ text.variantsTitle }}</h3>
+    <template v-if="withOptions">
+      <h3 class="cc3-inline-delivery-form__section-title">{{ text.variantsTitle }}</h3>
 
-    <div v-if="isAddressResolved" class="cc3-inline-delivery-form__variants">
-      <label v-for="variant in courierVariants" :key="variant.id" class="cc3-inline-delivery-form__cell">
-        <span class="cc3-inline-delivery-form__cell-content">
-          <span class="cc3-inline-delivery-form__cell-title">{{ variant.title }}</span>
-          <span v-if="variant.caption" class="cc3-inline-delivery-form__cell-caption">
-            {{ variant.caption }}
-          </span>
-        </span>
-        <input
-          v-model="selectedCourierVariant"
-          type="radio"
-          name="inline-courier-variant"
-          :value="variant.id"
-          class="cc3-inline-delivery-form__radio"
-        />
-      </label>
-    </div>
-    <p v-else class="cc3-inline-delivery-form__variants-hint">{{ text.variantsHint }}</p>
+      <Cc3InlineDeliveryOptions
+        v-model="selectedCourierVariant"
+        :resolved="isAddressResolved"
+        name="inline-courier-variant"
+      />
+    </template>
 
     <label class="cc3-inline-delivery-form__favorite">
       <span>{{ text.favorite }}</span>
@@ -316,54 +294,6 @@ function deleteProfile() {
       flex: 1 1 calc(50% - var(--st-global-distance-space-inset-2xl));
       min-width: 140px;
     }
-  }
-
-  &__variants-hint {
-    margin: 0;
-    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-3xl);
-
-    @include font('label-sm');
-
-    color: var(--st-content-foreground-color-neutral-tetriary);
-    background-color: var(--st-content-background-color-neutral-subtle);
-    border-radius: var(--st-global-radius-lg);
-  }
-
-  &__variants {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__cell {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--st-global-distance-space-inset-xl);
-
-    padding: var(--st-global-distance-space-inset-md) 0;
-
-    cursor: pointer;
-  }
-
-  &__cell-content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__cell-title {
-    @include font('body-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-  }
-
-  &__cell-caption {
-    @include font('body-sm');
-
-    color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__radio {
-    @include cc3-modal-radio-control;
   }
 
   &__checkbox {

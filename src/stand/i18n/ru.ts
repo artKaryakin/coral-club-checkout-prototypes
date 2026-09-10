@@ -40,6 +40,8 @@ export default {
   'variant.modal.hint': 'Концепт A — адрес добавляется в отдельном окне',
   'variant.inline.title': 'Инлайн',
   'variant.inline.hint': 'Концепт B — адрес добавляется прямо на странице',
+  'variant.inline-alt.title': 'Инлайн, варианты в чекауте',
+  'variant.inline-alt.hint': 'Служебная версия — способ доставки выбирается после адреса, отдельным блоком',
 
   // Доставка и пункты выдачи
   'delivery.method.courier': 'Курьер',

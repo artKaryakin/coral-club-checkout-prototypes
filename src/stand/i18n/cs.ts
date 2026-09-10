@@ -40,6 +40,8 @@ export default {
   'variant.modal.hint': 'Koncept A — adresa se přidává v samostatném okně',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Koncept B — adresa se přidává přímo na stránce',
+  'variant.inline-alt.title': 'Inline, možnosti v pokladně',
+  'variant.inline-alt.hint': 'Interní verze — způsob doručení se vybírá po adrese, samostatným blokem',
 
   // Doručení a výdejní místa
   'delivery.method.courier': 'Kurýr',
