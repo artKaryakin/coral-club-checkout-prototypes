@@ -40,6 +40,8 @@ export default {
   'variant.modal.hint': 'Koncept A — adres dodawany w osobnym oknie',
   'variant.inline.title': 'Inline',
   'variant.inline.hint': 'Koncept B — adres dodawany bezpośrednio na stronie',
+  'variant.inline-alt.title': 'Inline, opcje w checkoucie',
+  'variant.inline-alt.hint': 'Wersja wewnętrzna — sposób dostawy wybierany po adresie, osobnym blokiem',
 
   // Dostawa i punkty odbioru
   'delivery.method.courier': 'Kurier',
