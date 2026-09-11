@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
@@ -152,9 +152,21 @@ const filteredPickupPoints = computed(() => {
 })
 
 const selectedPickupPointId = ref(pickupPointsFormat.value[0]?.id)
+const pointsListRef = ref<HTMLElement>()
 
+/**
+ * Клик по метке на карте выбирает пункт, но карточка в списке под картой
+ * может быть в этот момент прокручена за пределы видимости (список — свой
+ * скролл в 340px) — подскролливаем к ней, а не оставляем гадать, что выбралось.
+ */
 function selectPoint(id: string) {
   selectedPickupPointId.value = id
+
+  void nextTick(() => {
+    pointsListRef.value
+      ?.querySelector(`[data-point-id="${id}"]`)
+      ?.scrollIntoView({ behavior: 'smooth', block: 'nearest' })
+  })
 }
 
 const activePickupPoint = computed(() =>
@@ -636,11 +648,16 @@ function onOverlayKeydown(event: KeyboardEvent) {
                   </button>
                 </div>
 
-                <div v-if="filteredPickupPoints.length" class="cc3-modal-delivery-dialog__points">
+                <div
+                  v-if="filteredPickupPoints.length"
+                  ref="pointsListRef"
+                  class="cc3-modal-delivery-dialog__points"
+                >
                   <button
                     v-for="point in filteredPickupPoints"
                     :key="point.id"
                     type="button"
+                    :data-point-id="point.id"
                     class="cc3-modal-delivery-dialog__point"
                     :class="{
                       'cc3-modal-delivery-dialog__point--selected':
