@@ -46,7 +46,7 @@ const text = computed(() => ({
   back: t('common.back'),
   close: t('common.close'),
   title: t('delivery.info.title'),
-  courier: t('delivery.courier.title'),
+  courier: t('delivery.method.courier'),
   pickup: t('delivery.pickup.title'),
   findAddress: t('common.findAddress'),
   map: t('common.map'),
