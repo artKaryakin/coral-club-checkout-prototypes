@@ -49,6 +49,8 @@ const text = computed(() => ({
   courier: t('delivery.courier.title'),
   pickup: t('delivery.pickup.title'),
   findAddress: t('common.findAddress'),
+  map: t('common.map'),
+  list: t('common.list'),
   variantsTitle: t('delivery.variants'),
   variantsHint: t('delivery.variants.hint'),
   openUntil: t('pickup.openUntil'),
@@ -104,6 +106,14 @@ const selectedCourierVariant = ref('standard')
 
 // Службы разные в разных странах, поэтому фильтры строятся из пунктов
 // текущей страны, а не задаются руками.
+// Карта/Список — как в инлайн-концепте: чтобы место под картой не уходило
+// сразу на список, а переключатель не отъедал отдельную строку, он лежит
+// поверх карты (см. стили __view-toggle).
+type PickupView = 'map' | 'list'
+
+const view = ref<PickupView>('map')
+const pointSearch = ref('')
+
 const providerFilters = computed<{ id: PickupProvider | 'all'; label: string }[]>(() => [
   { id: 'all', label: t('common.all') },
   ...Object.entries(pickupProviderLabels.value).map(([id, label]) => ({
@@ -126,11 +136,19 @@ function onProviderFilterClick(id: PickupProvider | 'all') {
 }
 
 const filteredPickupPoints = computed(() => {
-  if (pickupProviders.value.length === 0) {
-    return pickupPointsFormat.value
-  }
+  const query = pointSearch.value.trim().toLowerCase()
 
-  return pickupPointsFormat.value.filter((point) => pickupProviders.value.includes(point.provider))
+  return pickupPointsFormat.value.filter((point) => {
+    const matchesProvider =
+      pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
+
+    const matchesQuery =
+      query.length === 0 ||
+      point.name.toLowerCase().includes(query) ||
+      point.address.toLowerCase().includes(query)
+
+    return matchesProvider && matchesQuery
+  })
 })
 
 const selectedPickupPointId = ref(pickupPointsFormat.value[0]?.id)
@@ -465,7 +483,25 @@ function onOverlayKeydown(event: KeyboardEvent) {
           </button>
           <span v-else class="cc3-modal-delivery-dialog__back-spacer" />
 
-          <h2 class="cc3-modal-delivery-dialog__title">{{ text.title }}</h2>
+          <div v-if="step === 'search'" class="cc3-modal-delivery-dialog__tabs">
+            <button
+              type="button"
+              class="cc3-modal-delivery-dialog__tab"
+              :class="{ 'cc3-modal-delivery-dialog__tab--active': method === 'courier' }"
+              @click="method = 'courier'"
+            >
+              {{ text.courier }}
+            </button>
+            <button
+              type="button"
+              class="cc3-modal-delivery-dialog__tab"
+              :class="{ 'cc3-modal-delivery-dialog__tab--active': method === 'pickup' }"
+              @click="method = 'pickup'"
+            >
+              {{ text.pickup }}
+            </button>
+          </div>
+          <h2 v-else class="cc3-modal-delivery-dialog__title">{{ text.title }}</h2>
 
           <button
             type="button"
@@ -479,28 +515,8 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
         <div class="cc3-modal-delivery-dialog__body">
           <template v-if="step === 'search'">
-            <div class="cc3-modal-delivery-dialog__tabs">
-              <button
-                type="button"
-                class="cc3-modal-delivery-dialog__tab"
-                :class="{ 'cc3-modal-delivery-dialog__tab--active': method === 'courier' }"
-                @click="method = 'courier'"
-              >
-                {{ text.courier }}
-              </button>
-              <button
-                type="button"
-                class="cc3-modal-delivery-dialog__tab"
-                :class="{ 'cc3-modal-delivery-dialog__tab--active': method === 'pickup' }"
-                @click="method = 'pickup'"
-              >
-                {{ text.pickup }}
-              </button>
-            </div>
-
-            <div class="cc3-modal-delivery-dialog__map">
+            <div v-if="method === 'courier'" class="cc3-modal-delivery-dialog__map">
               <Cc3Map
-                v-if="method === 'courier'"
                 :center="courierCenter"
                 :zoom="14"
                 :markers="courierMarkers"
@@ -509,23 +525,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
               >
                 <template #marker>
                   <Cc3MapPin variant="address" icon="delivery-truck" />
-                </template>
-              </Cc3Map>
-
-              <Cc3Map
-                v-else
-                :center="mapCenter"
-                :zoom="9"
-                :markers="pickupMapMarkers"
-                :height="380"
-              >
-                <template #marker="{ marker }">
-                  <Cc3MapPin
-                    :label="marker.pinLabel"
-                    :variant="marker.pinVariant"
-                    :selected="marker.id === selectedPickupPointId"
-                    @click="selectPoint(marker.id)"
-                  />
                 </template>
               </Cc3Map>
             </div>
@@ -570,47 +569,95 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </template>
 
             <template v-else>
-              <div class="cc3-modal-delivery-dialog__field">
-                <span class="cc3-modal-delivery-dialog__label">{{ text.findAddress }}</span>
-                <Cc3InputField type="text" placeholder="" />
-              </div>
+              <div
+                class="cc3-modal-delivery-dialog__pickup-map-area"
+                :class="{ 'cc3-modal-delivery-dialog__pickup-map-area--map': view === 'map' }"
+              >
+                <div class="cc3-modal-delivery-dialog__view-toggle">
+                  <button
+                    type="button"
+                    class="cc3-modal-delivery-dialog__view-btn"
+                    :class="{ 'cc3-modal-delivery-dialog__view-btn--active': view === 'map' }"
+                    @click="view = 'map'"
+                  >
+                    <Cc3Icon name="location-map" :size="20" />
+                    {{ text.map }}
+                  </button>
+                  <button
+                    type="button"
+                    class="cc3-modal-delivery-dialog__view-btn"
+                    :class="{ 'cc3-modal-delivery-dialog__view-btn--active': view === 'list' }"
+                    @click="view = 'list'"
+                  >
+                    <Cc3Icon name="layout-list" :size="20" />
+                    {{ text.list }}
+                  </button>
+                </div>
 
-              <div class="cc3-modal-delivery-dialog__chips">
-                <button
-                  v-for="filter in providerFilters"
-                  :key="filter.id"
-                  type="button"
-                  class="cc3-modal-delivery-dialog__chip"
-                  :class="{
-                    'cc3-modal-delivery-dialog__chip--active': isProviderFilterActive(filter.id),
-                  }"
-                  @click="onProviderFilterClick(filter.id)"
+                <Cc3Map
+                  v-if="view === 'map'"
+                  :center="mapCenter"
+                  :zoom="9"
+                  :markers="pickupMapMarkers"
+                  :height="380"
                 >
-                  {{ filter.label }}
-                </button>
+                  <template #marker="{ marker }">
+                    <Cc3MapPin
+                      :label="marker.pinLabel"
+                      :variant="marker.pinVariant"
+                      :selected="marker.id === selectedPickupPointId"
+                      @click="selectPoint(marker.id)"
+                    />
+                  </template>
+                </Cc3Map>
               </div>
 
-              <div v-if="filteredPickupPoints.length" class="cc3-modal-delivery-dialog__points">
-                <button
-                  v-for="point in filteredPickupPoints"
-                  :key="point.id"
-                  type="button"
-                  class="cc3-modal-delivery-dialog__point"
-                  :class="{
-                    'cc3-modal-delivery-dialog__point--selected':
-                      point.id === selectedPickupPointId,
-                  }"
-                  @click="selectPoint(point.id)"
-                >
-                  <span class="cc3-modal-delivery-dialog__point-name">{{ point.name }}</span>
-                  <span class="cc3-modal-delivery-dialog__point-address">{{ point.address }}</span>
-                  <span class="cc3-modal-delivery-dialog__point-meta">
-                    {{ text.openUntil }} · {{ point.priceFormat }}
-                  </span>
-                </button>
-              </div>
+              <div
+                class="cc3-modal-delivery-dialog__pickup-panel"
+                :class="{ 'cc3-modal-delivery-dialog__pickup-panel--capped': view === 'map' }"
+              >
+                <div class="cc3-modal-delivery-dialog__field">
+                  <span class="cc3-modal-delivery-dialog__label">{{ text.findAddress }}</span>
+                  <Cc3InputField v-model="pointSearch" type="text" placeholder="" />
+                </div>
 
-              <p v-else class="cc3-modal-delivery-dialog__empty">{{ text.pickupEmpty }}</p>
+                <div class="cc3-modal-delivery-dialog__chips">
+                  <button
+                    v-for="filter in providerFilters"
+                    :key="filter.id"
+                    type="button"
+                    class="cc3-modal-delivery-dialog__chip"
+                    :class="{
+                      'cc3-modal-delivery-dialog__chip--active': isProviderFilterActive(filter.id),
+                    }"
+                    @click="onProviderFilterClick(filter.id)"
+                  >
+                    {{ filter.label }}
+                  </button>
+                </div>
+
+                <div v-if="filteredPickupPoints.length" class="cc3-modal-delivery-dialog__points">
+                  <button
+                    v-for="point in filteredPickupPoints"
+                    :key="point.id"
+                    type="button"
+                    class="cc3-modal-delivery-dialog__point"
+                    :class="{
+                      'cc3-modal-delivery-dialog__point--selected':
+                        point.id === selectedPickupPointId,
+                    }"
+                    @click="selectPoint(point.id)"
+                  >
+                    <span class="cc3-modal-delivery-dialog__point-name">{{ point.name }}</span>
+                    <span class="cc3-modal-delivery-dialog__point-address">{{ point.address }}</span>
+                    <span class="cc3-modal-delivery-dialog__point-meta">
+                      {{ text.openUntil }} · {{ point.priceFormat }}
+                    </span>
+                  </button>
+                </div>
+
+                <p v-else class="cc3-modal-delivery-dialog__empty">{{ text.pickupEmpty }}</p>
+              </div>
             </template>
           </template>
 
@@ -826,9 +873,9 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
   &__tabs {
     display: flex;
+    flex: 1;
     gap: var(--st-global-distance-space-inset-none);
 
-    margin-bottom: var(--st-global-distance-space-inset-xl);
     padding: var(--st-global-distance-space-inset-xs);
 
     background-color: var(--st-content-background-color-neutral-onsubtle);
@@ -868,6 +915,79 @@ function onOverlayKeydown(event: KeyboardEvent) {
     .cc3-map {
       border: none;
       border-radius: 0;
+    }
+  }
+
+  // Самовывоз: переключатель Карта/Список лежит поверх карты (см. фигму),
+  // а не отдельной строкой — карта только в этом режиме занимает всю
+  // ширину без отступов, поэтому и bleed-margin только у него, а не у
+  // курьерской карты, которая всегда одна и без переключателя.
+  &__pickup-map-area {
+    position: relative;
+
+    &--map {
+      margin: 0 calc(var(--st-global-distance-space-inset-2xl) * -1) var(--st-global-distance-space-inset-xl);
+
+      .cc3-map {
+        border: none;
+        border-radius: 0;
+      }
+    }
+  }
+
+  &__view-toggle {
+    position: relative;
+    z-index: 1;
+
+    display: flex;
+    gap: var(--st-global-distance-space-inset-sm);
+
+    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl) 0;
+  }
+
+  // Когда карта показана, переключатель должен лежать на ней, а не над ней:
+  // тянем карту вверх на высоту строки переключателя вместо того, чтобы
+  // резервировать под неё отдельное место.
+  &__pickup-map-area--map &__view-toggle {
+    position: absolute;
+    top: var(--st-global-distance-space-inset-xl);
+    left: var(--st-global-distance-space-inset-xl);
+
+    padding: 0;
+  }
+
+  &__view-btn {
+    display: flex;
+    align-items: center;
+    gap: var(--st-global-distance-space-inline-xs);
+
+    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-xl);
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-neutral-onsubtle);
+    border: none;
+    border-radius: var(--st-global-radius-pill);
+    cursor: pointer;
+
+    &--active {
+      color: var(--st-action-foreground-color-onprimary-normal);
+      background-color: var(--st-action-background-color-positive-normal);
+    }
+  }
+
+  // Белый блок под картой — примерно на 3 карточки пунктов: список внутри
+  // прокручивается сам, а строка поиска и чипсы фильтра остаются на месте.
+  &__pickup-panel {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+
+    min-height: 0;
+
+    &--capped {
+      max-height: 340px;
     }
   }
 
@@ -992,21 +1112,24 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
-  // Список пунктов под картой прокручивается сам, а не тянет за собой всё
-  // окно: карта должна оставаться на экране, пока человек выбирает пункт.
+  // Список пунктов внутри __pickup-panel прокручивается сам — либо в
+  // пределах отведённых 340px (карта видна), либо во всю оставшуюся
+  // высоту диалога (режим списка, карты нет).
   &__points {
     display: flex;
+    flex: 1;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-sm);
 
     padding-bottom: var(--st-global-distance-space-inset-2xl);
-    max-height: 45vh;
+    min-height: 0;
 
     overflow-y: auto;
   }
 
   &__point {
     display: flex;
+    flex-shrink: 0;
     flex-direction: column;
     gap: var(--st-global-distance-space-inset-xs);
 
@@ -1014,8 +1137,8 @@ function onOverlayKeydown(event: KeyboardEvent) {
     width: 100%;
 
     text-align: left;
-    background: none;
-    border: 2px solid transparent;
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 2px solid var(--st-content-border-color-neutral-implicit);
     border-radius: var(--st-global-radius-lg);
     cursor: pointer;
 
