@@ -20,20 +20,9 @@ import { isLocale, translate } from '../i18n'
  * Одна полная ссылка задаёт конфигурацию целиком: модератор отправляет её
  * респонденту и ничего не переключает руками.
  */
-export type StandVariant = 'prod' | 'modal' | 'inline' | 'inline-alt'
+export type StandVariant = 'prod' | 'modal' | 'inline'
 
-export const standVariants: StandVariant[] = ['prod', 'modal', 'inline', 'inline-alt']
-
-/**
- * Служебные версии не показываются в списке на входе — только по прямой
- * ссылке или после того, как профиль заполнен кнопкой «Тест-данные».
- *
- * inline-alt — внутренний эксперимент над инлайном, а не четвёртый концепт
- * для сравнения. Респондент, который увидит в списке четыре версии вместо
- * трёх, начнёт сравнивать их между собой, и это будет уже другое
- * исследование.
- */
-export const testOnlyVariants: StandVariant[] = ['inline-alt']
+export const standVariants: StandVariant[] = ['prod', 'modal', 'inline']
 
 /**
  * Шаг с профилем стоит между страной и типом пользователя и занимает
@@ -174,7 +163,6 @@ export function useStand() {
 
   const isModal = computed(() => variant.value === 'modal')
   const isInline = computed(() => variant.value === 'inline')
-  const isInlineAlt = computed(() => variant.value === 'inline-alt')
   const isProd = computed(() => variant.value === 'prod')
 
   /**
@@ -200,7 +188,6 @@ export function useStand() {
     hasSavedAddresses,
     isModal,
     isInline,
-    isInlineAlt,
     isProd,
     isDebug,
     t,

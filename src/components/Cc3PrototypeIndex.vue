@@ -3,13 +3,7 @@ import { computed } from 'vue'
 import Cc3StandProfileForm from '@/stand/components/Cc3StandProfileForm.vue'
 import { countries, countryCodes, localeNativeNames } from '@/stand/config/countries'
 import { userTypes } from '@/stand/config/users'
-import {
-  profileHref,
-  routeHref,
-  standVariants,
-  testOnlyVariants,
-  useStand,
-} from '@/stand/composables/useStand'
+import { profileHref, routeHref, standVariants, useStand } from '@/stand/composables/useStand'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
 
 // Вход на стенд: страна → профиль → тип пользователя → версия чекаута.
@@ -22,7 +16,7 @@ import { useStandProfile } from '@/stand/composables/useStandProfile'
 // Шаг необязателен — полная ссылка вида #/ru/saved/modal открывает прототип
 // сразу, с профилем по умолчанию для этой страны.
 const { selection, country, user, t } = useStand()
-const { fullName, isTestProfile } = useStandProfile()
+const { fullName } = useStandProfile()
 
 const step = computed(() => {
   if (!selection.value.country) return 'country'
@@ -80,17 +74,8 @@ const userOptions = computed(() =>
   })),
 )
 
-// Служебные версии видны, только когда профиль заполнен кнопкой
-// «Тест-данные»: респонденту в списке нужны три версии, которые мы
-// сравниваем, а не четыре.
-const visibleVariants = computed(() =>
-  isTestProfile.value
-    ? standVariants
-    : standVariants.filter((variant) => !testOnlyVariants.includes(variant)),
-)
-
 const variantOptions = computed(() =>
-  visibleVariants.value.map((variant) => ({
+  standVariants.map((variant) => ({
     key: variant,
     title: t(`variant.${variant}.title`),
     hint: t(`variant.${variant}.hint`),
