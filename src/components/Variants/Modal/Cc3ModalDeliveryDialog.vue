@@ -493,7 +493,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
           >
             <Cc3Icon name="chevron-down" :size="24" class="cc3-modal-delivery-dialog__back-icon" />
           </button>
-          <span v-else class="cc3-modal-delivery-dialog__back-spacer" />
 
           <div v-if="step === 'search'" class="cc3-modal-delivery-dialog__tabs">
             <button
@@ -585,6 +584,9 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 class="cc3-modal-delivery-dialog__pickup-map-area"
                 :class="{ 'cc3-modal-delivery-dialog__pickup-map-area--map': view === 'map' }"
               >
+                <!-- Кнопки не должны сдвигаться при переключении Карта/Список,
+                     поэтому bleed-отступ карты — на самой карте, а не на общем
+                     родителе: иначе он двигал бы и кнопки вместе с картой. -->
                 <div class="cc3-modal-delivery-dialog__view-toggle">
                   <button
                     type="button"
@@ -612,6 +614,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                   :zoom="9"
                   :markers="pickupMapMarkers"
                   :height="380"
+                  class="cc3-modal-delivery-dialog__pickup-map-canvas"
                 >
                   <template #marker="{ marker }">
                     <Cc3MapPin
@@ -867,10 +870,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     transform: rotate(90deg);
   }
 
-  &__back-spacer {
-    width: 24px;
-  }
-
   &__title {
     margin: 0;
 
@@ -893,6 +892,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
     flex: 1;
     gap: var(--st-global-distance-space-inset-none);
 
+    height: 32px;
     padding: var(--st-global-distance-space-inset-xs);
 
     background-color: var(--st-content-background-color-neutral-onsubtle);
@@ -900,9 +900,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   &__tab {
+    display: flex;
+    align-items: center;
+    justify-content: center;
     flex: 1;
 
-    padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl);
+    padding: 0 var(--st-global-distance-space-inset-2xl);
 
     @include font('body-sm');
 
@@ -936,28 +939,29 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   // Самовывоз: переключатель Карта/Список лежит поверх карты (см. фигму),
-  // а не отдельной строкой — карта только в этом режиме занимает всю
-  // ширину без отступов, поэтому и bleed-margin только у него, а не у
-  // курьерской карты, которая всегда одна и без переключателя.
+  // а не отдельной строкой.
   &__pickup-map-area {
     position: relative;
+  }
 
-    &--map {
-      margin: 0 calc(var(--st-global-distance-space-inset-2xl) * -1) var(--st-global-distance-space-inset-xl);
+  // Bleed-margin — на самой карте, а не на &__pickup-map-area: если её
+  // повесить на общего родителя, кнопки Карта/Список (тоже его дети)
+  // сдвинутся вместе с ней и займут разное место в режимах карты и списка.
+  &__pickup-map-canvas {
+    margin: 0 calc(var(--st-global-distance-space-inset-2xl) * -1) var(--st-global-distance-space-inset-xl);
 
-      .cc3-map {
-        border: none;
-        border-radius: 0;
-      }
+    &.cc3-map {
+      border: none;
+      border-radius: 0;
     }
   }
 
   // Sticky, а не absolute: кнопки должны оставаться на месте при прокрутке
   // диалога (__header — тоже sticky, top держит их сразу под ним, а не
-  // друг на друге). 72px — текущая высота __header.
+  // друг на друге). 60px — текущая высота __header.
   &__view-toggle {
     position: sticky;
-    top: 72px;
+    top: 60px;
     z-index: 2;
 
     display: flex;
@@ -985,7 +989,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
     color: var(--st-content-foreground-color-neutral-primary);
     background-color: #eff3f7;
     border: none;
-    border-radius: var(--st-global-radius-pill);
+    border-radius: var(--st-global-radius-md);
     cursor: pointer;
 
     &--active {
