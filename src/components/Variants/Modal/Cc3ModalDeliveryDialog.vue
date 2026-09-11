@@ -935,9 +935,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
+  // Sticky, а не absolute: кнопки должны оставаться на месте при прокрутке
+  // диалога (__header — тоже sticky, top держит их сразу под ним, а не
+  // друг на друге). 72px — текущая высота __header.
   &__view-toggle {
-    position: relative;
-    z-index: 1;
+    position: sticky;
+    top: 72px;
+    z-index: 2;
 
     display: flex;
     gap: var(--st-global-distance-space-inset-sm);
@@ -946,14 +950,10 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   // Когда карта показана, переключатель должен лежать на ней, а не над ней:
-  // тянем карту вверх на высоту строки переключателя вместо того, чтобы
-  // резервировать под неё отдельное место.
+  // тянем карту вверх под кнопки отрицательным отступом вместо того, чтобы
+  // резервировать под них отдельное место.
   &__pickup-map-area--map &__view-toggle {
-    position: absolute;
-    top: var(--st-global-distance-space-inset-xl);
-    left: var(--st-global-distance-space-inset-xl);
-
-    padding: 0;
+    margin-bottom: -40px;
   }
 
   &__view-btn {
