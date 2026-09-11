@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
 
-import { routeHref, useStand } from '../composables/useStand'
+import { profileHref, routeHref, useStand } from '../composables/useStand'
 import { formatDuration, useStandRun } from '../composables/useStandRun'
 import { countries } from '../config/countries'
 
@@ -16,7 +16,7 @@ import { countries } from '../config/countries'
  * Язык — язык страны, как и весь остальной прототип: экран благодарности
  * такая же часть чекаута, как и форма.
  */
-const { t, country, user, locale } = useStand()
+const { t, country, user, locale, isCountryLocked } = useStand()
 const { finishedRun, resetRun, sendState, retrySend, runAsText } = useStandRun()
 
 const text = computed(() => ({
@@ -102,7 +102,12 @@ async function copyRun() {
 
 const copyLabel = computed(() => (isCopied.value ? text.value.copied : text.value.copy))
 
-const indexHref = computed(() => routeHref())
+// Если стенд открыли ссылкой рынка, «пройти ещё раз» возвращает к профилю
+// той же страны, а не к списку стран: второй прогон должен начаться так же,
+// как первый.
+const indexHref = computed(() =>
+  isCountryLocked.value ? profileHref(country.value) : routeHref(),
+)
 const localeCode = computed(() => locale.value)
 
 function again() {
