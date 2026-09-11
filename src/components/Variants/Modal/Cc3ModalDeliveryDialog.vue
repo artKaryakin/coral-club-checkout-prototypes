@@ -966,7 +966,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('label-sm');
 
     color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-content-background-color-neutral-onsubtle);
+    background-color: #eff3f7;
     border: none;
     border-radius: var(--st-global-radius-pill);
     cursor: pointer;
