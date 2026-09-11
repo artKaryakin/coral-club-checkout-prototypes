@@ -12,7 +12,6 @@ import type { AddressSuggestion } from '@/stand/suggest'
 
 import Cc3ModalConfirmDialog from '../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../Modal/deliveryProfile'
-import Cc3InlineDeliveryOptions from './Cc3InlineDeliveryOptions.vue'
 
 /**
  * Форма адреса курьера — разворачивается прямо в теле страницы, без
@@ -20,18 +19,9 @@ import Cc3InlineDeliveryOptions from './Cc3InlineDeliveryOptions.vue'
  * Самовывоз в неё не заходит: клик по сегменту Pickup сразу открывает
  * Cc3InlinePickupDialog, у него своя карта и свой список пунктов.
  */
-const props = withDefaults(
-  defineProps<{
-    editProfile?: DeliveryProfile
-    /**
-     * Варианты доставки показываются в этой же форме. В концепте inline-alt
-     * они переехали в тело чекаута, и здесь их быть не должно: человек ещё
-     * вводит адрес, а сроки и цены считаются от него.
-     */
-    withOptions?: boolean
-  }>(),
-  { editProfile: undefined, withOptions: true },
-)
+const props = defineProps<{
+  editProfile?: DeliveryProfile
+}>()
 
 const emit = defineEmits<{
   confirm: [profile: DeliveryProfile]
@@ -49,12 +39,16 @@ const text = computed(() => ({
   addressSection: t('address.title'),
   recipientSection: t('group.recipient.title'),
   favorite: t('address.favorite'),
-  variantsTitle: t('delivery.variants'),
   save: t('common.save'),
   remove: t('common.delete'),
 }))
 
-const selectedCourierVariant = ref('standard')
+/**
+ * Способ доставки выбирается не здесь, а блоком в теле чекаута, поэтому
+ * в карточку кладём подпись первого варианта. Для курьера она всё равно
+ * не показывается — цену называет блок вариантов.
+ */
+const defaultCourierSummary = computed(() => courierVariants.value[0]?.summary ?? '')
 
 const { fields: addressFields } = useStandFields('address')
 const { fields: recipientFields } = useStandFields('recipient')
@@ -70,8 +64,6 @@ const renderedAddressFields = computed(() =>
 )
 
 const values = ref<Partial<Record<FieldKey, string>>>({})
-const resolvedCity = ref('')
-const isAddressResolved = computed(() => resolvedCity.value.length > 0)
 
 /**
  * Новый адрес открывается с получателем из профиля, сохранённый — со своими
@@ -80,8 +72,6 @@ const isAddressResolved = computed(() => resolvedCity.value.length > 0)
  */
 function seedValues() {
   const profile = props.editProfile
-
-  resolvedCity.value = profile ? (profile.fields?.city ?? profile.addressLine) : ''
 
   if (!profile) {
     values.value = { ...recipientValues.value }
@@ -108,10 +98,6 @@ watch(country, seedValues)
 
 function onSuggestionSelect(suggestion: AddressSuggestion) {
   values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value)
-
-  if (suggestion.city) {
-    resolvedCity.value = suggestion.city
-  }
 }
 
 const recipientDisplayName = computed(() =>
@@ -123,15 +109,13 @@ const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isDeleteConfirmOpen = ref(false)
 
 const confirmedProfile = computed<DeliveryProfile>(() => {
-  const variant = courierVariants.value.find((item) => item.id === selectedCourierVariant.value)
-
   return {
     id: props.editProfile?.id ?? `profile-${Date.now()}`,
     method: 'courier',
     typeLabel: t('delivery.method.courier'),
     name: recipientDisplayName.value,
     addressLine: values.value.street ?? '',
-    priceLabel: variant?.summary ?? '',
+    priceLabel: defaultCourierSummary.value,
     isFavorite: isFavorite.value,
     phone: values.value.recipientPhone ?? '',
     email: values.value.recipientEmail ?? '',
@@ -190,15 +174,6 @@ function deleteProfile() {
       />
     </div>
 
-    <template v-if="withOptions">
-      <h3 class="cc3-inline-delivery-form__section-title">{{ text.variantsTitle }}</h3>
-
-      <Cc3InlineDeliveryOptions
-        v-model="selectedCourierVariant"
-        :resolved="isAddressResolved"
-        name="inline-courier-variant"
-      />
-    </template>
 
     <label class="cc3-inline-delivery-form__favorite">
       <span>{{ text.favorite }}</span>

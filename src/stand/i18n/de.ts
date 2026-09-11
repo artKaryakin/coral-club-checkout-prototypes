@@ -39,9 +39,7 @@ export default {
   'variant.modal.title': 'Modales Fenster',
   'variant.modal.hint': 'Konzept A — die Adresse wird in einem separaten Fenster hinzugefügt',
   'variant.inline.title': 'Inline',
-  'variant.inline.hint': 'Konzept B — die Adresse wird direkt auf der Seite hinzugefügt',
-  'variant.inline-alt.title': 'Inline, Optionen im Checkout',
-  'variant.inline-alt.hint': 'Interne Version — die Versandart wird nach der Adresse als eigener Block gewählt',
+  'variant.inline.hint': 'Konzept B — die Adresse steht auf der Seite, die Versandart folgt als eigener Block',
 
   // Lieferung und Abholstellen
   'delivery.method.courier': 'Kurier',

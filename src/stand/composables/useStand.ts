@@ -20,20 +20,9 @@ import { isLocale, translate } from '../i18n'
  * Одна полная ссылка задаёт конфигурацию целиком: модератор отправляет её
  * респонденту и ничего не переключает руками.
  */
-export type StandVariant = 'prod' | 'modal' | 'inline' | 'inline-alt'
+export type StandVariant = 'prod' | 'modal' | 'inline'
 
-export const standVariants: StandVariant[] = ['prod', 'modal', 'inline', 'inline-alt']
-
-/**
- * Служебные версии не показываются в списке на входе — только по прямой
- * ссылке или после того, как профиль заполнен кнопкой «Тест-данные».
- *
- * inline-alt — внутренний эксперимент над инлайном, а не четвёртый концепт
- * для сравнения. Респондент, который увидит в списке четыре версии вместо
- * трёх, начнёт сравнивать их между собой, и это будет уже другое
- * исследование.
- */
-export const testOnlyVariants: StandVariant[] = ['inline-alt']
+export const standVariants: StandVariant[] = ['prod', 'modal', 'inline']
 
 /**
  * Шаг с профилем стоит между страной и типом пользователя и занимает
@@ -138,6 +127,21 @@ window.addEventListener('hashchange', () => {
   requestedLocale.value = parseLocale()
 })
 
+/**
+ * Страна задана ссылкой, по которой стенд открыли.
+ *
+ * Модератор отправляет респонденту ссылку своего рынка — #/de/profile — и
+ * тот не должен уметь вернуться к выбору страны: чужие языки и рынки в
+ * сессии не участвуют, а список из шести стран на входе — это лишний
+ * вопрос «а почему тут русский» и потерянные минуты.
+ *
+ * Флаг снимается один раз, на первой загрузке: дальше выбор меняется
+ * переходами внутри стенда, и по текущему адресу уже не понять, с чего
+ * человек начал. Открыли #/ — страна не зафиксирована, список стран на
+ * месте, всё работает как раньше.
+ */
+const isCountryFixed = Boolean(currentSelection.value.country)
+
 /** Ссылка на любой шаг выбора: неуказанные оси просто отбрасываются. */
 export function routeHref(country?: CountryCode, user?: UserType, variant?: StandVariant): string {
   return `#/${[country, user, variant].filter(Boolean).join('/')}`
@@ -172,9 +176,11 @@ export function useStand() {
 
   const hasSavedAddresses = computed(() => user.value === 'saved')
 
+  /** Назад к выбору страны нельзя: стенд открыли ссылкой конкретного рынка. */
+  const isCountryLocked = computed(() => isCountryFixed)
+
   const isModal = computed(() => variant.value === 'modal')
   const isInline = computed(() => variant.value === 'inline')
-  const isInlineAlt = computed(() => variant.value === 'inline-alt')
   const isProd = computed(() => variant.value === 'prod')
 
   /**
@@ -198,9 +204,9 @@ export function useStand() {
     locale,
     countryConfig,
     hasSavedAddresses,
+    isCountryLocked,
     isModal,
     isInline,
-    isInlineAlt,
     isProd,
     isDebug,
     t,

@@ -39,9 +39,7 @@ export default {
   'variant.modal.title': 'Modal window',
   'variant.modal.hint': 'Concept A — the address is added in a separate window',
   'variant.inline.title': 'Inline',
-  'variant.inline.hint': 'Concept B — the address is added right on the page',
-  'variant.inline-alt.title': 'Inline, options in checkout',
-  'variant.inline-alt.hint': 'Internal version — the delivery option is chosen after the address, as its own block',
+  'variant.inline.hint': 'Concept B — the address is on the page, the delivery option follows as its own block',
 
   // Delivery and pickup points
   'delivery.method.courier': 'Courier',
