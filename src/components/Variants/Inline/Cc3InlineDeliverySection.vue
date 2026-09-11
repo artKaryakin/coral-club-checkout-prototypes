@@ -16,6 +16,25 @@ import Cc3InlinePickupDialog from './Cc3InlinePickupDialog.vue'
  * а не попапом. Попапом остаётся только выбор пункта самовывоза — ему
  * нужна карта на весь экран (см. Cc3InlinePickupDialog).
  */
+const props = withDefaults(
+  defineProps<{
+    /**
+     * Варианты доставки показываются не в форме адреса, а отдельным блоком
+     * в теле чекаута — концепт inline-alt. Тогда из карточки уходит и цена:
+     * способ ещё не выбран, показывать его стоимость нечестно.
+     */
+    optionsInCheckout?: boolean
+  }>(),
+  { optionsInCheckout: false },
+)
+
+/**
+ * Выбранный адрес нужен снаружи: в концепте inline-alt блок вариантов
+ * доставки стоит в теле чекаута и должен знать, выбран ли уже адрес и
+ * курьерский ли он — до этого показывать сроки и цены не от чего.
+ */
+const emit = defineEmits<{ selected: [profile: DeliveryProfile | undefined] }>()
+
 type Chip = { label: string; value: string }
 
 const dateSlots = ['day1', 'day2', 'day3']
@@ -81,6 +100,26 @@ watch([country, user], () => {
 
 const selectedEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === selectedEntryId.value),
+)
+
+/**
+ * Цена уходит из карточки только там, где её показывает отдельный блок
+ * вариантов доставки, то есть у курьера. У пункта выдачи такого блока нет:
+ * цена и срок принадлежат самому пункту, и убрать их — значит оставить
+ * человека без единственного числа на экране.
+ */
+const isPriceVisible = computed(
+  () => !props.optionsInCheckout || selectedEntry.value?.method === 'pickup',
+)
+
+// Пока адрес выбирают или редактируют, снаружи он считается не выбранным:
+// блок вариантов доставки в чекауте не должен висеть над открытой формой.
+watch(
+  [selectedEntry, mode],
+  () => {
+    emit('selected', mode.value === 'summary' ? selectedEntry.value : undefined)
+  },
+  { immediate: true },
 )
 const editingEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === editingEntryId.value),
@@ -189,7 +228,9 @@ function deleteEntry(id: string) {
         <p class="cc3-inline-delivery__address">{{ selectedEntry.addressLine }}</p>
       </div>
 
-      <p class="cc3-inline-delivery__price">{{ selectedEntry.priceLabel }}</p>
+      <p v-if="isPriceVisible" class="cc3-inline-delivery__price">
+        {{ selectedEntry.priceLabel }}
+      </p>
 
       <template v-if="selectedEntry.method === 'courier' && hasDeliverySlots">
         <div class="cc3-inline-delivery__chips">
@@ -233,6 +274,7 @@ function deleteEntry(id: string) {
       v-else-if="mode === 'book'"
       :entries="addressBookEntries"
       :selected-id="selectedEntryId"
+      :with-price="!optionsInCheckout"
       @select="onSelectEntry"
       @edit="onEditEntry"
       @add="onAddNew"
@@ -242,6 +284,7 @@ function deleteEntry(id: string) {
     <Cc3InlineDeliveryForm
       v-else
       :edit-profile="editingEntry && editingEntry.method === 'courier' ? editingEntry : undefined"
+      :with-options="!optionsInCheckout"
       @confirm="upsertProfile"
       @delete="deleteEntry"
       @open-pickup="onOpenPickup"

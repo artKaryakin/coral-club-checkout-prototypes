@@ -20,10 +20,22 @@ const text = computed(() => ({
   edit: t('common.edit'),
 }))
 
-defineProps<{
-  entries: DeliveryProfile[]
-  selectedId?: string
-}>()
+withDefaults(
+  defineProps<{
+    entries: DeliveryProfile[]
+    selectedId?: string
+    /**
+     * Срок и цена доставки в карточке. В концепте inline-alt их нет у
+     * курьерских карточек: способ доставки там выбирается после адреса,
+     * отдельным блоком, и цена противоречила бы ещё не сделанному выбору.
+     *
+     * У пунктов выдачи цена остаётся всегда — отдельного блока для них нет,
+     * а среди пунктов есть платные, и без цены их не отличить от бесплатных.
+     */
+    withPrice?: boolean
+  }>(),
+  { selectedId: undefined, withPrice: true },
+)
 
 const emit = defineEmits<{
   select: [id: string]
@@ -61,7 +73,12 @@ const emit = defineEmits<{
               </span>
 
               <span class="cc3-inline-address-book__card-address">{{ entry.addressLine }}</span>
-              <span class="cc3-inline-address-book__card-price">{{ entry.priceLabel }}</span>
+              <span
+                v-if="withPrice || entry.method === 'pickup'"
+                class="cc3-inline-address-book__card-price"
+              >
+                {{ entry.priceLabel }}
+              </span>
             </span>
 
             <input

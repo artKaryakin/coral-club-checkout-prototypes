@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue'
 
 import Cc3StandField from './Cc3StandField.vue'
 import type { FieldKey, StandProfile } from '../config/types'
+import { testProfile } from '../config/profiles'
 import { useStand } from '../composables/useStand'
 import { useStandProfile } from '../composables/useStandProfile'
 
@@ -14,34 +15,45 @@ import { useStandProfile } from '../composables/useStandProfile'
  * Поля те же самые, что в чекауте (`useStandProfile`), поэтому подписи,
  * примеры ввода и формат телефона совпадают с тем, что он увидит потом.
  *
- * Форма заполнена значениями по умолчанию, а не пуста: она стоит до теста,
- * а не внутри него, и заставлять человека печатать четыре поля ради того,
- * чтобы начать, — потерянные минуты сессии. Всё подставленное правится.
+ * Все четыре поля обязательны. Незаполненный профиль ломает не форму, а
+ * замер: в журнале прохождений остаётся строка без человека, и понять,
+ * чей это прогон, потом невозможно.
+ *
+ * Форма открыта пустой, а не с подставленными значениями: респондент
+ * должен ввести свои данные, иначе он не заметит, что дальше они
+ * подставились сами, — а именно это мы и проверяем.
  */
 const emit = defineEmits<{ submit: [] }>()
 
 const { t, country } = useStand()
-const { profile, profileFields, saveProfile } = useStandProfile()
+const { profileFields, saveProfile } = useStandProfile()
 
 const text = computed(() => ({
   submit: t('stand.profile.submit'),
+  fill: t('stand.profile.fill'),
+  required: t('stand.profile.required'),
 }))
 
-function seed(): Partial<Record<FieldKey, string>> {
+function empty(): Partial<Record<FieldKey, string>> {
   return {
-    recipientFirstName: profile.value.firstName,
-    recipientLastName: profile.value.lastName,
-    recipientEmail: profile.value.email,
-    recipientPhone: profile.value.phone,
+    recipientFirstName: '',
+    recipientLastName: '',
+    recipientEmail: '',
+    recipientPhone: '',
   }
 }
 
-const values = ref(seed())
+const values = ref(empty())
 
-// Смена страны — другой формат телефона и другое имя по умолчанию.
-// Значения предыдущей страны в новую форму не переносятся.
+// Ошибки показываются только после первой попытки отправить. Красное поле
+// у человека, который ещё ничего не успел набрать, — это не подсказка,
+// а упрёк.
+const isSubmitted = ref(false)
+
+// Смена страны — другой формат телефона. Начинаем заново.
 watch(country, () => {
-  values.value = seed()
+  values.value = empty()
+  isSubmitted.value = false
 })
 
 const filled = computed<StandProfile>(() => ({
@@ -51,7 +63,35 @@ const filled = computed<StandProfile>(() => ({
   phone: values.value.recipientPhone?.trim() ?? '',
 }))
 
+const isComplete = computed(() => Object.values(filled.value).every(Boolean))
+
+function isInvalid(key: FieldKey) {
+  return isSubmitted.value && !values.value[key]?.trim()
+}
+
+/**
+ * Кнопка для нас, а не для респондента: прогнать сценарий целиком, не
+ * набирая каждый раз четыре поля. Данные заведомо ненастоящие, чтобы в
+ * журнале прохождений тестовые прогоны отличались от боевых с одного
+ * взгляда.
+ */
+function fillTestData() {
+  values.value = {
+    recipientFirstName: testProfile.firstName,
+    recipientLastName: testProfile.lastName,
+    recipientEmail: testProfile.email,
+    recipientPhone: testProfile.phone,
+  }
+  isSubmitted.value = false
+}
+
 function submit() {
+  isSubmitted.value = true
+
+  if (!isComplete.value) {
+    return
+  }
+
   saveProfile(filled.value)
   emit('submit')
 }
@@ -65,10 +105,16 @@ function submit() {
         :key="field.key"
         v-model="values[field.key]"
         :field="field"
+        :invalid="isInvalid(field.key)"
+        :error="text.required"
       />
     </div>
 
     <button type="submit" class="cc3-stand-profile-form__submit">{{ text.submit }}</button>
+
+    <button type="button" class="cc3-stand-profile-form__fill" @click="fillTestData">
+      {{ text.fill }}
+    </button>
   </form>
 </template>
 
@@ -108,6 +154,24 @@ function submit() {
     background-color: var(--st-action-background-color-positive-normal);
     border: none;
     border-radius: var(--st-global-radius-md);
+    cursor: pointer;
+  }
+
+  // Служебная кнопка модератора: намеренно тише основной, чтобы
+  // респондент не принял её за шаг сценария.
+  &__fill {
+    align-self: center;
+
+    padding: var(--st-global-distance-space-inset-sm);
+
+    font-family: inherit;
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-tetriary);
+    background: none;
+    border: none;
+    text-decoration: underline;
     cursor: pointer;
   }
 }
