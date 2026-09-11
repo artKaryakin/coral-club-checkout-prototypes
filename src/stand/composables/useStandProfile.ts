@@ -1,7 +1,7 @@
 import { computed, ref } from 'vue'
 import { autocompleteByKey, defaultTypeByKey } from '../config/types'
 import type { CountryCode, FieldKey, StandField, StandProfile } from '../config/types'
-import { defaultProfiles, testProfile } from '../config/profiles'
+import { defaultProfiles } from '../config/profiles'
 import { useStand } from './useStand'
 
 /**
@@ -77,12 +77,6 @@ export function useStandProfile() {
     writeStorage(savedProfiles.value)
   }
 
-  /**
-   * Профиль заполнен кнопкой «Тест-данные», то есть за стендом сидим мы,
-   * а не респондент. По этому признаку открываются служебные версии.
-   */
-  const isTestProfile = computed(() => profile.value.email === testProfile.email)
-
   const fullName = computed(() =>
     [profile.value.firstName, profile.value.lastName].filter(Boolean).join(' '),
   )
@@ -126,7 +120,6 @@ export function useStandProfile() {
   return {
     profile,
     isProfileFilled,
-    isTestProfile,
     saveProfile,
     fullName,
     recipientValues,

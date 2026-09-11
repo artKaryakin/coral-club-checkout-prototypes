@@ -16,22 +16,10 @@ import Cc3InlinePickupDialog from './Cc3InlinePickupDialog.vue'
  * а не попапом. Попапом остаётся только выбор пункта самовывоза — ему
  * нужна карта на весь экран (см. Cc3InlinePickupDialog).
  */
-const props = withDefaults(
-  defineProps<{
-    /**
-     * Варианты доставки показываются не в форме адреса, а отдельным блоком
-     * в теле чекаута — концепт inline-alt. Тогда из карточки уходит и цена:
-     * способ ещё не выбран, показывать его стоимость нечестно.
-     */
-    optionsInCheckout?: boolean
-  }>(),
-  { optionsInCheckout: false },
-)
-
 /**
- * Выбранный адрес нужен снаружи: в концепте inline-alt блок вариантов
- * доставки стоит в теле чекаута и должен знать, выбран ли уже адрес и
- * курьерский ли он — до этого показывать сроки и цены не от чего.
+ * Выбранный адрес нужен снаружи: блок вариантов доставки стоит в теле
+ * чекаута и должен знать, выбран ли уже адрес и курьерский ли он — до
+ * этого показывать сроки и цены не от чего.
  */
 const emit = defineEmits<{ selected: [profile: DeliveryProfile | undefined] }>()
 
@@ -103,14 +91,13 @@ const selectedEntry = computed(() =>
 )
 
 /**
- * Цена уходит из карточки только там, где её показывает отдельный блок
- * вариантов доставки, то есть у курьера. У пункта выдачи такого блока нет:
- * цена и срок принадлежат самому пункту, и убрать их — значит оставить
- * человека без единственного числа на экране.
+ * Цена показывается только у пункта выдачи. У курьера её показывает блок
+ * вариантов ниже, и дублировать её в карточке значит называть цену до
+ * того, как человек выбрал способ. У пункта выдачи такого блока нет: срок
+ * и цена принадлежат самому пункту, и без них карточка остаётся вообще
+ * без единственного числа на экране.
  */
-const isPriceVisible = computed(
-  () => !props.optionsInCheckout || selectedEntry.value?.method === 'pickup',
-)
+const isPriceVisible = computed(() => selectedEntry.value?.method === 'pickup')
 
 // Пока адрес выбирают или редактируют, снаружи он считается не выбранным:
 // блок вариантов доставки в чекауте не должен висеть над открытой формой.
@@ -274,7 +261,6 @@ function deleteEntry(id: string) {
       v-else-if="mode === 'book'"
       :entries="addressBookEntries"
       :selected-id="selectedEntryId"
-      :with-price="!optionsInCheckout"
       @select="onSelectEntry"
       @edit="onEditEntry"
       @add="onAddNew"
@@ -284,7 +270,6 @@ function deleteEntry(id: string) {
     <Cc3InlineDeliveryForm
       v-else
       :edit-profile="editingEntry && editingEntry.method === 'courier' ? editingEntry : undefined"
-      :with-options="!optionsInCheckout"
       @confirm="upsertProfile"
       @delete="deleteEntry"
       @open-pickup="onOpenPickup"

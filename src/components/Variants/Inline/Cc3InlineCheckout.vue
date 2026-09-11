@@ -1,19 +1,59 @@
 <script setup lang="ts">
-import { useCheckout } from '@/composables/useCheckout'
+import { computed, ref } from 'vue'
 
-// Хедер, сводка, оплата, итог заказа и подвал по макету пиксель-в-пиксель
-// совпадают с модальным концептом — переиспользуем компоненты Cc3Modal*
-// напрямую, а не копируем разметку под новым именем (см. CLAUDE.md —
-// «любой повторяющийся код выносится в отдельный компонент»). Отличия
-// инлайн-концепта — только в блоке доставки, он свой, Cc3Inline*.
+import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
+
+// Хедер, сводка, оплата, итог заказа и подвал те же, что в остальных
+// концептах — переиспользуем компоненты напрямую, а не копируем разметку
+// под новым именем. Отличие этого концепта ровно одно, и оно ниже.
+import Cc3InlineDeliveryOptions from './Cc3InlineDeliveryOptions.vue'
+import Cc3InlineDeliverySection from './Cc3InlineDeliverySection.vue'
 import Cc3ModalFooter from '../Modal/Cc3ModalFooter.vue'
 import Cc3ModalHeader from '../Modal/Cc3ModalHeader.vue'
 import Cc3ModalOrderSummary from '../Modal/Cc3ModalOrderSummary.vue'
 import Cc3ModalPaymentMethods from '../Modal/Cc3ModalPaymentMethods.vue'
 import Cc3ModalSummaryBar from '../Modal/Cc3ModalSummaryBar.vue'
-import Cc3InlineDeliverySection from './Cc3InlineDeliverySection.vue'
+import type { DeliveryProfile } from '../Modal/deliveryProfile'
 
+/**
+ * Инлайн-концепт: адрес добавляется прямо на странице, а способ доставки
+ * выбирается после него — отдельным блоком в теле чекаута.
+ *
+ * Раньше срок и цену выбирали внутри формы адреса. Это два решения в одной
+ * форме, причём второе человек принимал, ещё не дописав первое. Теперь они
+ * разведены: сначала «куда», отдельным блоком «как». Так устроено
+ * большинство чекаутов, на которых вырос западный покупатель, и отсюда
+ * гипотеза: разведённые решения дают меньше возвратов в форму адреса.
+ *
+ * У курьера цена ушла из карточки адреса — её показывает блок вариантов
+ * ниже. У пункта выдачи цена осталась: блока для него нет, срок и цена
+ * принадлежат самому пункту.
+ *
+ * Отличие от модального концепта именно здесь. В модальном адрес и способ
+ * по-прежнему выбираются в одном окне — это и есть предмет сравнения.
+ */
 const { summary } = useCheckout()
+const { t } = useStand()
+
+const text = computed(() => ({
+  optionsTitle: t('delivery.variants'),
+}))
+
+const selectedEntry = ref<DeliveryProfile>()
+
+function onSelected(profile: DeliveryProfile | undefined) {
+  selectedEntry.value = profile
+}
+
+/**
+ * Блок вариантов показывается только у курьерской доставки и только когда
+ * адрес уже выбран. У пункта выдачи выбирать нечего: цена и срок
+ * принадлежат самому пункту, они видны в его карточке.
+ */
+const isOptionsVisible = computed(() => selectedEntry.value?.method === 'courier')
+
+const selectedCourierVariant = ref('standard')
 </script>
 
 <template>
@@ -22,7 +62,18 @@ const { summary } = useCheckout()
     <Cc3ModalSummaryBar />
 
     <div class="cc3-inline-checkout__body">
-      <Cc3InlineDeliverySection />
+      <Cc3InlineDeliverySection options-in-checkout @selected="onSelected" />
+
+      <section v-if="isOptionsVisible" class="cc3-inline-checkout__options">
+        <h2 class="cc3-inline-checkout__options-title">{{ text.optionsTitle }}</h2>
+
+        <Cc3InlineDeliveryOptions
+          v-model="selectedCourierVariant"
+          resolved
+          name="inline-courier-variant"
+        />
+      </section>
+
       <Cc3ModalPaymentMethods />
       <Cc3ModalOrderSummary />
       <Cc3ModalFooter />
@@ -60,20 +111,31 @@ const { summary } = useCheckout()
 
     padding-top: var(--st-global-distance-space-inset-2xl);
 
-    // Серый разделитель между блоками, как в макете — у всех секций,
-    // кроме первой (доставка идёт сразу за сводкой заказа, без линии).
-    // Контейнер разделителя в фигме высотой 24px, а не просто линия
-    // впритык — иначе она прилипает к заголовку следующего блока.
+    // Серый разделитель между блоками, как в макете — у всех секций, кроме
+    // первой: доставка идёт сразу за сводкой заказа, без линии.
     > :not(:first-child) {
       border-top: 1px solid var(--st-content-border-color-neutral-implicit);
       padding-top: var(--st-global-distance-space-inset-2xl);
     }
 
-    // Блоку доставки перед линией не хватало ровно 4px — остальным блокам
-    // хватает отступа из gap выше.
     > :first-child {
       padding-bottom: 4px;
     }
+  }
+
+  // Отступы по краям как у остальных блоков страницы: сами варианты
+  // ничего не знают о том, куда их поставили.
+  &__options {
+    padding-right: var(--st-global-distance-space-inset-2xl);
+    padding-left: var(--st-global-distance-space-inset-2xl);
+  }
+
+  &__options-title {
+    margin: 0 0 var(--st-global-distance-space-inset-sm);
+
+    @include font('heading-xxs');
+
+    color: var(--st-content-foreground-color-neutral-primary);
   }
 }
 </style>

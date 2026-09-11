@@ -3,13 +3,7 @@ import { computed } from 'vue'
 import Cc3StandProfileForm from '@/stand/components/Cc3StandProfileForm.vue'
 import { countries, countryCodes, localeNativeNames } from '@/stand/config/countries'
 import { userTypes } from '@/stand/config/users'
-import {
-  profileHref,
-  routeHref,
-  standVariants,
-  testOnlyVariants,
-  useStand,
-} from '@/stand/composables/useStand'
+import { profileHref, routeHref, standVariants, useStand } from '@/stand/composables/useStand'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
 
 // Вход на стенд: страна → профиль → тип пользователя → версия чекаута.
@@ -21,8 +15,8 @@ import { useStandProfile } from '@/stand/composables/useStandProfile'
 // формы, а сам профиль потом подставляется получателем внутри прототипа.
 // Шаг необязателен — полная ссылка вида #/ru/saved/modal открывает прототип
 // сразу, с профилем по умолчанию для этой страны.
-const { selection, country, user, t } = useStand()
-const { fullName, isTestProfile } = useStandProfile()
+const { selection, country, user, isCountryLocked, t } = useStand()
+const { fullName } = useStandProfile()
 
 const step = computed(() => {
   if (!selection.value.country) return 'country'
@@ -31,32 +25,47 @@ const step = computed(() => {
   return selection.value.user ? 'variant' : 'user'
 })
 
-const steps = computed(() => [
-  {
-    key: 'country',
-    label: t('stand.step.country'),
-    value: selection.value.country ? countries[selection.value.country].nativeName : undefined,
-    href: routeHref(),
-  },
-  {
-    key: 'profile',
-    label: t('stand.step.profile'),
-    value: step.value === 'country' || step.value === 'profile' ? undefined : fullName.value,
-    href: selection.value.country ? profileHref(selection.value.country) : routeHref(),
-  },
-  {
-    key: 'user',
-    label: t('stand.step.user'),
-    value: selection.value.user ? t(`user.${selection.value.user}.title`) : undefined,
-    href: routeHref(selection.value.country),
-  },
-  {
-    key: 'variant',
-    label: t('stand.step.variant'),
-    value: undefined,
-    href: routeHref(selection.value.country, selection.value.user),
-  },
-])
+// Шаг-крошка кликается, только если на него можно вернуться. Страна при
+// входе по ссылке рынка не кликается вообще: она показана, но ведёт в
+// никуда — иначе respondent одним нажатием окажется в списке из шести стран.
+const steps = computed(() => {
+  const countryValue = selection.value.country
+    ? countries[selection.value.country].nativeName
+    : undefined
+  const profileValue =
+    step.value === 'country' || step.value === 'profile' ? undefined : fullName.value
+
+  return [
+    {
+      key: 'country',
+      label: t('stand.step.country'),
+      value: countryValue,
+      href: routeHref(),
+      link: Boolean(countryValue) && !isCountryLocked.value,
+    },
+    {
+      key: 'profile',
+      label: t('stand.step.profile'),
+      value: profileValue,
+      href: selection.value.country ? profileHref(selection.value.country) : routeHref(),
+      link: Boolean(profileValue),
+    },
+    {
+      key: 'user',
+      label: t('stand.step.user'),
+      value: selection.value.user ? t(`user.${selection.value.user}.title`) : undefined,
+      href: routeHref(selection.value.country),
+      link: Boolean(selection.value.user),
+    },
+    {
+      key: 'variant',
+      label: t('stand.step.variant'),
+      value: undefined,
+      href: routeHref(selection.value.country, selection.value.user),
+      link: false,
+    },
+  ]
+})
 
 // Страна названа на своём языке, под ней — язык, на котором откроется
 // интерфейс. Переводить названия стран на язык предыдущего выбора незачем:
@@ -80,17 +89,8 @@ const userOptions = computed(() =>
   })),
 )
 
-// Служебные версии видны, только когда профиль заполнен кнопкой
-// «Тест-данные»: респонденту в списке нужны три версии, которые мы
-// сравниваем, а не четыре.
-const visibleVariants = computed(() =>
-  isTestProfile.value
-    ? standVariants
-    : standVariants.filter((variant) => !testOnlyVariants.includes(variant)),
-)
-
 const variantOptions = computed(() =>
-  visibleVariants.value.map((variant) => ({
+  standVariants.map((variant) => ({
     key: variant,
     title: t(`variant.${variant}.title`),
     hint: t(`variant.${variant}.hint`),
@@ -118,6 +118,12 @@ const backHref = computed(() => {
   return routeHref(country.value)
 })
 
+// С профиля «назад» ведёт к выбору страны — при входе по ссылке рынка
+// такой ссылки на экране быть не должно.
+const isBackVisible = computed(
+  () => step.value !== 'country' && !(step.value === 'profile' && isCountryLocked.value),
+)
+
 /** Профиль сохранён — идём дальше, к выбору типа пользователя. */
 function onProfileSubmit() {
   window.location.hash = routeHref(country.value)
@@ -131,11 +137,14 @@ function onProfileSubmit() {
 
       <ol class="cc3-prototype-index__steps">
         <li v-for="item in steps" :key="item.key" class="cc3-prototype-index__step">
-          <a v-if="item.value" :href="item.href" class="cc3-prototype-index__step-link">
+          <a v-if="item.link" :href="item.href" class="cc3-prototype-index__step-link">
             <span class="cc3-prototype-index__step-label">{{ item.label }}</span>
             <span class="cc3-prototype-index__step-value">{{ item.value }}</span>
           </a>
-          <span v-else class="cc3-prototype-index__step-label">{{ item.label }}</span>
+          <template v-else>
+            <span class="cc3-prototype-index__step-label">{{ item.label }}</span>
+            <span v-if="item.value" class="cc3-prototype-index__step-value">{{ item.value }}</span>
+          </template>
         </li>
       </ol>
 
@@ -156,7 +165,7 @@ function onProfileSubmit() {
       </li>
     </ul>
 
-    <p v-if="step !== 'country'" class="cc3-prototype-index__back">
+    <p v-if="isBackVisible" class="cc3-prototype-index__back">
       <a :href="backHref" class="cc3-prototype-index__back-link">{{ backLabel }}</a>
     </p>
   </div>
