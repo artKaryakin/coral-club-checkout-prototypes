@@ -9,6 +9,7 @@ import { useStand } from '@/stand/composables/useStand'
 // под новым именем. Отличие этого концепта ровно одно, и оно ниже.
 import Cc3InlineDeliveryOptions from './Cc3InlineDeliveryOptions.vue'
 import Cc3InlineDeliverySection from './Cc3InlineDeliverySection.vue'
+import Cc3InlineDeliverySlots from './Cc3InlineDeliverySlots.vue'
 import Cc3ModalFooter from '../Modal/Cc3ModalFooter.vue'
 import Cc3ModalHeader from '../Modal/Cc3ModalHeader.vue'
 import Cc3ModalOrderSummary from '../Modal/Cc3ModalOrderSummary.vue'
@@ -72,6 +73,8 @@ const selectedCourierVariant = ref('standard')
           resolved
           name="inline-courier-variant"
         />
+
+        <Cc3InlineDeliverySlots />
       </section>
 
       <Cc3ModalPaymentMethods />
