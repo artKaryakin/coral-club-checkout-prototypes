@@ -140,6 +140,7 @@ export default {
   'delivery.section.title': 'Doručení',
   'delivery.addAddress': 'Přidat doručovací adresu',
   'delivery.info.title': 'Údaje o doručení',
+  'delivery.viewOnMap': 'Na mapě',
   'pickup.title': 'Výdejní místo',
   'pickup.selected': 'Vybráno: {name}',
   'pickup.contacts': 'Kontakty:',

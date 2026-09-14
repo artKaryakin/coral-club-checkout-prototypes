@@ -40,7 +40,7 @@ const { recipientValues: profileRecipient } = useStandProfile()
 
 const text = computed(() => ({
   close: t('common.close'),
-  back: t('common.back'),
+  viewOnMap: t('delivery.viewOnMap'),
   map: t('common.map'),
   list: t('common.list'),
   openUntil: t('pickup.openUntil'),
@@ -185,8 +185,13 @@ function continueFromPicker() {
   step.value = 'detail'
 }
 
+// Кнопка «На карте» у заголовка — единственный способ вернуться с карточки
+// пункта назад к выбору (стрелка в хедере убрана). Заодно возвращаем режим
+// «Карта», а не «Список»: кнопка обещает карту, а не то, на чём случайно
+// остановились.
 function back() {
   step.value = 'picker'
+  view.value = 'map'
 }
 
 const isFavorite = ref(props.editProfile?.isFavorite ?? false)
@@ -289,17 +294,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
       @keydown="onOverlayKeydown"
     >
       <div class="cc3-inline-pickup-dialog__header">
-        <button
-          v-if="step === 'detail'"
-          type="button"
-          class="cc3-inline-pickup-dialog__back"
-          :aria-label="text.back"
-          @click="back"
-        >
-          <Cc3Icon name="chevron-down" :size="24" class="cc3-inline-pickup-dialog__back-icon" />
-        </button>
-
-        <div v-else class="cc3-inline-pickup-dialog__toggle">
+        <div v-if="step === 'picker'" class="cc3-inline-pickup-dialog__toggle">
           <button
             type="button"
             class="cc3-inline-pickup-dialog__toggle-tab"
@@ -381,7 +376,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
         </template>
 
         <template v-else-if="pickupDetailView">
-          <h3 class="cc3-inline-pickup-dialog__section-title">{{ pickupDetailView.title }}</h3>
+          <div class="cc3-inline-pickup-dialog__section-heading">
+            <h3 class="cc3-inline-pickup-dialog__section-title">{{ pickupDetailView.title }}</h3>
+
+            <button type="button" class="cc3-inline-pickup-dialog__view-on-map" @click="back">
+              {{ text.viewOnMap }}
+            </button>
+          </div>
 
           <p class="cc3-inline-pickup-dialog__detail-address">
             {{ pickupDetailView.address }}
@@ -517,23 +518,22 @@ function onOverlayKeydown(event: KeyboardEvent) {
     background-color: var(--st-content-background-color-default-solid-normal);
   }
 
-  &__back,
+  // margin-left: auto — на шаге деталей пункта в хедере, кроме неё, ничего
+  // нет (стрелка «назад» убрана, «На карте» теперь у заголовка в теле),
+  // и без этого крестик стал бы у левого края вместо правого.
   &__close {
     display: flex;
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
 
+    margin-left: auto;
     padding: 0;
 
     color: var(--st-content-foreground-color-neutral-primary);
     background: none;
     border: none;
     cursor: pointer;
-  }
-
-  &__back-icon {
-    transform: rotate(90deg);
   }
 
   &__toggle {
@@ -697,6 +697,26 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('heading-xxs');
 
     color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  // Замена стрелке «назад» в хедере: единственный путь обратно к карте
+  // и списку пунктов из карточки выбранного пункта.
+  &__section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--st-global-distance-space-inset-xl);
+  }
+
+  &__view-on-map {
+    padding: var(--st-global-distance-space-inset-lg);
+
+    @include font('label-sm');
+
+    color: var(--st-action-foreground-color-positive-normal);
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   &__detail-address {

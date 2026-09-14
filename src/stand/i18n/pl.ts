@@ -140,6 +140,7 @@ export default {
   'delivery.section.title': 'Dostawa',
   'delivery.addAddress': 'Dodaj adres dostawy',
   'delivery.info.title': 'Dane dostawy',
+  'delivery.viewOnMap': 'Na mapie',
   'pickup.title': 'Punkt odbioru',
   'pickup.selected': 'Wybrano: {name}',
   'pickup.contacts': 'Kontakt:',

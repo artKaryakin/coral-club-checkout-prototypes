@@ -43,7 +43,7 @@ const { t, country } = useStand()
 const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
-  back: t('common.back'),
+  viewOnMap: t('delivery.viewOnMap'),
   close: t('common.close'),
   title: t('delivery.info.title'),
   courier: t('delivery.method.courier'),
@@ -404,8 +404,13 @@ function continueFromSearch() {
   step.value = method.value === 'courier' ? 'address-form' : 'pickup-detail'
 }
 
+// Кнопка «На карте» у заголовка — единственный способ вернуться с формы
+// адреса или карточки пункта назад к выбору способа доставки (стрелка
+// в хедере убрана). Для самовывоза заодно возвращаем режим «Карта», а не
+// «Список»: кнопка обещает карту, а не то, на чём случайно остановились.
 function back() {
   step.value = 'search'
+  view.value = 'map'
 }
 
 const confirmedProfile = computed<DeliveryProfile>(() => {
@@ -484,16 +489,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
       @keydown="onOverlayKeydown"
     >
       <div class="cc3-modal-delivery-dialog__header">
-          <button
-            v-if="step !== 'search'"
-            type="button"
-            class="cc3-modal-delivery-dialog__back"
-            :aria-label="text.back"
-            @click="back"
-          >
-            <Cc3Icon name="chevron-down" :size="24" class="cc3-modal-delivery-dialog__back-icon" />
-          </button>
-
           <div v-if="step === 'search'" class="cc3-modal-delivery-dialog__tabs">
             <button
               type="button"
@@ -682,7 +677,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
           </template>
 
           <template v-else-if="step === 'address-form'">
-            <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.addressSection }}</h3>
+            <div class="cc3-modal-delivery-dialog__section-heading">
+              <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.addressSection }}</h3>
+
+              <button type="button" class="cc3-modal-delivery-dialog__view-on-map" @click="back">
+                {{ text.viewOnMap }}
+              </button>
+            </div>
 
             <div class="cc3-modal-delivery-dialog__fields">
               <Cc3StandField
@@ -712,7 +713,13 @@ function onOverlayKeydown(event: KeyboardEvent) {
           </template>
 
           <template v-else-if="step === 'pickup-detail' && pickupDetailView">
-            <h3 class="cc3-modal-delivery-dialog__section-title">{{ pickupDetailView.title }}</h3>
+            <div class="cc3-modal-delivery-dialog__section-heading">
+              <h3 class="cc3-modal-delivery-dialog__section-title">{{ pickupDetailView.title }}</h3>
+
+              <button type="button" class="cc3-modal-delivery-dialog__view-on-map" @click="back">
+                {{ text.viewOnMap }}
+              </button>
+            </div>
 
             <p class="cc3-modal-delivery-dialog__detail-address">
               {{ pickupDetailView.address }}
@@ -852,7 +859,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     background-color: var(--st-content-background-color-default-solid-normal);
   }
 
-  &__back,
   &__close {
     display: flex;
     align-items: center;
@@ -866,14 +872,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
     cursor: pointer;
   }
 
-  &__back-icon {
-    transform: rotate(90deg);
-  }
-
   &__title {
+    flex: 1;
     margin: 0;
 
     @include font('label-md');
+    text-align: center;
 
     color: var(--st-content-foreground-color-neutral-primary);
   }
@@ -1211,6 +1215,26 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('heading-xxs');
 
     color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  // Замена стрелке «назад» в хедере: единственный путь обратно к выбору
+  // способа доставки — из формы адреса или карточки пункта самовывоза.
+  &__section-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--st-global-distance-space-inset-xl);
+  }
+
+  &__view-on-map {
+    padding: var(--st-global-distance-space-inset-lg);
+
+    @include font('label-sm');
+
+    color: var(--st-action-foreground-color-positive-normal);
+    background: none;
+    border: none;
+    cursor: pointer;
   }
 
   &__detail-address {

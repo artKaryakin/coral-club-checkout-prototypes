@@ -140,6 +140,7 @@ export default {
   'delivery.section.title': 'Доставка',
   'delivery.addAddress': 'Добавить адрес доставки',
   'delivery.info.title': 'Данные доставки',
+  'delivery.viewOnMap': 'На карте',
   'pickup.title': 'Пункт самовывоза',
   'pickup.selected': 'Выбран {name}',
   'pickup.contacts': 'Контакты:',
