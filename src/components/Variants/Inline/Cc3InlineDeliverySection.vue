@@ -193,7 +193,6 @@ function deleteEntry(id: string) {
       </div>
 
       <div class="cc3-inline-delivery__info">
-        <p class="cc3-inline-delivery__name">{{ selectedEntry.name }}</p>
         <p class="cc3-inline-delivery__address">{{ selectedEntry.addressLine }}</p>
       </div>
 
@@ -209,6 +208,8 @@ function deleteEntry(id: string) {
           {{ text.hoursWeekend }}
         </p>
       </div>
+
+      <p class="cc3-inline-delivery__name">{{ selectedEntry.name }}</p>
     </template>
 
     <Cc3InlineAddressBook
@@ -272,6 +273,8 @@ function deleteEntry(id: string) {
 
   &__name {
     margin: 0;
+    padding: var(--st-global-distance-space-inset-md)
+      var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
 
     @include font('body-md');
     font-weight: 700;
@@ -290,7 +293,7 @@ function deleteEntry(id: string) {
   &__price {
     margin: 0;
     padding: var(--st-global-distance-space-inset-xs) var(--st-global-distance-space-inset-2xl)
-      var(--st-global-distance-space-inset-4xl);
+      var(--st-global-distance-space-inset-xl);
 
     @include font('body-md');
     font-weight: 700;
@@ -299,7 +302,7 @@ function deleteEntry(id: string) {
   }
 
   &__hours {
-    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
+    padding: 0 var(--st-global-distance-space-inset-2xl);
   }
 
   &__hours-title {
