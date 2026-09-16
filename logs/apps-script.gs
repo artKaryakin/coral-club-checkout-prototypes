@@ -32,6 +32,8 @@ var HEADER = [
   'Телефон',
   'Номер заказа',
   'Тестовый прогон',
+  'Сессия',
+  'Шаг',
 ]
 
 function doPost(e) {
@@ -66,6 +68,8 @@ function doPost(e) {
       run.phone,
       run.orderNumber,
       run.isTest ? 'да' : 'нет',
+      run.sessionId,
+      run.step,
     ])
 
     return ContentService.createTextOutput(JSON.stringify({ ok: true })).setMimeType(

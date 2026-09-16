@@ -1,6 +1,7 @@
 import { useStand } from './useStand'
 import { useStandProfile } from './useStandProfile'
 import { useStandRun } from './useStandRun'
+import { useStandSession } from './useStandSession'
 
 /**
  * Создание заказа — одна кнопка на все три версии чекаута.
@@ -17,16 +18,26 @@ export function useStandOrder() {
   const { country, user, variant, locale } = useStand()
   const { profile } = useStandProfile()
   const { finishRun } = useStandRun()
+  const { sessionFor, completeRun } = useStandSession()
 
   function createOrder() {
+    // Без варианта в адресе чекаут не открывается, но тип это допускает;
+    // прод — та версия, которая показывается по умолчанию.
+    const current = variant.value ?? 'prod'
+    const session = sessionFor(country.value, user.value)
+
+    // Сначала отмечаем прогон в сессии, потом пишем строку: номер шага
+    // должен попасть в журнал уже с учётом этого прогона.
+    completeRun(current)
+
     void finishRun({
       country: country.value,
       user: user.value,
-      // Без варианта в адресе чекаут не открывается, но тип это допускает;
-      // прод — та версия, которая показывается по умолчанию.
-      variant: variant.value ?? 'prod',
+      variant: current,
       locale: locale.value,
       profile: profile.value,
+      sessionId: session?.id,
+      step: session ? session.completed.length + 1 : 0,
     })
   }
 
