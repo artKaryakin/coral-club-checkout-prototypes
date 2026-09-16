@@ -273,4 +273,13 @@ export default {
   'thanks.field.variant': 'Wersja checkoutu',
   'thanks.field.startedAt': 'Początek',
   'thanks.field.duration': 'Czas przejścia',
+
+  // Сценарий теста: задание и переходы между вариантами
+  'task.title': 'Twoje zadanie',
+  'task.new': 'Składasz tu zamówienie po raz pierwszy. Zrób tak, aby kurier przywiózł je do Ciebie do domu.',
+  'task.saved': 'Zamawiałeś tu już wcześniej. Tym razem chcesz odebrać zamówienie osobiście — wybierz dowolny punkt odbioru.',
+  'task.start': 'Rozpocznij zadanie',
+  'task.another': 'Wypróbuj inną wersję',
+  'task.prod': 'Wypróbuj obecną wersję strony',
+  'task.done': 'To wszystko. Dziękujemy za udział — bardzo nam pomogłeś.',
 }
