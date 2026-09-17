@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import Cc3PaymentMarks from '@/components/Payment/Cc3PaymentMarks.vue'
+import type { PaymentMark } from '@/stand/config/payments'
 
 type Props = {
   name: string
   icon: string
   selected: boolean
+  /** Марки платёжных систем, которые принимает способ. */
+  marks?: PaymentMark[]
 }
 
 defineProps<Props>()
@@ -21,6 +25,8 @@ defineEmits<{ select: [] }>()
     <img :src="icon" :alt="name" class="cc3-checkout-payment-method-item__icon" />
 
     <span class="cc3-checkout-payment-method-item__name">{{ name }}</span>
+
+    <Cc3PaymentMarks v-if="marks" :marks="marks" class="cc3-checkout-payment-method-item__marks" />
 
     <Cc3Icon
       v-if="selected"
@@ -63,6 +69,10 @@ defineEmits<{ select: [] }>()
     flex: 1;
 
     @include font('body-sm');
+  }
+
+  &__marks {
+    flex-shrink: 0;
   }
 
   &__mark {

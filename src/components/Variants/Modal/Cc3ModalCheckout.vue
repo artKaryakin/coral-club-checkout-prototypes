@@ -1,5 +1,8 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue'
+
 import { useCheckout } from '@/composables/useCheckout'
+import { useStand } from '@/stand/composables/useStand'
 
 import Cc3ModalDeliverySection from './Cc3ModalDeliverySection.vue'
 import Cc3ModalFooter from './Cc3ModalFooter.vue'
@@ -7,8 +10,43 @@ import Cc3ModalHeader from './Cc3ModalHeader.vue'
 import Cc3ModalOrderSummary from './Cc3ModalOrderSummary.vue'
 import Cc3ModalPaymentMethods from './Cc3ModalPaymentMethods.vue'
 import Cc3ModalSummaryBar from './Cc3ModalSummaryBar.vue'
+import type { DeliveryProfile } from './deliveryProfile'
+import Cc3InlineDeliveryOptions from '../Inline/Cc3InlineDeliveryOptions.vue'
+import Cc3InlineDeliverySlots from '../Inline/Cc3InlineDeliverySlots.vue'
 
+/**
+ * Модальный концепт: адрес добавляется и правится в окне поверх чекаута.
+ *
+ * Срок и цена доставки выбираются в двух местах сразу. Отдельным блоком
+ * в теле чекаута — так человек меняет доставку, не открывая окно адреса.
+ * И внутри самого окна — потому что там он вводит адрес впервые, и уходить
+ * за сроком на страницу под окном было бы странно. Выбор общий: поменяли
+ * в одном месте — видно в другом.
+ *
+ * Разметка вариантов и слотов взята у инлайн-концепта, а не скопирована:
+ * если цены разъедутся между версиями, сравнивать их станет нечестно.
+ * Отличие концептов должно оставаться ровно одно — окно против страницы.
+ */
 const { summary } = useCheckout()
+const { t } = useStand()
+
+const text = computed(() => ({
+  optionsTitle: t('delivery.variants'),
+}))
+
+const selectedEntry = ref<DeliveryProfile>()
+const courierVariant = ref('standard')
+
+function onSelected(profile: DeliveryProfile | undefined) {
+  selectedEntry.value = profile
+}
+
+/**
+ * Блок вариантов показывается только у курьерской доставки и только когда
+ * адрес уже выбран. У пункта выдачи выбирать нечего: цена и срок
+ * принадлежат самому пункту и видны в его карточке.
+ */
+const isOptionsVisible = computed(() => selectedEntry.value?.method === 'courier')
 </script>
 
 <template>
@@ -17,7 +55,20 @@ const { summary } = useCheckout()
     <Cc3ModalSummaryBar />
 
     <div class="cc3-modal-checkout__body">
-      <Cc3ModalDeliverySection />
+      <Cc3ModalDeliverySection v-model:courier-variant="courierVariant" @selected="onSelected" />
+
+      <section v-if="isOptionsVisible" class="cc3-modal-checkout__options">
+        <h2 class="cc3-modal-checkout__options-title">{{ text.optionsTitle }}</h2>
+
+        <Cc3InlineDeliveryOptions
+          v-model="courierVariant"
+          resolved
+          name="modal-courier-variant"
+        />
+
+        <Cc3InlineDeliverySlots />
+      </section>
+
       <Cc3ModalPaymentMethods />
       <Cc3ModalOrderSummary />
       <Cc3ModalFooter />
@@ -74,6 +125,21 @@ const { summary } = useCheckout()
     > :first-child {
       padding-bottom: 4px;
     }
+  }
+
+  // Отступы по краям как у остальных блоков страницы: сами варианты
+  // ничего не знают о том, куда их поставили.
+  &__options {
+    padding-right: var(--st-global-distance-space-inset-2xl);
+    padding-left: var(--st-global-distance-space-inset-2xl);
+  }
+
+  &__options-title {
+    margin: 0 0 var(--st-global-distance-space-inset-sm);
+
+    @include font('heading-xxs');
+
+    color: var(--st-content-foreground-color-neutral-primary);
   }
 }
 </style>

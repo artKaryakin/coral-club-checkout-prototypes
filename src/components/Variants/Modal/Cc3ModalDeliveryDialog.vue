@@ -7,6 +7,7 @@ import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
 import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
+import { useCourierVariants } from '@/composables/useCourierVariants'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
@@ -18,6 +19,7 @@ import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from './deliveryProfile'
+import Cc3InlineDeliveryOptions from '../Inline/Cc3InlineDeliveryOptions.vue'
 
 type Method = 'courier' | 'pickup'
 type Step = 'search' | 'address-form' | 'pickup-detail'
@@ -29,6 +31,13 @@ const props = defineProps<{
    * с поиска. Используется кнопкой-карандашом в адресной книге.
    */
   editProfile?: DeliveryProfile
+
+  /**
+   * Вариант курьерской доставки, выбранный в чекауте. Диалог открывается на
+   * нём, а не на первом по списку: тот же выбор показывается в двух местах,
+   * и расходиться они не должны.
+   */
+  variantId?: string
 }>()
 
 const emit = defineEmits<{
@@ -37,10 +46,14 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels, formatMoneyRounded } =
+const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels } =
   useCheckout()
 const { t, country } = useStand()
 const { recipientValues } = useStandProfile()
+
+// Список вариантов общий с инлайн-концептом и с блоком в теле чекаута:
+// цена и сроки не должны разъезжаться между местами, где их показывают.
+const { courierVariants } = useCourierVariants()
 
 const text = computed(() => ({
   viewOnMap: t('delivery.viewOnMap'),
@@ -52,7 +65,6 @@ const text = computed(() => ({
   map: t('common.map'),
   list: t('common.list'),
   variantsTitle: t('delivery.variants'),
-  variantsHint: t('delivery.variants.hint'),
   openUntil: t('pickup.openUntil'),
   pickupEmpty: t('pickup.empty'),
   addressSection: t('address.title'),
@@ -82,27 +94,9 @@ const method = ref<Method>(props.editProfile?.method ?? 'courier')
 const step = ref<Step>(initialStep())
 
 
-// Варианты курьерской доставки — копия и цены из макета. Не то же самое,
-// что Cc3CheckoutDeliveryVariant в проде: там другой текст и это
-// самостоятельный сценарий, здесь — только визуальный прототип.
-type CourierVariant = { id: string; title: string; caption?: string }
-
-// Стоимость обычной доставки — демо-значение; форматируется в валюте страны.
-const COURIER_PRICE = 149
-
-const courierVariants = computed<CourierVariant[]>(() => [
-  {
-    id: 'standard',
-    title: t('delivery.variant.standard', { price: formatMoneyRounded(COURIER_PRICE) }),
-  },
-  {
-    id: 'express',
-    title: t('delivery.variant.express'),
-    caption: t('delivery.variant.expressNote'),
-  },
-])
-
-const selectedCourierVariant = ref('standard')
+const selectedCourierVariant = ref(
+  props.editProfile?.variantId ?? props.variantId ?? 'standard',
+)
 
 // Службы разные в разных странах, поэтому фильтры строятся из пунктов
 // текущей страны, а не задаются руками.
@@ -426,6 +420,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
       name: recipientDisplayName.value,
       addressLine: values.value.street ?? '',
       priceLabel: variant?.title ?? '',
+      variantId: selectedCourierVariant.value,
       isFavorite: isFavorite.value,
       phone: values.value.recipientPhone ?? '',
       email: values.value.recipientEmail ?? '',
@@ -547,31 +542,11 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
               <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.variantsTitle }}</h3>
 
-              <p v-if="!isAddressResolved" class="cc3-modal-delivery-dialog__variants-hint">
-                {{ text.variantsHint }}
-              </p>
-
-              <div v-else class="cc3-modal-delivery-dialog__variants">
-                <label
-                  v-for="variant in courierVariants"
-                  :key="variant.id"
-                  class="cc3-modal-delivery-dialog__cell"
-                >
-                  <span class="cc3-modal-delivery-dialog__cell-content">
-                    <span class="cc3-modal-delivery-dialog__cell-title">{{ variant.title }}</span>
-                    <span v-if="variant.caption" class="cc3-modal-delivery-dialog__cell-caption">
-                      {{ variant.caption }}
-                    </span>
-                  </span>
-                  <input
-                    v-model="selectedCourierVariant"
-                    type="radio"
-                    name="courier-variant"
-                    :value="variant.id"
-                    class="cc3-modal-delivery-dialog__radio"
-                  />
-                </label>
-              </div>
+              <Cc3InlineDeliveryOptions
+                v-model="selectedCourierVariant"
+                :resolved="isAddressResolved"
+                name="courier-variant"
+              />
             </template>
 
             <template v-else>
@@ -694,6 +669,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 @select="onSuggestionSelect"
               />
             </div>
+
+            <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.variantsTitle }}</h3>
+
+            <Cc3InlineDeliveryOptions
+              v-model="selectedCourierVariant"
+              resolved
+              name="courier-variant"
+            />
 
             <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
@@ -1066,53 +1049,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
     color: var(--st-content-foreground-color-neutral-secondary);
   }
 
-  &__variants-hint {
-    margin: 0;
-    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-3xl);
 
-    @include font('label-sm');
 
-    color: var(--st-content-foreground-color-neutral-tetriary);
-    background-color: var(--st-content-background-color-neutral-subtle);
-    border-radius: var(--st-global-radius-lg);
-  }
 
-  &__variants {
-    display: flex;
-    flex-direction: column;
-  }
 
-  &__cell {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--st-global-distance-space-inset-xl);
 
-    padding: var(--st-global-distance-space-inset-md) 0;
 
-    cursor: pointer;
-  }
-
-  &__cell-content {
-    display: flex;
-    flex-direction: column;
-  }
-
-  &__cell-title {
-    @include font('body-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-  }
-
-  &__cell-caption {
-    @include font('body-sm');
-
-    color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__radio {
-    @include cc3-modal-radio-control;
-  }
 
   &__checkbox {
     @include cc3-modal-check-control;

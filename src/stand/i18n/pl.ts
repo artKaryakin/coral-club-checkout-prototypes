@@ -156,6 +156,8 @@ export default {
   'payment.sbp': 'Przelew natychmiastowy',
   'payment.card': 'Karta płatnicza',
   'payment.umoney': 'Przelew bankowy',
+  'payment.creditCard': 'Karta kredytowa',
+  'payment.paypal': 'PayPal',
   'summary.title': 'Podsumowanie zamówienia',
   'summary.items': 'Produkty ({count})',
   'summary.more': 'jeszcze {count}',
