@@ -60,7 +60,7 @@ const text = computed(() => ({
   close: t('common.close'),
   title: t('delivery.info.title'),
   courier: t('concept.delivery.method.courier'),
-  pickup: t('delivery.pickup.title'),
+  pickup: t('concept.delivery.pickup.action'),
   findAddress: t('concept.common.findAddress'),
   map: t('common.map'),
   list: t('common.list'),
@@ -416,7 +416,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
     return {
       id,
       method: 'courier',
-      typeLabel: t('concept.delivery.method.courier'),
+      typeLabel: t('concept.delivery.method.label'),
       name: recipientDisplayName.value,
       addressLine: values.value.street ?? '',
       priceLabel: variant?.title ?? '',

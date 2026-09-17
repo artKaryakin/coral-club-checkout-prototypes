@@ -34,7 +34,7 @@ function toProfiles(): DeliveryProfile[] {
     id: entry.id,
     method: entry.method,
     typeLabel:
-      entry.method === 'courier' ? t('concept.delivery.method.courier') : entry.methodLabel,
+      entry.method === 'courier' ? t('concept.delivery.method.label') : entry.methodLabel,
     fields: entry.fields,
     name: entry.fullName,
     addressLine: entry.addressLine,

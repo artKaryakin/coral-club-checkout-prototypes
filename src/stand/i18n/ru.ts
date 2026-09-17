@@ -147,6 +147,10 @@ export default {
   'concept.delivery.method.courier@us': 'Ship',
   'concept.common.findAddress': 'Найти адрес',
   'concept.common.findAddress@us': 'Start typing address',
+  'concept.delivery.method.label': 'Курьер',
+  'concept.delivery.method.label@us': 'Shipping',
+  'concept.delivery.pickup.action': 'Самовывоз',
+  'concept.delivery.pickup.action@us': 'Pick up',
 
   // Американский набор вариантов доставки: бесплатно и долго сверху,
   // дороже и быстрее ниже, срок — датой прибытия.
