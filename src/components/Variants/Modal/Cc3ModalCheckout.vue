@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { useCheckout } from '@/composables/useCheckout'
+import { useCourierVariants } from '@/composables/useCourierVariants'
 import { useStand } from '@/stand/composables/useStand'
 
 import Cc3ModalDeliverySection from './Cc3ModalDeliverySection.vue'
@@ -29,13 +30,23 @@ import Cc3InlineDeliverySlots from '../Inline/Cc3InlineDeliverySlots.vue'
  */
 const { summary } = useCheckout()
 const { t } = useStand()
+const { courierVariants, defaultVariantId } = useCourierVariants()
 
 const text = computed(() => ({
   optionsTitle: t('delivery.variants'),
 }))
 
 const selectedEntry = ref<DeliveryProfile>()
-const courierVariant = ref('standard')
+const courierVariant = ref(defaultVariantId.value)
+
+// Набор вариантов зависит от страны, и выбранного в новом наборе может не
+// оказаться — тогда не выбрано ничего. Возвращаем выбор на первый.
+watch(courierVariants, (list) => {
+  if (!list.some((variant) => variant.id === courierVariant.value)) {
+    courierVariant.value = defaultVariantId.value
+  }
+})
+
 
 function onSelected(profile: DeliveryProfile | undefined) {
   selectedEntry.value = profile

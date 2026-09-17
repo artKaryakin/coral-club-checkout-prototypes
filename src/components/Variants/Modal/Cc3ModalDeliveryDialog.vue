@@ -53,15 +53,15 @@ const { recipientValues } = useStandProfile()
 
 // Список вариантов общий с инлайн-концептом и с блоком в теле чекаута:
 // цена и сроки не должны разъезжаться между местами, где их показывают.
-const { courierVariants } = useCourierVariants()
+const { courierVariants, defaultVariantId } = useCourierVariants()
 
 const text = computed(() => ({
   viewOnMap: t('delivery.viewOnMap'),
   close: t('common.close'),
   title: t('delivery.info.title'),
-  courier: t('delivery.method.courier'),
+  courier: t('concept.delivery.method.courier'),
   pickup: t('delivery.pickup.title'),
-  findAddress: t('common.findAddress'),
+  findAddress: t('concept.common.findAddress'),
   map: t('common.map'),
   list: t('common.list'),
   variantsTitle: t('delivery.variants'),
@@ -95,7 +95,7 @@ const step = ref<Step>(initialStep())
 
 
 const selectedCourierVariant = ref(
-  props.editProfile?.variantId ?? props.variantId ?? 'standard',
+  props.editProfile?.variantId ?? props.variantId ?? defaultVariantId.value,
 )
 
 // Службы разные в разных странах, поэтому фильтры строятся из пунктов
@@ -416,7 +416,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
     return {
       id,
       method: 'courier',
-      typeLabel: t('delivery.method.courier'),
+      typeLabel: t('concept.delivery.method.courier'),
       name: recipientDisplayName.value,
       addressLine: values.value.street ?? '',
       priceLabel: variant?.title ?? '',

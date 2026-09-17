@@ -137,6 +137,23 @@ export default {
   'delivery.variant.express': 'Express, same-day, free',
   'delivery.variant.express.summary': 'same-day, free',
   'delivery.variant.expressNote': 'Available for orders from 10:00 AM to 5:00 PM',
+
+  // Формулировки концептов. Отдельные ключи, потому что на рынке США
+  // концепты говорят «Ship», а прод-версия остаётся контролем и обязана
+  // повторять сегодняшний сайт слово в слово.
+  'concept.delivery.courier.title': 'Courier delivery',
+  'concept.delivery.courier.title@us': 'Ship',
+  'concept.delivery.method.courier': 'Courier',
+  'concept.delivery.method.courier@us': 'Ship',
+  'concept.common.findAddress': 'Find address',
+  'concept.common.findAddress@us': 'Start typing address',
+
+  // Американский набор вариантов доставки: бесплатно и долго сверху,
+  // дороже и быстрее ниже, срок — датой прибытия.
+  'delivery.variants@us': 'Select your shipping speed',
+  'delivery.variant.us.free': 'Free Shipping',
+  'delivery.variant.us.paid': '{price} Shipping',
+  'delivery.variant.us.eta': 'Arrives by {date}',
   'delivery.section.title': 'Delivery',
   'delivery.addAddress': 'Add delivery address',
   'delivery.info.title': 'Delivery information',
@@ -212,6 +229,7 @@ export default {
   'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
   'field.street.placeholder@cz': 'Vinohradská 112',
   'field.street.placeholder@us': '350 5th Ave',
+  'field.street.label@us': 'Start typing address',
   'field.house.label': 'House number',
   'field.house.placeholder': '43',
   'field.apartment.label': 'Apartment, suite, etc.',
