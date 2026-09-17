@@ -34,7 +34,7 @@ const { courierVariants } = useCourierVariants()
 const { recipientValues } = useStandProfile()
 
 const text = computed(() => ({
-  courier: t('delivery.courier.title'),
+  courier: t('concept.delivery.courier.title'),
   pickup: t('delivery.pickup.title'),
   addressSection: t('address.title'),
   recipientSection: t('group.recipient.title'),
@@ -112,7 +112,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
   return {
     id: props.editProfile?.id ?? `profile-${Date.now()}`,
     method: 'courier',
-    typeLabel: t('delivery.method.courier'),
+    typeLabel: t('concept.delivery.method.courier'),
     name: recipientDisplayName.value,
     addressLine: values.value.street ?? '',
     priceLabel: defaultCourierSummary.value,

@@ -33,7 +33,8 @@ function toProfiles(): DeliveryProfile[] {
   return savedAddressBookEntries.value.map((entry, index) => ({
     id: entry.id,
     method: entry.method,
-    typeLabel: entry.methodLabel,
+    typeLabel:
+      entry.method === 'courier' ? t('concept.delivery.method.courier') : entry.methodLabel,
     fields: entry.fields,
     name: entry.fullName,
     addressLine: entry.addressLine,
