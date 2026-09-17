@@ -156,6 +156,8 @@ export default {
   'payment.sbp': 'Sofortüberweisung',
   'payment.card': 'Bankkarte',
   'payment.umoney': 'Banküberweisung',
+  'payment.creditCard': 'Kreditkarte',
+  'payment.paypal': 'PayPal',
   'summary.title': 'Bestellübersicht',
   'summary.items': 'Artikel ({count})',
   'summary.more': '{count} weitere',
