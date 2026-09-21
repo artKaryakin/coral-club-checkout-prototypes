@@ -22,10 +22,9 @@ const { country, user, t } = useStand()
 const emit = defineEmits<{ selected: [profile: DeliveryProfile | undefined] }>()
 
 /**
- * Выбранный вариант курьерской доставки. Живёт в чекауте, потому что
- * показывается там отдельным блоком, но тот же выбор доступен и внутри
- * диалога при добавлении и правке адреса — иначе пришлось бы закрывать
- * окно, чтобы поменять срок доставки.
+ * Выбранный вариант курьерской доставки. Живёт в чекауте: скорость
+ * выбирается только там, как в инлайн-концепте. Диалогу он передаётся
+ * лишь для того, чтобы подписать созданную карточку той же строкой.
  */
 const courierVariant = defineModel<string>('courierVariant', { default: 'standard' })
 
@@ -145,10 +144,6 @@ function onDialogConfirm(profile: DeliveryProfile) {
     addressBookEntries.value = addressBookEntries.value.map((entry) =>
       entry.id === profile.id ? profile : entry,
     )
-  }
-
-  if (profile.variantId) {
-    courierVariant.value = profile.variantId
   }
 
   selectedEntryId.value = profile.id
