@@ -3,6 +3,7 @@ import { computed, ref } from 'vue'
 
 import { profileHref, routeHref, useStand } from '../composables/useStand'
 import { useStandProfile } from '../composables/useStandProfile'
+import { useStandTask } from '../composables/useStandTask'
 import { formatDuration, useStandRun } from '../composables/useStandRun'
 import { countries } from '../config/countries'
 
@@ -20,6 +21,7 @@ import { countries } from '../config/countries'
 const { t, country, user, locale, isCountryLocked } = useStand()
 const { finishedRun, resetRun, sendState, retrySend, runAsText } = useStandRun()
 const { isProfileFilled } = useStandProfile()
+const { isSessionMode, isSessionDone, taskText, nextLabel, nextHref } = useStandTask()
 
 const text = computed(() => ({
   title: t('thanks.title'),
@@ -32,6 +34,8 @@ const text = computed(() => ({
   copy: t('thanks.copy'),
   copied: t('thanks.copied'),
   sending: t('thanks.sending'),
+  sessionDone: t('task.done'),
+  taskTitle: t('task.title'),
   name: t('thanks.field.name'),
   email: t('thanks.field.email'),
   phone: t('thanks.field.phone'),
@@ -58,10 +62,18 @@ const durationLabel = computed(() =>
     : '',
 )
 
+/**
+ * Детали прогона — для модератора, не для респондента.
+ *
+ * В сценарии этот экран видит сам респондент, и показывать ему название
+ * версии и своё время нельзя: названия задают ему словарь для ответа
+ * «какой вариант лучше», а увиденное время превращает следующий прогон в
+ * соревнование с собой. Модератору те же данные приходят в таблицу.
+ */
 const rows = computed(() => {
   const run = finishedRun.value
 
-  if (!run) {
+  if (!run || isSessionMode.value) {
     return []
   }
 
@@ -136,9 +148,9 @@ function again() {
       <p class="cc3-stand-thank-you__subtitle">{{ text.subtitle }}</p>
       <p class="cc3-stand-thank-you__order">{{ orderLabel }}</p>
 
-      <h2 class="cc3-stand-thank-you__section">{{ text.details }}</h2>
+      <h2 v-if="!isSessionMode" class="cc3-stand-thank-you__section">{{ text.details }}</h2>
 
-      <dl class="cc3-stand-thank-you__list">
+      <dl v-if="!isSessionMode" class="cc3-stand-thank-you__list">
         <div v-for="row in rows" :key="row.key" class="cc3-stand-thank-you__row">
           <dt class="cc3-stand-thank-you__label">{{ row.label }}</dt>
           <dd class="cc3-stand-thank-you__value">{{ row.value }}</dd>
@@ -162,7 +174,22 @@ function again() {
         </div>
       </div>
 
-      <div class="cc3-stand-thank-you__actions">
+      <template v-if="isSessionMode">
+        <p v-if="isSessionDone" class="cc3-stand-thank-you__done">{{ text.sessionDone }}</p>
+
+        <template v-else>
+          <h2 class="cc3-stand-thank-you__section">{{ text.taskTitle }}</h2>
+          <p class="cc3-stand-thank-you__task">{{ taskText }}</p>
+
+          <div class="cc3-stand-thank-you__actions">
+            <a :href="nextHref" class="cc3-stand-thank-you__button" @click="again">
+              {{ nextLabel }}
+            </a>
+          </div>
+        </template>
+      </template>
+
+      <div v-else class="cc3-stand-thank-you__actions">
         <a :href="indexHref" class="cc3-stand-thank-you__button" @click="again">
           {{ text.again }}
         </a>
@@ -267,6 +294,22 @@ function again() {
 
     color: var(--st-content-foreground-color-neutral-primary);
     overflow-wrap: anywhere;
+  }
+
+  &__task {
+    margin: 0;
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__done {
+    margin: 0;
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__sending {

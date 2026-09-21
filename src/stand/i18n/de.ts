@@ -137,6 +137,27 @@ export default {
   'delivery.variant.express': 'Express, am selben Tag, kostenlos',
   'delivery.variant.express.summary': 'am selben Tag, kostenlos',
   'delivery.variant.expressNote': 'Verfügbar für Bestellungen von 10:00 bis 17:00 Uhr',
+
+  // Формулировки концептов. Отдельные ключи, потому что на рынке США
+  // концепты говорят «Ship», а прод-версия остаётся контролем и обязана
+  // повторять сегодняшний сайт слово в слово.
+  'concept.delivery.courier.title': 'Kurierlieferung',
+  'concept.delivery.courier.title@us': 'Ship',
+  'concept.delivery.method.courier': 'Kurier',
+  'concept.delivery.method.courier@us': 'Ship',
+  'concept.common.findAddress': 'Adresse suchen',
+  'concept.common.findAddress@us': 'Start typing address',
+  'concept.delivery.method.label': 'Kurier',
+  'concept.delivery.method.label@us': 'Shipping',
+  'concept.delivery.pickup.action': 'Abholung',
+  'concept.delivery.pickup.action@us': 'Pick up',
+
+  // Американский набор вариантов доставки: бесплатно и долго сверху,
+  // дороже и быстрее ниже, срок — датой прибытия.
+  'delivery.variants@us': 'Versandgeschwindigkeit wählen',
+  'delivery.variant.us.free': 'Kostenloser Versand',
+  'delivery.variant.us.paid': 'Versand für {price}',
+  'delivery.variant.us.eta': 'Ankunft am {date}',
   'delivery.section.title': 'Lieferung',
   'delivery.addAddress': 'Lieferadresse hinzufügen',
   'delivery.info.title': 'Lieferdaten',
@@ -156,6 +177,8 @@ export default {
   'payment.sbp': 'Sofortüberweisung',
   'payment.card': 'Bankkarte',
   'payment.umoney': 'Banküberweisung',
+  'payment.creditCard': 'Kreditkarte',
+  'payment.paypal': 'PayPal',
   'summary.title': 'Bestellübersicht',
   'summary.items': 'Artikel ({count})',
   'summary.more': '{count} weitere',
@@ -210,6 +233,7 @@ export default {
   'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
   'field.street.placeholder@cz': 'Vinohradská 112',
   'field.street.placeholder@us': '350 5th Ave',
+  'field.street.label@us': 'Start typing address',
   'field.house.label': 'Hausnummer',
   'field.house.placeholder': '43',
   'field.apartment.label': 'Wohnung, Etage usw.',
@@ -273,4 +297,13 @@ export default {
   'thanks.field.variant': 'Checkout-Version',
   'thanks.field.startedAt': 'Beginn',
   'thanks.field.duration': 'Benötigte Zeit',
+
+  // Сценарий теста: задание и переходы между вариантами
+  'task.title': 'Ihre Aufgabe',
+  'task.new': 'Sie bestellen hier zum ersten Mal. Sorgen Sie dafür, dass die Bestellung per Kurier zu Ihnen nach Hause kommt.',
+  'task.saved': 'Sie haben hier schon bestellt. Diesmal möchten Sie die Bestellung selbst abholen — wählen Sie eine beliebige Abholstelle.',
+  'task.start': 'Aufgabe starten',
+  'task.another': 'Andere Version ausprobieren',
+  'task.prod': 'Aktuelle Version der Website ausprobieren',
+  'task.done': 'Das war alles. Danke für Ihre Teilnahme — Sie haben uns sehr geholfen.',
 }

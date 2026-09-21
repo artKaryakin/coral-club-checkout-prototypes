@@ -23,11 +23,6 @@ import Cc3InlinePickupDialog from './Cc3InlinePickupDialog.vue'
  */
 const emit = defineEmits<{ selected: [profile: DeliveryProfile | undefined] }>()
 
-type Chip = { label: string; value: string }
-
-const dateSlots = ['day1', 'day2', 'day3']
-const timeSlots = ['time1', 'time2']
-
 const { savedAddressBookEntries, formatMoneyRounded } = useCheckout()
 const { country, user, t } = useStand()
 
@@ -35,7 +30,8 @@ function toProfiles(): DeliveryProfile[] {
   return savedAddressBookEntries.value.map((entry, index) => ({
     id: entry.id,
     method: entry.method,
-    typeLabel: entry.methodLabel,
+    typeLabel:
+      entry.method === 'courier' ? t('concept.delivery.method.label') : entry.methodLabel,
     fields: entry.fields,
     name: entry.fullName,
     addressLine: entry.addressLine,
@@ -47,9 +43,6 @@ function toProfiles(): DeliveryProfile[] {
     email: entry.email,
   }))
 }
-
-/** Слоты дня и времени есть только на российском рынке — как в модальном. */
-const hasDeliverySlots = computed(() => country.value === 'ru')
 
 const text = computed(() => ({
   change: t('common.change'),
@@ -116,16 +109,6 @@ const editingEntry = computed(() =>
 const pickupEditProfile = computed(() =>
   editingEntry.value?.method === 'pickup' ? editingEntry.value : undefined,
 )
-
-const dateChips = computed<Chip[]>(() =>
-  dateSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
-)
-const timeChips = computed<Chip[]>(() =>
-  timeSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
-)
-
-const selectedDate = ref(dateSlots[0])
-const selectedTime = ref(timeSlots[0])
 
 function openBook() {
   mode.value = 'book'
@@ -211,7 +194,6 @@ function deleteEntry(id: string) {
       </div>
 
       <div class="cc3-inline-delivery__info">
-        <p class="cc3-inline-delivery__name">{{ selectedEntry.name }}</p>
         <p class="cc3-inline-delivery__address">{{ selectedEntry.addressLine }}</p>
       </div>
 
@@ -219,35 +201,7 @@ function deleteEntry(id: string) {
         {{ selectedEntry.priceLabel }}
       </p>
 
-      <template v-if="selectedEntry.method === 'courier' && hasDeliverySlots">
-        <div class="cc3-inline-delivery__chips">
-          <button
-            v-for="chip in dateChips"
-            :key="chip.value"
-            type="button"
-            class="cc3-inline-delivery__chip"
-            :class="{ 'cc3-inline-delivery__chip--selected': selectedDate === chip.value }"
-            @click="selectedDate = chip.value"
-          >
-            {{ chip.label }}
-          </button>
-        </div>
-
-        <div class="cc3-inline-delivery__chips">
-          <button
-            v-for="chip in timeChips"
-            :key="chip.value"
-            type="button"
-            class="cc3-inline-delivery__chip"
-            :class="{ 'cc3-inline-delivery__chip--selected': selectedTime === chip.value }"
-            @click="selectedTime = chip.value"
-          >
-            {{ chip.label }}
-          </button>
-        </div>
-      </template>
-
-      <div v-else-if="selectedEntry.method === 'pickup'" class="cc3-inline-delivery__hours">
+      <div v-if="selectedEntry.method === 'pickup'" class="cc3-inline-delivery__hours">
         <p class="cc3-inline-delivery__hours-title">{{ text.hours }}</p>
         <p class="cc3-inline-delivery__hours-text">
           {{ text.hoursWeekday }}
@@ -255,6 +209,8 @@ function deleteEntry(id: string) {
           {{ text.hoursWeekend }}
         </p>
       </div>
+
+      <p class="cc3-inline-delivery__name">{{ selectedEntry.name }}</p>
     </template>
 
     <Cc3InlineAddressBook
@@ -318,6 +274,8 @@ function deleteEntry(id: string) {
 
   &__name {
     margin: 0;
+    padding: var(--st-global-distance-space-inset-md)
+      var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
 
     @include font('body-md');
     font-weight: 700;
@@ -336,7 +294,7 @@ function deleteEntry(id: string) {
   &__price {
     margin: 0;
     padding: var(--st-global-distance-space-inset-xs) var(--st-global-distance-space-inset-2xl)
-      var(--st-global-distance-space-inset-4xl);
+      var(--st-global-distance-space-inset-xl);
 
     @include font('body-md');
     font-weight: 700;
@@ -344,37 +302,8 @@ function deleteEntry(id: string) {
     color: var(--st-content-foreground-color-neutral-primary);
   }
 
-  &__chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--st-global-distance-space-inset-md);
-
-    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-2xl);
-  }
-
-  &__price + &__chips {
-    padding-top: 0;
-  }
-
-  &__chip {
-    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-md);
-
-    @include font('label-md');
-
-    color: var(--st-action-foreground-color-neutral-normal);
-    background: none;
-    border: 1px solid var(--st-action-border-color-neutral-subtle-normal);
-    border-radius: var(--st-global-radius-xs);
-    cursor: pointer;
-
-    &--selected {
-      color: var(--st-action-foreground-color-positive-normal);
-      border-color: var(--st-action-foreground-color-positive-normal);
-    }
-  }
-
   &__hours {
-    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
+    padding: 0 var(--st-global-distance-space-inset-2xl);
   }
 
   &__hours-title {

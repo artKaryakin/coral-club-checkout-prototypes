@@ -1,29 +1,56 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import paypalIcon from '@/assets/payment-icons/paypal.png'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import Cc3PaymentMarks from '@/components/Payment/Cc3PaymentMarks.vue'
 import { useStand } from '@/stand/composables/useStand'
+import { hasOwnPaymentMethods, usPaymentMethods } from '@/stand/config/payments'
+import type { PaymentMark } from '@/stand/config/payments'
 
-const { t } = useStand()
+const { country, t } = useStand()
 
-const methods = computed<Method[]>(() => [
-  { id: 'bank-transfer', name: t('payment.umoney') },
-  { id: 'bank-card', name: t('payment.card') },
-  { id: 'paypal', name: 'PayPal' },
-])
+type Method = {
+  id: string
+  name: string
+  marks?: PaymentMark[]
+}
+
+/**
+ * Набор способов оплаты зависит от рынка. На рынках, где своего набора нет,
+ * остаётся тот, что достался от макета; у США он свой — карта с кошельками
+ * и PayPal. Оплата в тесте не проверяется, и респондент из Штатов не должен
+ * тратить внимание на способы, которых у него не бывает.
+ */
+const methods = computed<Method[]>(() => {
+  if (hasOwnPaymentMethods(country.value)) {
+    return usPaymentMethods.map((method) => ({
+      id: method.id,
+      name: t(method.labelKey),
+      marks: method.marks,
+    }))
+  }
+
+  return [
+    { id: 'bank-transfer', name: t('payment.umoney') },
+    { id: 'bank-card', name: t('payment.card') },
+    { id: 'paypal', name: 'PayPal' },
+  ]
+})
 
 const text = computed(() => ({
   title: t('payment.title'),
 }))
 
+const selected = ref(methods.value[0]?.id ?? 'bank-card')
 
-type Method = {
-  id: string
-  name: string
-}
-
-const selected = ref('bank-transfer')
+// Смена страны меняет сам список: выбранного способа в нём может уже не
+// быть, и тогда не выбрано ничего — возвращаем выбор на первый.
+watch(methods, (list) => {
+  if (!list.some((method) => method.id === selected.value)) {
+    selected.value = list[0]?.id ?? ''
+  }
+})
 </script>
 
 <template>
@@ -31,13 +58,11 @@ const selected = ref('bank-transfer')
     <h2 class="cc3-modal-payment__title">{{ text.title }}</h2>
 
     <div class="cc3-modal-payment__list">
-      <button
+      <label
         v-for="method in methods"
         :key="method.id"
-        type="button"
         class="cc3-modal-payment__card"
         :class="{ 'cc3-modal-payment__card--selected': selected === method.id }"
-        @click="selected = method.id"
       >
         <span class="cc3-modal-payment__row">
           <Cc3Icon
@@ -56,7 +81,19 @@ const selected = ref('bank-transfer')
 
           <span class="cc3-modal-payment__name">{{ method.name }}</span>
         </span>
-      </button>
+
+        <span class="cc3-modal-payment__side">
+          <Cc3PaymentMarks v-if="method.marks" :marks="method.marks" />
+
+          <input
+            v-model="selected"
+            type="radio"
+            name="cc3-modal-payment"
+            :value="method.id"
+            class="cc3-modal-payment__radio"
+          />
+        </span>
+      </label>
     </div>
   </section>
 </template>
@@ -83,9 +120,10 @@ const selected = ref('bank-transfer')
 
   &__card {
     display: flex;
-    flex-direction: column;
-    gap: var(--st-global-distance-space-inset-2xl);
-    align-items: flex-start;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--st-global-distance-space-inset-md);
 
     margin: var(--st-global-distance-space-inset-md);
     padding: var(--st-global-distance-space-inset-2xl);
@@ -105,6 +143,18 @@ const selected = ref('bank-transfer')
     display: flex;
     align-items: center;
     gap: var(--st-global-distance-space-inset-md);
+  }
+
+  &__side {
+    display: flex;
+    align-items: center;
+    gap: var(--st-global-distance-space-inset-md);
+
+    margin-left: auto;
+  }
+
+  &__radio {
+    @include cc3-modal-radio-control;
   }
 
   &__icon {
@@ -134,6 +184,5 @@ const selected = ref('bank-transfer')
 
     color: var(--st-content-foreground-color-neutral-primary);
   }
-
 }
 </style>

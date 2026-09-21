@@ -52,10 +52,10 @@ const emit = defineEmits<{
 
               <span class="cc3-inline-address-book__card-name">
                 <Cc3Icon
+                  v-if="entry.isFavorite"
                   name="heart"
                   :size="16"
                   class="cc3-inline-address-book__card-heart"
-                  :class="{ 'cc3-inline-address-book__card-heart--active': entry.isFavorite }"
                 />
                 {{ entry.name }}
               </span>
@@ -208,11 +208,7 @@ const emit = defineEmits<{
   &__card-heart {
     flex-shrink: 0;
 
-    color: var(--st-content-foreground-color-neutral-tetriary);
-
-    &--active {
-      color: var(--st-content-foreground-color-positive-secondary);
-    }
+    color: var(--st-content-foreground-color-positive-secondary);
   }
 
   &__card-address {

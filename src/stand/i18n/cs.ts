@@ -137,6 +137,27 @@ export default {
   'delivery.variant.express': 'Expres, tentýž den, zdarma',
   'delivery.variant.express.summary': 'tentýž den, zdarma',
   'delivery.variant.expressNote': 'Dostupné pro objednávky od 10:00 do 17:00',
+
+  // Формулировки концептов. Отдельные ключи, потому что на рынке США
+  // концепты говорят «Ship», а прод-версия остаётся контролем и обязана
+  // повторять сегодняшний сайт слово в слово.
+  'concept.delivery.courier.title': 'Kurýrní doručení',
+  'concept.delivery.courier.title@us': 'Ship',
+  'concept.delivery.method.courier': 'Kurýr',
+  'concept.delivery.method.courier@us': 'Ship',
+  'concept.common.findAddress': 'Najít adresu',
+  'concept.common.findAddress@us': 'Start typing address',
+  'concept.delivery.method.label': 'Kurýr',
+  'concept.delivery.method.label@us': 'Shipping',
+  'concept.delivery.pickup.action': 'Osobní odběr',
+  'concept.delivery.pickup.action@us': 'Pick up',
+
+  // Американский набор вариантов доставки: бесплатно и долго сверху,
+  // дороже и быстрее ниже, срок — датой прибытия.
+  'delivery.variants@us': 'Vyberte rychlost doručení',
+  'delivery.variant.us.free': 'Doprava zdarma',
+  'delivery.variant.us.paid': 'Doprava za {price}',
+  'delivery.variant.us.eta': 'Doručení {date}',
   'delivery.section.title': 'Doručení',
   'delivery.addAddress': 'Přidat doručovací adresu',
   'delivery.info.title': 'Údaje o doručení',
@@ -156,6 +177,8 @@ export default {
   'payment.sbp': 'Okamžitý převod',
   'payment.card': 'Platební karta',
   'payment.umoney': 'Bankovní převod',
+  'payment.creditCard': 'Kreditní karta',
+  'payment.paypal': 'PayPal',
   'summary.title': 'Souhrn objednávky',
   'summary.items': 'Zboží ({count})',
   'summary.more': 'dalších {count}',
@@ -210,6 +233,7 @@ export default {
   'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
   'field.street.placeholder@cz': 'Vinohradská 112',
   'field.street.placeholder@us': '350 5th Ave',
+  'field.street.label@us': 'Start typing address',
   'field.house.label': 'Číslo domu',
   'field.house.placeholder': '43',
   'field.apartment.label': 'Byt, patro apod.',
@@ -273,4 +297,13 @@ export default {
   'thanks.field.variant': 'Verze pokladny',
   'thanks.field.startedAt': 'Začátek',
   'thanks.field.duration': 'Doba průchodu',
+
+  // Сценарий теста: задание и переходы между вариантами
+  'task.title': 'Váš úkol',
+  'task.new': 'Objednáváte zde poprvé. Zařiďte, aby vám objednávku přivezl kurýr domů.',
+  'task.saved': 'Už jste tu dříve objednávali. Tentokrát si chcete objednávku vyzvednout sami — vyberte libovolné výdejní místo.',
+  'task.start': 'Začít úkol',
+  'task.another': 'Vyzkoušet jinou verzi',
+  'task.prod': 'Vyzkoušet současnou verzi webu',
+  'task.done': 'To je vše. Děkujeme za účast — moc jste nám pomohli.',
 }

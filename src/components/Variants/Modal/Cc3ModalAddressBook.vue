@@ -34,8 +34,8 @@ type FilterId = 'all' | DeliveryProfileMethod
 
 const filters = computed<{ id: FilterId; label: string }[]>(() => [
   { id: 'all', label: t('common.all') },
-  { id: 'courier', label: t('delivery.courier.title') },
-  { id: 'pickup', label: t('delivery.pickup.title') },
+  { id: 'courier', label: t('concept.delivery.courier.title') },
+  { id: 'pickup', label: t('concept.delivery.pickup.action') },
 ])
 
 const activeFilter = ref<FilterId>('all')

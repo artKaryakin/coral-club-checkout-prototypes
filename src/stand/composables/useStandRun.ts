@@ -38,6 +38,14 @@ export interface StandRun {
   orderNumber: string
   /** Прогон заполнен кнопкой «Тест-данные» — не настоящий респондент. */
   isTest: boolean
+  /**
+   * Сессия респондента: общая для двух-трёх его прогонов. По ней строки
+   * в таблице склеиваются в одного человека без ручной сверки по имени.
+   * Пусто, если прогон запустили вручную, мимо сценария.
+   */
+  sessionId: string
+  /** Номер прогона в сессии: 1, 2, 3. Ноль — прогон вне сценария. */
+  step: number
 }
 
 /** Что с отправкой строки прямо сейчас. */
@@ -140,6 +148,8 @@ export function useStandRun() {
     variant: StandVariant
     locale: LocaleCode
     profile: StandProfile
+    sessionId?: string
+    step?: number
   }) {
     const finishedAtMs = Date.now()
     const startedAtMs = startedAt.value ?? finishedAtMs
@@ -159,6 +169,8 @@ export function useStandRun() {
       phone: context.profile.phone,
       orderNumber: orderNumber(finishedAtMs),
       isTest: context.profile.email === testProfile.email,
+      sessionId: context.sessionId ?? '',
+      step: context.step ?? 0,
     }
 
     finishedRun.value = run
@@ -204,6 +216,8 @@ export function useStandRun() {
       run.phone,
       run.orderNumber,
       run.isTest ? 'да' : 'нет',
+      run.sessionId,
+      run.step,
     ].join('\t')
   })
 

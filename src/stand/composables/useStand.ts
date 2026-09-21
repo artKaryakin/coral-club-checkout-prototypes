@@ -34,6 +34,12 @@ export const standVariants: StandVariant[] = ['prod', 'modal', 'inline']
  */
 const PROFILE_SEGMENT = 'profile'
 
+/**
+ * Сценарий теста: #/de/new/test. Стоит на месте версии, потому что версию
+ * в этом режиме выбирает не человек, а сам стенд — по очереди, из сессии.
+ */
+const TEST_SEGMENT = 'test'
+
 /** Незаконченный выбор: то, что уже указано в адресе. */
 export interface StandSelection {
   country?: CountryCode
@@ -41,6 +47,8 @@ export interface StandSelection {
   variant?: StandVariant
   /** Открыт шаг заполнения профиля, тип пользователя ещё не выбран. */
   profileStep?: boolean
+  /** Открыт сценарий теста: стенд ведёт респондента сам. */
+  testStep?: boolean
 }
 
 /** Полностью определённая конфигурация — с ней открывается прототип. */
@@ -92,6 +100,7 @@ function parseHash(): StandSelection {
     user: isUserType(second) ? second : undefined,
     variant: isVariant(third) ? third : undefined,
     profileStep: second === PROFILE_SEGMENT,
+    testStep: third === TEST_SEGMENT,
   }
 
   if (legacy && selection.country && selection.user && selection.variant) {
@@ -152,6 +161,11 @@ export function profileHref(country: CountryCode): string {
   return `#/${country}/${PROFILE_SEGMENT}`
 }
 
+/** Ссылка на сценарий теста — то, что модератор отдаёт респонденту. */
+export function testHref(country: CountryCode, user: UserType): string {
+  return `#/${country}/${user}/${TEST_SEGMENT}`
+}
+
 export function useStand() {
   const selection = computed(() => currentSelection.value)
 
@@ -179,6 +193,9 @@ export function useStand() {
   /** Назад к выбору страны нельзя: стенд открыли ссылкой конкретного рынка. */
   const isCountryLocked = computed(() => isCountryFixed)
 
+  /** Открыт экран задания сценария. */
+  const isTestStep = computed(() => currentSelection.value.testStep === true)
+
   const isModal = computed(() => variant.value === 'modal')
   const isInline = computed(() => variant.value === 'inline')
   const isProd = computed(() => variant.value === 'prod')
@@ -205,6 +222,7 @@ export function useStand() {
     countryConfig,
     hasSavedAddresses,
     isCountryLocked,
+    isTestStep,
     isModal,
     isInline,
     isProd,

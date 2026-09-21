@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import { useCheckout } from '@/composables/useCheckout'
+import { useCourierVariants } from '@/composables/useCourierVariants'
 import { useStand } from '@/stand/composables/useStand'
 
 // Хедер, сводка, оплата, итог заказа и подвал те же, что в остальных
@@ -9,6 +10,7 @@ import { useStand } from '@/stand/composables/useStand'
 // под новым именем. Отличие этого концепта ровно одно, и оно ниже.
 import Cc3InlineDeliveryOptions from './Cc3InlineDeliveryOptions.vue'
 import Cc3InlineDeliverySection from './Cc3InlineDeliverySection.vue'
+import Cc3InlineDeliverySlots from './Cc3InlineDeliverySlots.vue'
 import Cc3ModalFooter from '../Modal/Cc3ModalFooter.vue'
 import Cc3ModalHeader from '../Modal/Cc3ModalHeader.vue'
 import Cc3ModalOrderSummary from '../Modal/Cc3ModalOrderSummary.vue'
@@ -35,6 +37,7 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
  */
 const { summary } = useCheckout()
 const { t } = useStand()
+const { courierVariants, defaultVariantId } = useCourierVariants()
 
 const text = computed(() => ({
   optionsTitle: t('delivery.variants'),
@@ -53,7 +56,16 @@ function onSelected(profile: DeliveryProfile | undefined) {
  */
 const isOptionsVisible = computed(() => selectedEntry.value?.method === 'courier')
 
-const selectedCourierVariant = ref('standard')
+const courierVariant = ref(defaultVariantId.value)
+
+// Набор вариантов зависит от страны, и выбранного в новом наборе может не
+// оказаться — тогда не выбрано ничего. Возвращаем выбор на первый.
+watch(courierVariants, (list) => {
+  if (!list.some((variant) => variant.id === courierVariant.value)) {
+    courierVariant.value = defaultVariantId.value
+  }
+})
+
 </script>
 
 <template>
@@ -68,10 +80,12 @@ const selectedCourierVariant = ref('standard')
         <h2 class="cc3-inline-checkout__options-title">{{ text.optionsTitle }}</h2>
 
         <Cc3InlineDeliveryOptions
-          v-model="selectedCourierVariant"
+          v-model="courierVariant"
           resolved
           name="inline-courier-variant"
         />
+
+        <Cc3InlineDeliverySlots />
       </section>
 
       <Cc3ModalPaymentMethods />

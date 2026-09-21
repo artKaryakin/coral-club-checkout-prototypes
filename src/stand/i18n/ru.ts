@@ -137,6 +137,27 @@ export default {
   'delivery.variant.express': 'Экспресс, в день заказа, бесплатно',
   'delivery.variant.express.summary': 'в день заказа, бесплатно',
   'delivery.variant.expressNote': 'Доступно для заказов с 10:00 до 17:00',
+
+  // Формулировки концептов. Отдельные ключи, потому что на рынке США
+  // концепты говорят «Ship», а прод-версия остаётся контролем и обязана
+  // повторять сегодняшний сайт слово в слово.
+  'concept.delivery.courier.title': 'Курьерская доставка',
+  'concept.delivery.courier.title@us': 'Ship',
+  'concept.delivery.method.courier': 'Курьер',
+  'concept.delivery.method.courier@us': 'Ship',
+  'concept.common.findAddress': 'Найти адрес',
+  'concept.common.findAddress@us': 'Start typing address',
+  'concept.delivery.method.label': 'Курьер',
+  'concept.delivery.method.label@us': 'Shipping',
+  'concept.delivery.pickup.action': 'Самовывоз',
+  'concept.delivery.pickup.action@us': 'Pick up',
+
+  // Американский набор вариантов доставки: бесплатно и долго сверху,
+  // дороже и быстрее ниже, срок — датой прибытия.
+  'delivery.variants@us': 'Скорость доставки',
+  'delivery.variant.us.free': 'Бесплатная доставка',
+  'delivery.variant.us.paid': 'Доставка за {price}',
+  'delivery.variant.us.eta': 'Прибудет {date}',
   'delivery.section.title': 'Доставка',
   'delivery.addAddress': 'Добавить адрес доставки',
   'delivery.info.title': 'Данные доставки',
@@ -156,6 +177,8 @@ export default {
   'payment.sbp': 'СБП',
   'payment.card': 'Оплата картой',
   'payment.umoney': 'ЮMoney',
+  'payment.creditCard': 'Оплата картой',
+  'payment.paypal': 'PayPal',
   'summary.title': 'Состав заказа',
   'summary.items': 'Товары ({count})',
   'summary.more': 'ещё {count}',
@@ -210,6 +233,7 @@ export default {
   'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
   'field.street.placeholder@cz': 'Vinohradská 112',
   'field.street.placeholder@us': '350 5th Ave',
+  'field.street.label@us': 'Start typing address',
   'field.house.label': 'Дом',
   'field.house.placeholder': '43к2',
   'field.apartment.label': 'Квартира',
@@ -273,4 +297,13 @@ export default {
   'thanks.field.variant': 'Версия чекаута',
   'thanks.field.startedAt': 'Начало прохождения',
   'thanks.field.duration': 'Время прохождения',
+
+  // Сценарий теста: задание и переходы между вариантами
+  'task.title': 'Ваше задание',
+  'task.new': 'Вы первый раз оформляете заказ. Сделайте так, чтобы его привезли курьером к вам домой.',
+  'task.saved': 'Вы уже заказывали здесь раньше. В этот раз заказ нужно забрать самому — оформите самовывоз из любого доступного пункта.',
+  'task.start': 'Приступить к заданию',
+  'task.another': 'Попробовать другой вариант',
+  'task.prod': 'Попробовать текущую версию сайта',
+  'task.done': 'На этом всё. Спасибо, что прошли тест — вы очень помогли.',
 }
