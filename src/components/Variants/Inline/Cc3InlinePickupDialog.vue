@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import Cc3InputField from '@/components/Field/Cc3InputField.vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import Cc3Map from '@/components/Map/Cc3Map.vue'
 import Cc3MapPin from '@/components/Map/Cc3MapPin.vue'
@@ -20,8 +21,12 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
  * открывается попапом: выбор точки требует карты, а карте нужен весь экран.
  * Хедер и состав шапки другие, чем в модальном попапе: вместо заголовка
  * и вкладок Courier/Pickup — переключатель Карта/Список (Артём уже завёл
- * ключи common.map/common.list под это), поиска адреса здесь нет вообще —
- * его убрали из макета.
+ * ключи common.map/common.list под это).
+ *
+ * На вкладке «Карта» сами варианты пунктов на карту не выводятся — выбор
+ * из нескольких пунктов живёт только на вкладке «Список». Карта показывает
+ * поиск адреса и, после выбора пункта (в т.ч. из списка), метку и карточку
+ * этого одного пункта — не общий список меток сразу для всех вариантов.
  */
 const props = defineProps<{
   editProfile?: DeliveryProfile
@@ -50,6 +55,7 @@ const text = computed(() => ({
   hoursWeekend: t('pickup.hours.weekend'),
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
+  findAddress: t('common.findAddress'),
   favorite: t('address.favorite'),
   recipientSection: t('group.recipient.title'),
   continue: t('common.continue'),
@@ -62,6 +68,7 @@ type View = 'map' | 'list'
 
 const step = ref<Step>(props.editProfile ? 'detail' : 'picker')
 const view = ref<View>('map')
+const pointSearch = ref('')
 
 const providerFilters = computed<{ id: PickupProvider | 'all'; label: string }[]>(() => [
   { id: 'all', label: t('common.all') },
@@ -85,11 +92,19 @@ function onProviderFilterClick(id: PickupProvider | 'all') {
 }
 
 const filteredPickupPoints = computed(() => {
-  if (pickupProviders.value.length === 0) {
-    return pickupPointsFormat.value
-  }
+  const query = pointSearch.value.trim().toLowerCase()
 
-  return pickupPointsFormat.value.filter((point) => pickupProviders.value.includes(point.provider))
+  return pickupPointsFormat.value.filter((point) => {
+    const matchesProvider =
+      pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
+
+    const matchesQuery =
+      query.length === 0 ||
+      point.name.toLowerCase().includes(query) ||
+      point.address.toLowerCase().includes(query)
+
+    return matchesProvider && matchesQuery
+  })
 })
 
 const selectedPickupPointId = ref(
@@ -135,15 +150,28 @@ const pickupProviderPinLabel: Record<PickupProvider, string> = {
   usps: 'USPS',
 }
 
-const pickupMapMarkers = computed(() =>
-  filteredPickupPoints.value.map((point) => ({
-    id: point.id,
-    lat: point.lat,
-    lng: point.lng,
-    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
-    pinLabel: pickupProviderPinLabel[point.provider],
-  })),
-)
+/**
+ * На карте не выводится список вариантов — только метка уже выбранного
+ * пункта (или ничего, пока выбора нет). Несколько пунктов сразу показывает
+ * вкладка «Список».
+ */
+const selectedPointMapMarkers = computed(() => {
+  const point = activePickupPoint.value
+
+  if (!point) {
+    return []
+  }
+
+  return [
+    {
+      id: point.id,
+      lat: point.lat,
+      lng: point.lng,
+      pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
+      pinLabel: pickupProviderPinLabel[point.provider],
+    },
+  ]
+})
 
 type PickupDetailView = {
   title: string
@@ -340,39 +368,53 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </button>
           </div>
 
-          <div v-if="view === 'map'" class="cc3-inline-pickup-dialog__map">
-            <Cc3Map :center="mapCenter" :zoom="9" :markers="pickupMapMarkers" :height="380">
-              <template #marker="{ marker }">
-                <Cc3MapPin
-                  :label="marker.pinLabel"
-                  :variant="marker.pinVariant"
-                  :selected="marker.id === selectedPickupPointId"
-                  @click="selectPoint(marker.id)"
-                />
-              </template>
-            </Cc3Map>
-          </div>
+          <template v-if="view === 'map'">
+            <div class="cc3-inline-pickup-dialog__map">
+              <Cc3Map :center="mapCenter" :zoom="9" :markers="selectedPointMapMarkers" :height="380">
+                <template #marker="{ marker }">
+                  <Cc3MapPin :label="marker.pinLabel" :variant="marker.pinVariant" selected />
+                </template>
+              </Cc3Map>
+            </div>
 
-          <div v-if="filteredPickupPoints.length" class="cc3-inline-pickup-dialog__list">
-            <button
-              v-for="point in filteredPickupPoints"
-              :key="point.id"
-              type="button"
-              class="cc3-inline-pickup-dialog__list-item"
-              :class="{
-                'cc3-inline-pickup-dialog__list-item--selected': point.id === selectedPickupPointId,
-              }"
-              @click="selectPoint(point.id)"
-            >
-              <span class="cc3-inline-pickup-dialog__point-name">{{ point.name }}</span>
-              <span class="cc3-inline-pickup-dialog__point-address">{{ point.address }}</span>
-              <span class="cc3-inline-pickup-dialog__point-meta">
-                {{ text.openUntil }} · {{ point.priceFormat }}
+            <div class="cc3-inline-pickup-dialog__field">
+              <span class="cc3-inline-pickup-dialog__label">{{ text.findAddress }}</span>
+              <Cc3InputField v-model="pointSearch" type="text" placeholder="" />
+            </div>
+
+            <div v-if="activePickupPoint" class="cc3-inline-pickup-dialog__map-selected">
+              <span class="cc3-inline-pickup-dialog__point-name">
+                {{ pickupProviderLabels[activePickupPoint.provider] }}
               </span>
-            </button>
-          </div>
+              <span class="cc3-inline-pickup-dialog__point-address">{{ activePickupPoint.address }}</span>
+              <span class="cc3-inline-pickup-dialog__point-meta">
+                {{ text.openUntil }} · {{ activePickupPoint.priceFormat }}
+              </span>
+            </div>
+          </template>
 
-          <p v-else class="cc3-inline-pickup-dialog__empty">{{ text.pickupEmpty }}</p>
+          <template v-else>
+            <div v-if="filteredPickupPoints.length" class="cc3-inline-pickup-dialog__list">
+              <button
+                v-for="point in filteredPickupPoints"
+                :key="point.id"
+                type="button"
+                class="cc3-inline-pickup-dialog__list-item"
+                :class="{
+                  'cc3-inline-pickup-dialog__list-item--selected': point.id === selectedPickupPointId,
+                }"
+                @click="selectPoint(point.id)"
+              >
+                <span class="cc3-inline-pickup-dialog__point-name">{{ point.name }}</span>
+                <span class="cc3-inline-pickup-dialog__point-address">{{ point.address }}</span>
+                <span class="cc3-inline-pickup-dialog__point-meta">
+                  {{ text.openUntil }} · {{ point.priceFormat }}
+                </span>
+              </button>
+            </div>
+
+            <p v-else class="cc3-inline-pickup-dialog__empty">{{ text.pickupEmpty }}</p>
+          </template>
         </template>
 
         <template v-else-if="pickupDetailView">
@@ -589,8 +631,41 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
-  // Список прокручивается сам, а не тянет за собой всё окно: в режиме карты
-  // он стоит под ней, и карта должна оставаться на экране.
+  &__field {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-sm);
+
+    padding: var(--st-global-distance-space-inset-xl) 0;
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+
+    @include font('label-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+  }
+
+  // Карточка уже выбранного пункта под картой — на вкладке «Карта» список
+  // вариантов не показываем, поэтому подтверждаем выбор одной карточкой,
+  // а не тем же интерактивным списком, что и на вкладке «Список».
+  &__map-selected {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-xs);
+
+    padding: var(--st-global-distance-space-inset-md);
+    margin-bottom: var(--st-global-distance-space-inset-xl);
+
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 2px solid var(--st-action-foreground-color-positive-normal);
+    border-radius: var(--st-global-radius-lg);
+  }
+
+  // Список прокручивается сам, а не тянет за собой всё окно вкладки «Список».
   &__list {
     display: flex;
     flex-direction: column;
