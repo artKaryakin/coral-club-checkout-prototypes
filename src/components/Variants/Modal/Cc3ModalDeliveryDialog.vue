@@ -19,7 +19,6 @@ import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from './Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from './deliveryProfile'
-import Cc3InlineDeliveryOptions from '../Inline/Cc3InlineDeliveryOptions.vue'
 
 type Method = 'courier' | 'pickup'
 type Step = 'search' | 'address-form' | 'pickup-detail'
@@ -33,9 +32,10 @@ const props = defineProps<{
   editProfile?: DeliveryProfile
 
   /**
-   * Вариант курьерской доставки, выбранный в чекауте. Диалог открывается на
-   * нём, а не на первом по списку: тот же выбор показывается в двух местах,
-   * и расходиться они не должны.
+   * Вариант курьерской доставки, выбранный в чекауте. Сам диалог его не
+   * меняет — скорость выбирается только в теле чекаута, как в инлайн-
+   * концепте. Нужен, чтобы подписать созданную карточку той же строкой,
+   * что стоит в блоке вариантов.
    */
   variantId?: string
 }>()
@@ -64,7 +64,6 @@ const text = computed(() => ({
   findAddress: t('concept.common.findAddress'),
   map: t('common.map'),
   list: t('common.list'),
-  variantsTitle: t('delivery.variants'),
   openUntil: t('pickup.openUntil'),
   pickupEmpty: t('pickup.empty'),
   addressSection: t('address.title'),
@@ -94,9 +93,7 @@ const method = ref<Method>(props.editProfile?.method ?? 'courier')
 const step = ref<Step>(initialStep())
 
 
-const selectedCourierVariant = ref(
-  props.editProfile?.variantId ?? props.variantId ?? defaultVariantId.value,
-)
+const courierVariantId = computed(() => props.variantId ?? defaultVariantId.value)
 
 // Службы разные в разных странах, поэтому фильтры строятся из пунктов
 // текущей страны, а не задаются руками.
@@ -282,15 +279,6 @@ const addressPoint = ref<MapPoint>()
  * город живёт внутри строки адреса, а знать его всё равно нужно — от него
  * зависят доступные способы доставки.
  */
-const resolvedCity = ref('')
-
-/**
- * Способы доставки показываются только после того, как адрес определён.
- * Пока города нет, любой список сроков и цен — выдумка: они считаются
- * от города, и показывать их «на всякий случай» значит врать респонденту.
- */
-const isAddressResolved = computed(() => resolvedCity.value.length > 0)
-
 /**
  * Новый адрес открывается с получателем из профиля, сохранённый — со своими
  * данными. Пустой блок получателя человек читает как обязательный к
@@ -300,7 +288,6 @@ function seedValues() {
   const profile = props.editProfile
 
   addressPoint.value = undefined
-  resolvedCity.value = profile ? (profile.fields?.city ?? profile.addressLine) : ''
 
   if (!profile) {
     values.value = { ...recipientValues.value }
@@ -354,10 +341,6 @@ let reverseController: AbortController | undefined
 
 function fillFromSuggestion(suggestion: AddressSuggestion) {
   values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value)
-
-  if (suggestion.city) {
-    resolvedCity.value = suggestion.city
-  }
 }
 
 /** Выбор подсказки — адрес в поля, метка на карту. */
@@ -411,7 +394,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
   const id = props.editProfile?.id ?? `profile-${Date.now()}`
 
   if (method.value === 'courier') {
-    const variant = courierVariants.value.find((item) => item.id === selectedCourierVariant.value)
+    const variant = courierVariants.value.find((item) => item.id === courierVariantId.value)
 
     return {
       id,
@@ -420,7 +403,6 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
       name: recipientDisplayName.value,
       addressLine: values.value.street ?? '',
       priceLabel: variant?.title ?? '',
-      variantId: selectedCourierVariant.value,
       isFavorite: isFavorite.value,
       phone: values.value.recipientPhone ?? '',
       email: values.value.recipientEmail ?? '',
@@ -540,13 +522,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 />
               </div>
 
-              <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.variantsTitle }}</h3>
-
-              <Cc3InlineDeliveryOptions
-                v-model="selectedCourierVariant"
-                :resolved="isAddressResolved"
-                name="courier-variant"
-              />
             </template>
 
             <template v-else>
@@ -669,14 +644,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 @select="onSuggestionSelect"
               />
             </div>
-
-            <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.variantsTitle }}</h3>
-
-            <Cc3InlineDeliveryOptions
-              v-model="selectedCourierVariant"
-              resolved
-              name="courier-variant"
-            />
 
             <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
 
