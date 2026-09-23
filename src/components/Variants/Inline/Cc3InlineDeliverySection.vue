@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
@@ -206,6 +207,7 @@ function deleteEntry(id: string) {
       <div class="cc3-inline-delivery__row">
         <span class="cc3-inline-delivery__method">{{ selectedEntry.typeLabel }}</span>
         <button type="button" class="cc3-inline-delivery__change" @click="openBook">
+          <Cc3Icon name="edit-01" :size="16" />
           {{ text.change }}
         </button>
       </div>
@@ -275,6 +277,10 @@ function deleteEntry(id: string) {
   }
 
   &__change {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--st-global-distance-space-inline-xs);
+
     padding: var(--st-global-distance-space-inset-lg);
 
     @include font('label-sm');
