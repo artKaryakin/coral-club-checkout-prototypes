@@ -130,6 +130,7 @@ const emit = defineEmits<{
     background: none;
     border: none;
     cursor: pointer;
+    transform: translateX(var(--st-global-distance-space-inset-md));
   }
 
   &__list {
@@ -235,6 +236,7 @@ const emit = defineEmits<{
     background: none;
     border: none;
     cursor: pointer;
+    transform: translateX(var(--st-global-distance-space-inset-md));
   }
 
   &__radio {
