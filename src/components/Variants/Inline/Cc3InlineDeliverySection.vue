@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
 
@@ -101,6 +102,22 @@ watch(
   },
   { immediate: true },
 )
+/**
+ * Открыта адресная книга, а адрес из неё не выбран — кнопки «Сохранить» на
+ * экране нет, и возвращать человека сторожу некуда. Тогда прокручиваем к
+ * самому блоку доставки: выбор адреса в этом состоянии и есть то действие,
+ * которого от него ждут.
+ */
+const { registerBlockAnchor } = useAddressGuard()
+
+onMounted(() => {
+  registerBlockAnchor(() => {
+    sectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  })
+})
+
+onBeforeUnmount(() => registerBlockAnchor(undefined))
+
 const editingEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === editingEntryId.value),
 )

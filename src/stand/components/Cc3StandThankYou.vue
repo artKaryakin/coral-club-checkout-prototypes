@@ -21,7 +21,8 @@ import { countries } from '../config/countries'
 const { t, country, user, locale, isCountryLocked } = useStand()
 const { finishedRun, resetRun, sendState, retrySend, runAsText } = useStandRun()
 const { isProfileFilled } = useStandProfile()
-const { isSessionMode, isSessionDone, taskText, nextLabel, nextHref } = useStandTask()
+const { isSessionMode, isSessionDone, taskText, taskHint, nextLabel, nextHref } =
+  useStandTask()
 
 const text = computed(() => ({
   title: t('thanks.title'),
@@ -180,6 +181,7 @@ function again() {
         <template v-else>
           <h2 class="cc3-stand-thank-you__section">{{ text.taskTitle }}</h2>
           <p class="cc3-stand-thank-you__task">{{ taskText }}</p>
+          <p class="cc3-stand-thank-you__hint">{{ taskHint }}</p>
 
           <div class="cc3-stand-thank-you__actions">
             <a :href="nextHref" class="cc3-stand-thank-you__button" @click="again">
@@ -302,6 +304,14 @@ function again() {
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__hint {
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__done {
