@@ -23,7 +23,6 @@ export const usPaymentMethods: PaymentMethodConfig[] = [
   {
     id: 'bank-card',
     labelKey: 'payment.creditCard',
-    marks: ['apple-pay', 'google-pay', 'mastercard', 'visa'],
   },
   { id: 'paypal', labelKey: 'payment.paypal' },
 ]
