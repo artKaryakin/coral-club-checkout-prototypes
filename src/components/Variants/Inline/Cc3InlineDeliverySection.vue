@@ -289,6 +289,7 @@ function deleteEntry(id: string) {
     background: none;
     border: none;
     cursor: pointer;
+    transform: translateX(var(--st-global-distance-space-inset-md));
   }
 
   &__info {

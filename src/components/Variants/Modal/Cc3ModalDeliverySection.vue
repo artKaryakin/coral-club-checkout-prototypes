@@ -291,6 +291,7 @@ function onDialogDelete(id: string) {
     color: var(--st-action-foreground-color-positive-normal);
     background: none;
     border: none;
+    transform: translateX(var(--st-global-distance-space-inset-md));
     cursor: pointer;
   }
 
