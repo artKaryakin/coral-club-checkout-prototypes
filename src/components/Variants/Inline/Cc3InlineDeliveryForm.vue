@@ -313,16 +313,14 @@ function deleteProfile() {
 
   // Предупреждение стоит вплотную над кнопкой, к которой оно относится:
   // человек прокручен именно сюда и читает строку и кнопку вместе.
+  // Без рамки и подложки: в рамке со скруглением оно читается как ещё
+  // одна кнопка над «Сохранить», а нажимать тут нечего.
   &__warning {
     margin: 0;
-    padding: var(--st-global-distance-space-inset-md);
 
     @include font('body-sm');
 
     color: var(--st-content-foreground-color-negative-primary);
-    background-color: var(--st-content-background-color-neutral-subtle);
-    border: 1px solid var(--st-content-foreground-color-negative-primary);
-    border-radius: var(--st-global-radius-md);
   }
 
   &__actions {
