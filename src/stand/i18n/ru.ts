@@ -141,7 +141,7 @@ export default {
   // Формулировки концептов. Отдельные ключи, потому что на рынке США
   // концепты говорят «Ship», а прод-версия остаётся контролем и обязана
   // повторять сегодняшний сайт слово в слово.
-  'concept.delivery.courier.title': 'Курьерская доставка',
+  'concept.delivery.courier.title': 'Курьер',
   'concept.delivery.courier.title@us': 'Ship',
   'concept.delivery.method.courier': 'Курьер',
   'concept.delivery.method.courier@us': 'Ship',
