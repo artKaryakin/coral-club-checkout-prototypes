@@ -22,7 +22,7 @@ import { useStandTask } from '../composables/useStandTask'
 const { country, user } = useStand()
 const { isProfileFilled } = useStandProfile()
 const { startSession } = useStandSession()
-const { taskText, nextLabel, nextHref } = useStandTask()
+const { taskText, taskHint, nextLabel, nextHref } = useStandTask()
 
 // Сессия заводится при первом открытии экрана: она задаёт порядок концептов
 // и живёт до конца теста. Повторный заход сюда порядок не перетасовывает.
@@ -49,6 +49,7 @@ function onProfileSubmit() {
       <template v-if="isReady">
         <h1 class="cc3-stand-task__title">{{ text.title }}</h1>
         <p class="cc3-stand-task__text">{{ taskText }}</p>
+        <p class="cc3-stand-task__hint">{{ taskHint }}</p>
 
         <a :href="nextHref" class="cc3-stand-task__button">{{ nextLabel }}</a>
       </template>
@@ -99,6 +100,16 @@ function onProfileSubmit() {
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  // Приписка про адрес набрана тише задания: она снимает вопрос, но не
+  // должна перетягивать внимание с самого задания.
+  &__hint {
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__button {

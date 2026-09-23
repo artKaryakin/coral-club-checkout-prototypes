@@ -3,6 +3,7 @@ import { computed } from 'vue'
 import coralclubLogoFooter from '@/assets/modal/coralclub-logo-footer.svg'
 import socialVk from '@/assets/modal/social-vk.svg'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandOrder } from '@/stand/composables/useStandOrder'
@@ -28,6 +29,21 @@ const text = computed(() => ({
 
 
 const { acceptMarketing, acceptTerms, isReady } = useCheckout()
+
+/**
+ * Инлайн-концепт требует сохранить адрес до заказа: там форма разворачивается
+ * на самой странице и кнопка «Сохранить» стоит посреди неё. В модальном
+ * концепте сторож не взведён, и проверка просто пропускает клик дальше.
+ */
+const { ensureAddressSaved } = useAddressGuard()
+
+function submit() {
+  if (!ensureAddressSaved()) {
+    return
+  }
+
+  createOrder()
+}
 </script>
 
 <template>
@@ -54,7 +70,7 @@ const { acceptMarketing, acceptTerms, isReady } = useCheckout()
         type="button"
         class="cc3-modal-footer__cta"
         :disabled="!isReady"
-        @click="createOrder"
+        @click="submit"
       >
         {{ text.submit }}
       </button>

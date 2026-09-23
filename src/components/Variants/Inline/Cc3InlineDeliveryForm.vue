@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCourierVariants } from '@/composables/useCourierVariants'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
@@ -40,8 +41,25 @@ const text = computed(() => ({
   recipientSection: t('group.recipient.title'),
   favorite: t('address.favorite'),
   save: t('common.save'),
+  saveRequired: t('address.saveRequired'),
   remove: t('common.delete'),
 }))
+
+/**
+ * Попытка оплатить с несохранённым адресом возвращает человека сюда:
+ * предупреждение встаёт над кнопкой «Сохранить», а сама кнопка
+ * прокручивается в видимую часть экрана.
+ */
+const { isWarningVisible, registerSaveAnchor } = useAddressGuard()
+const actionsRef = ref<HTMLElement>()
+
+onMounted(() => {
+  registerSaveAnchor(() => {
+    actionsRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+})
+
+onBeforeUnmount(() => registerSaveAnchor(undefined))
 
 /**
  * Способ доставки выбирается не здесь, а блоком в теле чекаута, поэтому
@@ -180,7 +198,11 @@ function deleteProfile() {
       <input v-model="isFavorite" type="checkbox" class="cc3-inline-delivery-form__checkbox" />
     </label>
 
-    <div class="cc3-inline-delivery-form__actions">
+    <p v-if="isWarningVisible" class="cc3-inline-delivery-form__warning">
+      {{ text.saveRequired }}
+    </p>
+
+    <div ref="actionsRef" class="cc3-inline-delivery-form__actions">
       <template v-if="editProfile">
         <button type="button" class="cc3-inline-delivery-form__continue" @click="confirm">
           {{ text.save }}
@@ -287,6 +309,20 @@ function deleteProfile() {
 
     color: var(--st-content-foreground-color-neutral-primary);
     cursor: pointer;
+  }
+
+  // Предупреждение стоит вплотную над кнопкой, к которой оно относится:
+  // человек прокручен именно сюда и читает строку и кнопку вместе.
+  &__warning {
+    margin: 0;
+    padding: var(--st-global-distance-space-inset-md);
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-negative-primary);
+    background-color: var(--st-content-background-color-neutral-subtle);
+    border: 1px solid var(--st-content-foreground-color-negative-primary);
+    border-radius: var(--st-global-radius-md);
   }
 
   &__actions {

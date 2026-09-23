@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useCourierVariants } from '@/composables/useCourierVariants'
 import { useStand } from '@/stand/composables/useStand'
@@ -45,8 +46,26 @@ const text = computed(() => ({
 
 const selectedEntry = ref<DeliveryProfile>()
 
+/**
+ * Адрес в этом концепте сохраняется кнопкой посреди страницы, и мимо неё
+ * легко пройти к оплате. Пока адрес не сохранён, заказ не создаётся —
+ * см. useAddressGuard.
+ */
+const { armGuard, disarmGuard, setAddressSaved } = useAddressGuard()
+
+// Блок доставки сообщает выбранный адрес ещё в своём setup, то есть до
+// onMounted родителя: у вернувшегося покупателя первый адрес подставлен
+// сразу. Поэтому после взвода сразу пересказываем сторожу, что уже есть.
+onMounted(() => {
+  armGuard()
+  setAddressSaved(Boolean(selectedEntry.value))
+})
+
+onBeforeUnmount(disarmGuard)
+
 function onSelected(profile: DeliveryProfile | undefined) {
   selectedEntry.value = profile
+  setAddressSaved(Boolean(profile))
 }
 
 /**

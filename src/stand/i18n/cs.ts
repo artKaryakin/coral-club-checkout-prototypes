@@ -126,6 +126,7 @@ export default {
   'address.mapHintClick': 'Klepnutím na mapu označte místo doručení. Mapu lze posouvat a přibližovat.',
   'address.mapHintPoint': 'Bod na mapě: {point}. Pole adresy níže vyplňte ručně — určení adresy ze souřadnic přijde spolu se službou geokódování.',
   'address.favorite': 'Označit jako oblíbenou adresu',
+  'address.saveRequired': 'Nejprve uložte adresu',
   'delivery.title': 'Způsob doručení',
   'delivery.courier.eta': '1–2 dny',
   'delivery.pickup.eta': '1–3 dny',
@@ -302,8 +303,8 @@ export default {
   'task.title': 'Váš úkol',
   'task.new': 'Objednáváte zde poprvé. Zařiďte, aby vám objednávku přivezl kurýr domů.',
   'task.saved': 'Už jste tu dříve objednávali. Tentokrát si chcete objednávku vyzvednout sami — vyberte libovolné výdejní místo.',
+  'task.hint': 'V objednávce můžete uvést libovolnou existující adresu — nemusí být vaše vlastní.',
   'task.start': 'Začít úkol',
   'task.another': 'Vyzkoušet jinou verzi',
-  'task.prod': 'Vyzkoušet současnou verzi webu',
   'task.done': 'To je vše. Děkujeme za účast — moc jste nám pomohli.',
 }

@@ -33,15 +33,24 @@ export function useStandTask() {
   const taskText = computed(() => t(`task.${user.value}`))
 
   /**
+   * Приписка к заданию: адрес можно брать любой существующий.
+   *
+   * Без неё человек читает «оформите доставку домой» буквально и вводит
+   * свой настоящий адрес — а это чужой прототип, который он видит первый
+   * раз. Часть респондентов на этом месте останавливается и спрашивает
+   * модератора, остальные вводят данные, которые нам не нужны и которые
+   * потом придётся вычищать из журнала.
+   */
+  const taskHint = computed(() => t('task.hint'))
+
+  /**
    * Подпись кнопки меняется по шагу, а не по версии: респондент не должен
    * знать, какой концепт ему достался — иначе он начнёт сравнивать названия,
    * а не поведение.
    */
-  const nextLabel = computed(() => {
-    if (doneCount.value === 0) return t('task.start')
-
-    return next.value === 'prod' ? t('task.prod') : t('task.another')
-  })
+  const nextLabel = computed(() =>
+    doneCount.value === 0 ? t('task.start') : t('task.another'),
+  )
 
   const nextHref = computed(() =>
     next.value ? routeHref(country.value, user.value, next.value) : routeHref(),
@@ -53,6 +62,7 @@ export function useStandTask() {
     isSessionDone,
     doneCount,
     taskText,
+    taskHint,
     nextLabel,
     nextHref,
   }

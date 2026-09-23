@@ -126,6 +126,7 @@ export default {
   'address.mapHintClick': 'Kliknij mapę, aby zaznaczyć punkt dostawy. Mapę można przesuwać i przybliżać.',
   'address.mapHintPoint': 'Punkt na mapie: {point}. Pola adresu poniżej wypełnij ręcznie — ustalanie adresu ze współrzędnych pojawi się razem z usługą geokodowania.',
   'address.favorite': 'Oznacz jako ulubiony adres',
+  'address.saveRequired': 'Najpierw zapisz adres',
   'delivery.title': 'Sposób odbioru',
   'delivery.courier.eta': '1–2 dni',
   'delivery.pickup.eta': '1–3 dni',
@@ -302,8 +303,8 @@ export default {
   'task.title': 'Twoje zadanie',
   'task.new': 'Składasz tu zamówienie po raz pierwszy. Zrób tak, aby kurier przywiózł je do Ciebie do domu.',
   'task.saved': 'Zamawiałeś tu już wcześniej. Tym razem chcesz odebrać zamówienie osobiście — wybierz dowolny punkt odbioru.',
+  'task.hint': 'W zamówieniu możesz podać dowolny istniejący adres — nie musi to być Twój własny.',
   'task.start': 'Rozpocznij zadanie',
   'task.another': 'Wypróbuj inną wersję',
-  'task.prod': 'Wypróbuj obecną wersję strony',
   'task.done': 'To wszystko. Dziękujemy za udział — bardzo nam pomogłeś.',
 }
