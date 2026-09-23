@@ -126,6 +126,7 @@ export default {
   'address.mapHintClick': 'Klicken Sie auf die Karte, um den Lieferpunkt zu markieren. Die Karte lässt sich bewegen und zoomen.',
   'address.mapHintPoint': 'Kartenpunkt: {point}. Füllen Sie die Adressfelder unten manuell aus — die Adressermittlung aus Koordinaten kommt mit dem Geokodierungsdienst.',
   'address.favorite': 'Als Lieblingsadresse markieren',
+  'address.saveRequired': 'Bitte speichern Sie zuerst die Adresse',
   'delivery.title': 'Versandart',
   'delivery.courier.eta': '1–2 Tage',
   'delivery.pickup.eta': '1–3 Tage',

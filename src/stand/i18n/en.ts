@@ -126,6 +126,7 @@ export default {
   'address.mapHintClick': 'Click the map to mark the delivery point. The map can be moved and zoomed.',
   'address.mapHintPoint': 'Map point: {point}. Fill in the address fields below manually — resolving an address from coordinates comes with the geocoding service.',
   'address.favorite': 'Mark as favorite address',
+  'address.saveRequired': 'Please save the address first',
   'delivery.title': 'Delivery method',
   'delivery.courier.eta': '1-2 days',
   'delivery.pickup.eta': '1-3 days',

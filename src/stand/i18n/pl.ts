@@ -126,6 +126,7 @@ export default {
   'address.mapHintClick': 'Kliknij mapę, aby zaznaczyć punkt dostawy. Mapę można przesuwać i przybliżać.',
   'address.mapHintPoint': 'Punkt na mapie: {point}. Pola adresu poniżej wypełnij ręcznie — ustalanie adresu ze współrzędnych pojawi się razem z usługą geokodowania.',
   'address.favorite': 'Oznacz jako ulubiony adres',
+  'address.saveRequired': 'Najpierw zapisz adres',
   'delivery.title': 'Sposób odbioru',
   'delivery.courier.eta': '1–2 dni',
   'delivery.pickup.eta': '1–3 dni',

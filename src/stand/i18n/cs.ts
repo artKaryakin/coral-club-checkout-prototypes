@@ -126,6 +126,7 @@ export default {
   'address.mapHintClick': 'Klepnutím na mapu označte místo doručení. Mapu lze posouvat a přibližovat.',
   'address.mapHintPoint': 'Bod na mapě: {point}. Pole adresy níže vyplňte ručně — určení adresy ze souřadnic přijde spolu se službou geokódování.',
   'address.favorite': 'Označit jako oblíbenou adresu',
+  'address.saveRequired': 'Nejprve uložte adresu',
   'delivery.title': 'Způsob doručení',
   'delivery.courier.eta': '1–2 dny',
   'delivery.pickup.eta': '1–3 dny',
