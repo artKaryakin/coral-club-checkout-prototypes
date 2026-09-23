@@ -8,7 +8,7 @@ import type { StandVariant } from './useStand'
  *
  * Модератор отдаёт одну ссылку вида #/de/new/test и больше ничего не
  * переключает. Дальше стенд сам: профиль → задание → первый концепт →
- * задание → второй концепт → (для новых) прод → финальное спасибо.
+ * задание → второй концепт → финальное спасибо.
  *
  * Зачем так. Раньше версию выбирал респондент по команде модератора, и
  * это был лишний экран прямо перед замером: человек читал список из трёх
@@ -19,8 +19,11 @@ import type { StandVariant } from './useStand'
  * чередовать, иначе второй вариант всегда выигрывает: задание уже знакомо.
  * Фактический порядок пишется в журнал, так что перекос видно по таблице.
  *
- * Прод проходят только новые пользователи и только последним. Дать его
- * первым значит сделать обучающий прогон и обесценить замеры по концептам.
+ * Прод в сценарий не входит. Третий прогон — это ещё десять-пятнадцать
+ * минут на том же задании, и к нему респондент приходит уже уставшим и
+ * натренированным: сравнение с текущим сайтом выходит нечестным в его
+ * пользу, а отказов в середине теста становится больше. Прод остаётся
+ * доступен по прямой ссылке — для демонстраций, не для замеров.
  */
 
 export interface StandSession {
@@ -66,11 +69,8 @@ function writeStorage(value: StandSession | undefined) {
 
 const current = ref<StandSession | undefined>(readStorage())
 
-function plan(user: UserType): StandVariant[] {
-  const concepts: StandVariant[] =
-    Math.random() < 0.5 ? ['modal', 'inline'] : ['inline', 'modal']
-
-  return user === 'new' ? [...concepts, 'prod'] : concepts
+function plan(): StandVariant[] {
+  return Math.random() < 0.5 ? ['modal', 'inline'] : ['inline', 'modal']
 }
 
 export function useStandSession() {
@@ -94,7 +94,7 @@ export function useStandSession() {
       id: `s-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
       country,
       user,
-      order: plan(user),
+      order: plan(),
       completed: [],
     }
     writeStorage(current.value)

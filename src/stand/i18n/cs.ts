@@ -302,8 +302,8 @@ export default {
   'task.title': 'Váš úkol',
   'task.new': 'Objednáváte zde poprvé. Zařiďte, aby vám objednávku přivezl kurýr domů.',
   'task.saved': 'Už jste tu dříve objednávali. Tentokrát si chcete objednávku vyzvednout sami — vyberte libovolné výdejní místo.',
+  'task.hint': 'V objednávce můžete uvést libovolnou existující adresu — nemusí být vaše vlastní.',
   'task.start': 'Začít úkol',
   'task.another': 'Vyzkoušet jinou verzi',
-  'task.prod': 'Vyzkoušet současnou verzi webu',
   'task.done': 'To je vše. Děkujeme za účast — moc jste nám pomohli.',
 }

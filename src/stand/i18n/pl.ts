@@ -302,8 +302,8 @@ export default {
   'task.title': 'Twoje zadanie',
   'task.new': 'Składasz tu zamówienie po raz pierwszy. Zrób tak, aby kurier przywiózł je do Ciebie do domu.',
   'task.saved': 'Zamawiałeś tu już wcześniej. Tym razem chcesz odebrać zamówienie osobiście — wybierz dowolny punkt odbioru.',
+  'task.hint': 'W zamówieniu możesz podać dowolny istniejący adres — nie musi to być Twój własny.',
   'task.start': 'Rozpocznij zadanie',
   'task.another': 'Wypróbuj inną wersję',
-  'task.prod': 'Wypróbuj obecną wersję strony',
   'task.done': 'To wszystko. Dziękujemy za udział — bardzo nam pomogłeś.',
 }
