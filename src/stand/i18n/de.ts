@@ -281,7 +281,7 @@ export default {
   'common.minutes': 'Min.',
   'common.seconds': 'Sek.',
   'thanks.title': 'Vielen Dank! Ihre Bestellung ist aufgegeben',
-  'thanks.subtitle': 'Wir haben eine Bestätigung an Ihre E-Mail geschickt. Dies ist eine Übungsbestellung — es ist nichts zu bezahlen.',
+  'thanks.subtitle': 'Dies ist eine Übungsbestellung — es ist nichts zu bezahlen.',
   'thanks.order': 'Bestellnummer {number}',
   'thanks.details': 'Details des Durchlaufs',
   'thanks.again': 'Noch einmal durchlaufen',
@@ -301,6 +301,7 @@ export default {
 
   // Сценарий теста: задание и переходы между вариантами
   'task.title': 'Ihre Aufgabe',
+  'task.title.next': 'Ihre Aufgabe Nummer {number}',
   'task.new': 'Sie bestellen hier zum ersten Mal. Sorgen Sie dafür, dass die Bestellung per Kurier zu Ihnen nach Hause kommt.',
   'task.saved': 'Sie haben hier schon bestellt. Diesmal möchten Sie die Bestellung selbst abholen — wählen Sie eine beliebige Abholstelle.',
   'task.hint.new': 'Für die Bestellung können Sie eine beliebige existierende Adresse angeben — sie muss nicht Ihre eigene sein.',
