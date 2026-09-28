@@ -23,10 +23,9 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
  * и вкладок Courier/Pickup — переключатель Карта/Список (Артём уже завёл
  * ключи common.map/common.list под это).
  *
- * На вкладке «Карта» сами варианты пунктов на карту не выводятся — выбор
- * из нескольких пунктов живёт только на вкладке «Список». Карта показывает
- * поиск адреса и, после выбора пункта (в т.ч. из списка), метку и карточку
- * этого одного пункта — не общий список меток сразу для всех вариантов.
+ * На вкладке «Карта» — метки сразу всех отфильтрованных пунктов (клик по
+ * метке выбирает пункт) плюс поиск адреса и карточка уже выбранного пункта
+ * под картой.
  */
 const props = defineProps<{
   editProfile?: DeliveryProfile
@@ -150,28 +149,15 @@ const pickupProviderPinLabel: Record<PickupProvider, string> = {
   usps: 'USPS',
 }
 
-/**
- * На карте не выводится список вариантов — только метка уже выбранного
- * пункта (или ничего, пока выбора нет). Несколько пунктов сразу показывает
- * вкладка «Список».
- */
-const selectedPointMapMarkers = computed(() => {
-  const point = activePickupPoint.value
-
-  if (!point) {
-    return []
-  }
-
-  return [
-    {
-      id: point.id,
-      lat: point.lat,
-      lng: point.lng,
-      pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
-      pinLabel: pickupProviderPinLabel[point.provider],
-    },
-  ]
-})
+const pickupMapMarkers = computed(() =>
+  filteredPickupPoints.value.map((point) => ({
+    id: point.id,
+    lat: point.lat,
+    lng: point.lng,
+    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
+    pinLabel: pickupProviderPinLabel[point.provider],
+  })),
+)
 
 type PickupDetailView = {
   title: string
@@ -370,9 +356,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
           <template v-if="view === 'map'">
             <div class="cc3-inline-pickup-dialog__map">
-              <Cc3Map :center="mapCenter" :zoom="9" :markers="selectedPointMapMarkers" :height="380">
+              <Cc3Map :center="mapCenter" :zoom="9" :markers="pickupMapMarkers" :height="380">
                 <template #marker="{ marker }">
-                  <Cc3MapPin :label="marker.pinLabel" :variant="marker.pinVariant" selected />
+                  <Cc3MapPin
+                    :label="marker.pinLabel"
+                    :variant="marker.pinVariant"
+                    :selected="marker.id === selectedPickupPointId"
+                    @click="selectPoint(marker.id)"
+                  />
                 </template>
               </Cc3Map>
             </div>
