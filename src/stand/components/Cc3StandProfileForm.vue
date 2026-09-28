@@ -29,6 +29,7 @@ const { t, country } = useStand()
 const { profileFields, saveProfile } = useStandProfile()
 
 const text = computed(() => ({
+  hint: t('stand.profile.hint'),
   submit: t('stand.profile.submit'),
   fill: t('stand.profile.fill'),
   required: t('stand.profile.required'),
@@ -99,6 +100,8 @@ function submit() {
 
 <template>
   <form class="cc3-stand-profile-form" @submit.prevent="submit">
+    <p class="cc3-stand-profile-form__hint">{{ text.hint }}</p>
+
     <div class="cc3-stand-profile-form__fields">
       <Cc3StandField
         v-for="field in profileFields"
@@ -123,6 +126,17 @@ function submit() {
   display: flex;
   flex-direction: column;
   gap: var(--st-global-distance-space-stack-md);
+
+  // Дисклеймер стоит над полями, а не под ними: он должен успеть
+  // сработать до того, как человек начнёт вводить настоящие данные или
+  // закроет вкладку, решив, что у него просят лишнее.
+  &__hint {
+    margin: 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
+  }
 
   &__fields {
     display: flex;
