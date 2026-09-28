@@ -39,7 +39,6 @@ const text = computed(() => ({
   pickup: t('concept.delivery.pickup.action'),
   addressSection: t('address.title'),
   recipientSection: t('group.recipient.title'),
-  favorite: t('address.favorite'),
   save: t('common.save'),
   saveRequired: t('address.saveRequired'),
   remove: t('common.delete'),
@@ -123,7 +122,6 @@ const recipientDisplayName = computed(() =>
   [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
 )
 
-const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isDeleteConfirmOpen = ref(false)
 
 const confirmedProfile = computed<DeliveryProfile>(() => {
@@ -134,7 +132,6 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
     name: recipientDisplayName.value,
     addressLine: values.value.street ?? '',
     priceLabel: defaultCourierSummary.value,
-    isFavorite: isFavorite.value,
     phone: values.value.recipientPhone ?? '',
     email: values.value.recipientEmail ?? '',
     fields: values.value,
@@ -191,12 +188,6 @@ function deleteProfile() {
         :field="field"
       />
     </div>
-
-
-    <label class="cc3-inline-delivery-form__favorite">
-      <span>{{ text.favorite }}</span>
-      <input v-model="isFavorite" type="checkbox" class="cc3-inline-delivery-form__checkbox" />
-    </label>
 
     <p v-if="isWarningVisible" class="cc3-inline-delivery-form__warning">
       {{ text.saveRequired }}
@@ -291,24 +282,6 @@ function deleteProfile() {
       flex: 1 1 calc(50% - var(--st-global-distance-space-inset-2xl));
       min-width: 140px;
     }
-  }
-
-  &__checkbox {
-    @include cc3-modal-check-control;
-  }
-
-  &__favorite {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--st-global-distance-space-inset-xl);
-
-    padding: var(--st-global-distance-space-inset-xl) 0;
-
-    @include font('body-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    cursor: pointer;
   }
 
   // Предупреждение стоит вплотную над кнопкой, к которой оно относится:

@@ -29,7 +29,7 @@ const { savedAddressBookEntries, formatMoneyRounded } = useCheckout()
 const { country, user, t } = useStand()
 
 function toProfiles(): DeliveryProfile[] {
-  return savedAddressBookEntries.value.map((entry, index) => ({
+  return savedAddressBookEntries.value.map((entry) => ({
     id: entry.id,
     method: entry.method,
     typeLabel:
@@ -40,7 +40,6 @@ function toProfiles(): DeliveryProfile[] {
     priceLabel: `${t('delivery.eta')}, ${
       entry.price > 0 ? formatMoneyRounded(entry.price) : t('delivery.free')
     }`,
-    isFavorite: index === 0,
     phone: entry.phone,
     email: entry.email,
   }))

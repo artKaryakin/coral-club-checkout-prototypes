@@ -115,12 +115,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 <span class="cc3-modal-address-book__card-type">{{ entry.typeLabel }}</span>
 
                 <span class="cc3-modal-address-book__card-name">
-                  <Cc3Icon
-                    v-if="entry.isFavorite"
-                    name="heart"
-                    :size="16"
-                    class="cc3-modal-address-book__card-heart"
-                  />
                   {{ entry.name }}
                 </span>
 
@@ -324,12 +318,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     font-weight: 700;
 
     color: var(--st-content-foreground-color-neutral-primary);
-  }
-
-  &__card-heart {
-    flex-shrink: 0;
-
-    color: var(--st-content-foreground-color-positive-secondary);
   }
 
   &__card-address {

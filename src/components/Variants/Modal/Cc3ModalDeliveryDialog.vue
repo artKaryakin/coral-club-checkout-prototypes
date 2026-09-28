@@ -69,7 +69,6 @@ const text = computed(() => ({
   addressSection: t('address.title'),
   addressPlaceholder: t('field.street.placeholder'),
   recipientSection: t('group.recipient.title'),
-  favorite: t('address.favorite'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
   hoursWeekend: t('pickup.hours.weekend'),
@@ -91,7 +90,6 @@ function initialStep(): Step {
 
 const method = ref<Method>(props.editProfile?.method ?? 'courier')
 const step = ref<Step>(initialStep())
-
 
 const courierVariantId = computed(() => props.variantId ?? defaultVariantId.value)
 
@@ -177,7 +175,6 @@ watch([filteredPickupPoints, country], () => {
     selectedPickupPointId.value = visible[0]?.id
   }
 })
-
 
 const activePickupPointPriceFormatRounded = computed(() =>
   activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
@@ -374,7 +371,6 @@ const recipientDisplayName = computed(() =>
   values.value.recipientName?.trim() ||
   [values.value.recipientFirstName, values.value.recipientLastName].filter(Boolean).join(' '),
 )
-const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isDeleteConfirmOpen = ref(false)
 
 function continueFromSearch() {
@@ -403,7 +399,6 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
       name: recipientDisplayName.value,
       addressLine: values.value.street ?? '',
       priceLabel: variant?.title ?? '',
-      isFavorite: isFavorite.value,
       phone: values.value.recipientPhone ?? '',
       email: values.value.recipientEmail ?? '',
     }
@@ -416,7 +411,6 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
     name: recipientDisplayName.value,
     addressLine: pickupDetailView.value?.address ?? '',
     priceLabel: pickupDetailView.value?.priceLabel ?? '',
-    isFavorite: isFavorite.value,
     phone: values.value.recipientPhone ?? '',
     email: values.value.recipientEmail ?? '',
   }
@@ -655,11 +649,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 :field="field"
               />
             </div>
-
-            <label class="cc3-modal-delivery-dialog__favorite">
-              <span>{{ text.favorite }}</span>
-              <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
-            </label>
           </template>
 
           <template v-else-if="step === 'pickup-detail' && pickupDetailView">
@@ -695,11 +684,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
               <p class="cc3-modal-delivery-dialog__detail-title">{{ text.contacts }}</p>
               <p class="cc3-modal-delivery-dialog__detail-text">{{ pickupDetailView.phone }}</p>
             </div>
-
-            <label class="cc3-modal-delivery-dialog__favorite">
-              <span>{{ text.favorite }}</span>
-              <input v-model="isFavorite" type="checkbox" class="cc3-modal-delivery-dialog__checkbox" />
-            </label>
 
             <div class="cc3-modal-delivery-dialog__recipient">
               <h3 class="cc3-modal-delivery-dialog__section-title">{{ text.recipientSection }}</h3>
@@ -1016,17 +1000,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     color: var(--st-content-foreground-color-neutral-secondary);
   }
 
-
-
-
-
-
-
-
-  &__checkbox {
-    @include cc3-modal-check-control;
-  }
-
   &__chips {
     display: flex;
     flex-wrap: nowrap;
@@ -1173,20 +1146,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('body-sm');
 
     color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__favorite {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--st-global-distance-space-inset-xl);
-
-    padding: var(--st-global-distance-space-inset-xl) 0;
-
-    @include font('body-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    cursor: pointer;
   }
 
   &__recipient {

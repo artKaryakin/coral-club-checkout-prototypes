@@ -55,7 +55,6 @@ const text = computed(() => ({
   directions: t('pickup.directions'),
   contacts: t('pickup.contacts'),
   findAddress: t('common.findAddress'),
-  favorite: t('address.favorite'),
   recipientSection: t('group.recipient.title'),
   continue: t('common.continue'),
   save: t('common.save'),
@@ -208,7 +207,6 @@ function back() {
   view.value = 'map'
 }
 
-const isFavorite = ref(props.editProfile?.isFavorite ?? false)
 const isDeleteConfirmOpen = ref(false)
 
 // Получатель показывается всегда, а не по кнопке: в пункт выдачи посылку
@@ -260,7 +258,6 @@ const confirmedProfile = computed<DeliveryProfile>(() => ({
   name: recipientDisplayName.value,
   addressLine: pickupDetailView.value?.address ?? '',
   priceLabel: pickupDetailView.value?.priceLabel ?? '',
-  isFavorite: isFavorite.value,
   phone: recipientValues.value.recipientPhone ?? '',
   email: recipientValues.value.recipientEmail ?? '',
 }))
@@ -441,11 +438,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
             <p class="cc3-inline-pickup-dialog__detail-title">{{ text.contacts }}</p>
             <p class="cc3-inline-pickup-dialog__detail-text">{{ pickupDetailView.phone }}</p>
           </div>
-
-          <label class="cc3-inline-pickup-dialog__favorite">
-            <span>{{ text.favorite }}</span>
-            <input v-model="isFavorite" type="checkbox" class="cc3-inline-pickup-dialog__checkbox" />
-          </label>
 
           <div class="cc3-inline-pickup-dialog__recipient">
             <h3 class="cc3-inline-pickup-dialog__section-title">{{ text.recipientSection }}</h3>
@@ -812,24 +804,6 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('body-sm');
 
     color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__favorite {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--st-global-distance-space-inset-xl);
-
-    padding: var(--st-global-distance-space-inset-xl) 0;
-
-    @include font('body-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    cursor: pointer;
-  }
-
-  &__checkbox {
-    @include cc3-modal-check-control;
   }
 
   &__recipient {

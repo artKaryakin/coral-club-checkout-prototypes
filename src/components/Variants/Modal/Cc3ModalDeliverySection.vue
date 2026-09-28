@@ -29,7 +29,7 @@ const emit = defineEmits<{ selected: [profile: DeliveryProfile | undefined] }>()
 const courierVariant = defineModel<string>('courierVariant', { default: 'standard' })
 
 function toProfiles(): DeliveryProfile[] {
-  return savedAddressBookEntries.value.map((entry, index) => ({
+  return savedAddressBookEntries.value.map((entry) => ({
     id: entry.id,
     method: entry.method,
     typeLabel:
@@ -40,7 +40,6 @@ function toProfiles(): DeliveryProfile[] {
     priceLabel: `${t('delivery.eta')}, ${
       entry.price > 0 ? formatMoneyRounded(entry.price) : t('delivery.free')
     }`,
-    isFavorite: index === 0,
     phone: entry.phone,
     email: entry.email,
   }))
