@@ -160,6 +160,7 @@ export default {
   'delivery.variant.us.eta': 'Ankunft am {date}',
   'delivery.section.title': 'Lieferung',
   'delivery.addAddress': 'Lieferadresse hinzufügen',
+  'delivery.methodRequired': 'Bitte fügen Sie zuerst eine Lieferart hinzu',
   'delivery.info.title': 'Lieferdaten',
   'delivery.viewOnMap': 'Auf der Karte',
   'pickup.title': 'Abholstelle',

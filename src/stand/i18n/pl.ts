@@ -160,6 +160,7 @@ export default {
   'delivery.variant.us.eta': 'Dotrze {date}',
   'delivery.section.title': 'Dostawa',
   'delivery.addAddress': 'Dodaj adres dostawy',
+  'delivery.methodRequired': 'Najpierw dodaj sposób dostawy',
   'delivery.info.title': 'Dane dostawy',
   'delivery.viewOnMap': 'Na mapie',
   'pickup.title': 'Punkt odbioru',

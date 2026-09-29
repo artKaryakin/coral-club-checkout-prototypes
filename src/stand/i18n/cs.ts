@@ -160,6 +160,7 @@ export default {
   'delivery.variant.us.eta': 'Doručení {date}',
   'delivery.section.title': 'Doručení',
   'delivery.addAddress': 'Přidat doručovací adresu',
+  'delivery.methodRequired': 'Nejprve přidejte způsob doručení',
   'delivery.info.title': 'Údaje o doručení',
   'delivery.viewOnMap': 'Na mapě',
   'pickup.title': 'Výdejní místo',

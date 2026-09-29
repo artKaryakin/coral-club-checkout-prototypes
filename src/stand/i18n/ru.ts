@@ -160,6 +160,7 @@ export default {
   'delivery.variant.us.eta': 'Прибудет {date}',
   'delivery.section.title': 'Доставка',
   'delivery.addAddress': 'Добавить адрес доставки',
+  'delivery.methodRequired': 'Необходимо добавить способ доставки',
   'delivery.info.title': 'Данные доставки',
   'delivery.viewOnMap': 'На карте',
   'pickup.title': 'Пункт самовывоза',

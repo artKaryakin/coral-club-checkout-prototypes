@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
+import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useCourierVariants } from '@/composables/useCourierVariants'
 import { useStand } from '@/stand/composables/useStand'
@@ -48,8 +49,28 @@ watch(courierVariants, (list) => {
 })
 
 
+/**
+ * Адрес в этом концепте живёт в окне поверх страницы, и его легко не
+ * открыть вовсе: у нового пользователя блок доставки — это одна кнопка
+ * «Добавить адрес», а кнопка оплаты внизу активна с самого начала. На
+ * первом же тесте респондент так и сделал — оформил заказ, не указав,
+ * куда его везти. См. useAddressGuard.
+ */
+const { armGuard, disarmGuard, setAddressSaved } = useAddressGuard()
+
+// Блок доставки сообщает выбранный адрес ещё в своём setup, то есть до
+// onMounted родителя. Поэтому после взвода сразу пересказываем сторожу,
+// что уже есть: у вернувшегося покупателя первый адрес подставлен.
+onMounted(() => {
+  armGuard()
+  setAddressSaved(Boolean(selectedEntry.value))
+})
+
+onBeforeUnmount(disarmGuard)
+
 function onSelected(profile: DeliveryProfile | undefined) {
   selectedEntry.value = profile
+  setAddressSaved(Boolean(profile))
 }
 
 /**
