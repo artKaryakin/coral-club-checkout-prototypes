@@ -1,7 +1,8 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
 
@@ -48,6 +49,7 @@ function toProfiles(): DeliveryProfile[] {
 const text = computed(() => ({
   title: t('delivery.section.title'),
   addAddress: t('delivery.addAddress'),
+  methodRequired: t('delivery.methodRequired'),
   change: t('common.change'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
@@ -70,6 +72,22 @@ watch([country, user], () => {
   selectedEntryId.value = defaultSelectedId()
   editingEntryId.value = undefined
 })
+
+/**
+ * Попытка оплатить без адреса возвращает человека сюда: страница
+ * прокручивается к блоку доставки, над кнопкой «Добавить адрес» встаёт
+ * строка с требованием.
+ */
+const { isWarningVisible, registerBlockAnchor } = useAddressGuard()
+const sectionRef = ref<HTMLElement>()
+
+onMounted(() => {
+  registerBlockAnchor(() => {
+    sectionRef.value?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+  })
+})
+
+onBeforeUnmount(() => registerBlockAnchor(undefined))
 
 const selectedEntryId = ref<string | undefined>(addressBookEntries.value[0]?.id)
 const editingEntryId = ref<string>()
@@ -170,10 +188,14 @@ function onDialogDelete(id: string) {
 </script>
 
 <template>
-  <section class="cc3-modal-delivery">
+  <section ref="sectionRef" class="cc3-modal-delivery">
     <h2 v-if="!isFilled" class="cc3-modal-delivery__title">{{ text.title }}</h2>
 
     <div v-if="!isFilled" class="cc3-modal-delivery__empty">
+      <p v-if="isWarningVisible" class="cc3-modal-delivery__warning">
+        {{ text.methodRequired }}
+      </p>
+
       <button type="button" class="cc3-modal-delivery__add" @click="openDialog">
         <Cc3Icon name="plus-md" :size="24" />
         {{ text.addAddress }}
@@ -244,6 +266,16 @@ function onDialogDelete(id: string) {
   &__empty {
     padding: var(--st-global-distance-space-inset-md) var(--st-global-distance-space-inset-2xl)
       var(--st-global-distance-space-inset-2xl);
+  }
+
+  // Без рамки и подложки: в рамке строка встаёт над кнопкой второй
+  // кнопкой, а нажимать на неё нечего.
+  &__warning {
+    margin: 0 0 var(--st-global-distance-space-inset-md);
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-negative-primary);
   }
 
   &__add {

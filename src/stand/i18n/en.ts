@@ -160,6 +160,7 @@ export default {
   'delivery.variant.us.eta': 'Arrives by {date}',
   'delivery.section.title': 'Delivery',
   'delivery.addAddress': 'Add delivery address',
+  'delivery.methodRequired': 'Please add a delivery method first',
   'delivery.info.title': 'Delivery information',
   'delivery.viewOnMap': 'View on map',
   'pickup.title': 'Pickup point',
