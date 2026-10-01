@@ -9,6 +9,7 @@ import type { MapPoint } from '@/components/Map/mapTypes'
 import { useCheckout, type PickupProvider } from '@/composables/useCheckout'
 import { useCourierVariants } from '@/composables/useCourierVariants'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
+import { composeAddressLine } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
@@ -397,7 +398,7 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
       method: 'courier',
       typeLabel: t('concept.delivery.method.label'),
       name: recipientDisplayName.value,
-      addressLine: values.value.street ?? '',
+      addressLine: composeAddressLine(country.value, values.value),
       priceLabel: variant?.title ?? '',
       phone: values.value.recipientPhone ?? '',
       email: values.value.recipientEmail ?? '',

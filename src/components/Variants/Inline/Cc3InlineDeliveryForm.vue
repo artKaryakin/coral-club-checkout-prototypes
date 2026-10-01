@@ -4,6 +4,7 @@ import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCourierVariants } from '@/composables/useCourierVariants'
 import Cc3StandField from '@/stand/components/Cc3StandField.vue'
+import { composeAddressLine } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
@@ -124,13 +125,18 @@ const recipientDisplayName = computed(() =>
 
 const isDeleteConfirmOpen = ref(false)
 
+// Строка карточки собирается из полей формы по местному порядку —
+// см. composeAddressLine. Одна улица без индекса и города читается как
+// недозаполненный адрес.
+const addressLine = computed(() => composeAddressLine(country.value, values.value))
+
 const confirmedProfile = computed<DeliveryProfile>(() => {
   return {
     id: props.editProfile?.id ?? `profile-${Date.now()}`,
     method: 'courier',
     typeLabel: t('concept.delivery.method.label'),
     name: recipientDisplayName.value,
-    addressLine: values.value.street ?? '',
+    addressLine: addressLine.value,
     priceLabel: defaultCourierSummary.value,
     phone: values.value.recipientPhone ?? '',
     email: values.value.recipientEmail ?? '',
