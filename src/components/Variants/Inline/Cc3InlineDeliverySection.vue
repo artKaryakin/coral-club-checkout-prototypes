@@ -4,6 +4,7 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useAddressGuard } from '@/composables/useAddressGuard'
 import { useCheckout } from '@/composables/useCheckout'
+import { composeAddressExtras } from '@/stand/config/addressLine'
 import { useStand } from '@/stand/composables/useStand'
 
 import type { DeliveryProfile } from '../Modal/deliveryProfile'
@@ -118,6 +119,26 @@ onMounted(() => {
 
 onBeforeUnmount(() => registerBlockAnchor(undefined))
 
+/**
+ * Вторая и третья строки карточки, как в карточке Озона: сначала уточнения
+ * адреса (квартира, подъезд, домофон, этаж), потом получатель с телефоном.
+ * До этого в чекауте стояла одна улица, и всё, что человек ввёл ниже по
+ * форме, на экран не возвращалось.
+ */
+const selectedExtras = computed(() =>
+  composeAddressExtras(country.value, selectedEntry.value?.fields, t),
+)
+
+const selectedContact = computed(() => {
+  const entry = selectedEntry.value
+
+  if (!entry) {
+    return ''
+  }
+
+  return [entry.name, entry.phone].filter(Boolean).join(', ')
+})
+
 const editingEntry = computed(() =>
   addressBookEntries.value.find((entry) => entry.id === editingEntryId.value),
 )
@@ -213,6 +234,7 @@ function deleteEntry(id: string) {
 
       <div class="cc3-inline-delivery__info">
         <p class="cc3-inline-delivery__address">{{ selectedEntry.addressLine }}</p>
+        <p v-if="selectedExtras" class="cc3-inline-delivery__extras">{{ selectedExtras }}</p>
       </div>
 
       <p v-if="isPriceVisible" class="cc3-inline-delivery__price">
@@ -228,7 +250,7 @@ function deleteEntry(id: string) {
         </p>
       </div>
 
-      <p class="cc3-inline-delivery__name">{{ selectedEntry.name }}</p>
+      <p class="cc3-inline-delivery__name">{{ selectedContact }}</p>
     </template>
 
     <Cc3InlineAddressBook
@@ -293,6 +315,16 @@ function deleteEntry(id: string) {
 
   &__info {
     padding: 0 var(--st-global-distance-space-inset-2xl);
+  }
+
+  // Уточнения адреса тише самой улицы: это подробности для курьера,
+  // а не то, по чему человек узнаёт карточку.
+  &__extras {
+    margin: var(--st-global-distance-space-inset-xs) 0 0;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__name {

@@ -49,3 +49,54 @@ export function composeAddressLine(
 
   return [street, ...tail].filter(Boolean).join(', ')
 }
+
+/**
+ * Вторая строка карточки адреса: квартира, подъезд, домофон, этаж.
+ *
+ * Человек вводит эти поля в форме, а в чекауте их не было вообще — карточка
+ * показывала одну улицу. Респондент, который только что набрал код домофона,
+ * не находил его на экране и возвращался в форму проверять, сохранилось ли.
+ *
+ * Порядок как в карточке Озона: квартира, подъезд, домофон, этаж. Поля,
+ * которых в форме этой страны нет или которые человек не заполнил, выпадают;
+ * пустая строка не рисуется вовсе.
+ *
+ * Подпись к номеру квартиры добавляется только в СНГ, где поле так и
+ * называется «Квартира» и человек вводит в него одно число. В США и Европе
+ * поле описательное («Wohnung, Etage usw.», «Apartment, suite, etc.»), и
+ * человек вводит туда готовую формулировку — «Apt 21B», «3. OG», «byt 9».
+ * Подпись к ней дала бы «byt byt 9».
+ */
+const APARTMENT_LABEL_COUNTRIES: CountryCode[] = ['ru', 'kz']
+
+export function composeAddressExtras(
+  country: CountryCode,
+  values: Partial<Record<FieldKey, string>> | undefined,
+  translate: (key: string, params?: Record<string, string>) => string,
+): string {
+  if (!values) {
+    return ''
+  }
+
+  const parts: string[] = []
+
+  const push = (key: FieldKey, labelKey: string) => {
+    const value = values[key]?.trim()
+
+    if (!value) {
+      return
+    }
+
+    const isBareApartment =
+      key === 'apartment' && !APARTMENT_LABEL_COUNTRIES.includes(country)
+
+    parts.push(isBareApartment ? value : translate(labelKey, { value }))
+  }
+
+  push('apartment', 'address.part.apartment')
+  push('entrance', 'address.part.entrance')
+  push('intercom', 'address.part.intercom')
+  push('floor', 'address.part.floor')
+
+  return parts.join(', ')
+}
