@@ -125,7 +125,7 @@ watch(
  * форме, на экран не возвращалось.
  */
 const selectedExtras = computed(() =>
-  composeAddressExtras(country.value, selectedEntry.value?.fields, t),
+  composeAddressExtras(selectedEntry.value?.fields, t),
 )
 
 const selectedContact = computed(() => {
