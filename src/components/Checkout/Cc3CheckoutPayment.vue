@@ -5,7 +5,7 @@ import cardIcon from '@/assets/payment-icons/credit-card.png'
 import paypalIcon from '@/assets/payment-icons/paypal.png'
 import sberpayIcon from '@/assets/payment-icons/sberpay.png'
 import sbpIcon from '@/assets/payment-icons/sbp.png'
-import umoneyIcon from '@/assets/payment-icons/umoney.png'
+import bankTransferIcon from '@/assets/payment-icons/bank-transfer.svg'
 
 import Cc3CheckoutPaymentMethodItem from './Cc3CheckoutPaymentMethodItem.vue'
 import { useStand } from '@/stand/composables/useStand'
@@ -14,14 +14,19 @@ import type { PaymentMark } from '@/stand/config/payments'
 
 const { country, t } = useStand()
 
-/** Иконка способа по его id. Способы, которых нет на рынке, сюда не доходят. */
+/**
+ * Логотип способа по его id. У банковского перевода вместо логотипа —
+ * нейтральный значок: на европейских рынках этот способ называется просто
+ * переводом («Banküberweisung», «Przelew bankowy»), и знак ЮKassa рядом с
+ * ним называет компанию, которой в оплате нет.
+ */
 const icons: Record<string, string> = {
   'bank-card': cardIcon,
   paypal: paypalIcon,
   sbp: sbpIcon,
   card: cardIcon,
   sberpay: sberpayIcon,
-  yoomoney: umoneyIcon,
+  yoomoney: bankTransferIcon,
 }
 
 /**
