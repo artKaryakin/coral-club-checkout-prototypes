@@ -8,7 +8,7 @@ import sbpIcon from '@/assets/payment-icons/sbp.png'
 import umoneyIcon from '@/assets/payment-icons/umoney.png'
 import Cc3PaymentMarks from '@/components/Payment/Cc3PaymentMarks.vue'
 import { useStand } from '@/stand/composables/useStand'
-import { paymentMethodsFor } from '@/stand/config/payments'
+import { conceptPaymentMethodsFor } from '@/stand/config/payments'
 import type { PaymentMark } from '@/stand/config/payments'
 
 const { country, t } = useStand()
@@ -31,12 +31,14 @@ const icons: Record<string, string> = {
 }
 
 /**
- * Набор способов оплаты зависит от рынка и общий с прод-версией: респондент
- * проходит два-три чекаута подряд, и разные способы оплаты между ними он
- * читает как разные магазины. Сама оплата в тесте не проверяется.
+ * Набор способов оплаты зависит от рынка. В США, России и Казахстане он
+ * совпадает с прод-версией: респондент проходит два чекаута подряд, и разные
+ * способы оплаты между ними читает как разные магазины. В Европе набор пока
+ * свой — какие способы у Coral Club там подключены, мы не знаем, а СБП и
+ * SberPay в немецком чекауте стали бы вопросом модератору внутри замера.
  */
 const methods = computed<Method[]>(() =>
-  paymentMethodsFor(country.value).map((method) => ({
+  conceptPaymentMethodsFor(country.value).map((method) => ({
     id: method.id,
     name: t(method.labelKey),
     icon: icons[method.id] ?? cardIcon,
