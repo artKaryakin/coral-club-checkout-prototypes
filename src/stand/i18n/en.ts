@@ -182,6 +182,7 @@ export default {
   'payment.sbp': 'Instant transfer',
   'payment.card': 'Bank card',
   'payment.umoney': 'Bank transfer',
+  'payment.sberpay': 'SberPay',
   'payment.creditCard': 'Credit card',
   'payment.paypal': 'PayPal',
   'summary.title': 'Order summary',

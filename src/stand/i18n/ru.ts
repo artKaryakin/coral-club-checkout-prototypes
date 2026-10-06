@@ -182,6 +182,7 @@ export default {
   'payment.sbp': 'СБП',
   'payment.card': 'Оплата картой',
   'payment.umoney': 'ЮMoney',
+  'payment.sberpay': 'SberPay',
   'payment.creditCard': 'Оплата картой',
   'payment.paypal': 'PayPal',
   'summary.title': 'Состав заказа',

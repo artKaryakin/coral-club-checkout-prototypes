@@ -9,15 +9,19 @@ import umoneyIcon from '@/assets/payment-icons/umoney.png'
 
 import Cc3CheckoutPaymentMethodItem from './Cc3CheckoutPaymentMethodItem.vue'
 import { useStand } from '@/stand/composables/useStand'
-import { hasOwnPaymentMethods, usPaymentMethods } from '@/stand/config/payments'
+import { paymentMethodsFor } from '@/stand/config/payments'
 import type { PaymentMark } from '@/stand/config/payments'
 
 const { country, t } = useStand()
 
-/** Иконка способа: у США — карта и PayPal, на остальных рынках — свой набор. */
-const usIcons: Record<string, string> = {
+/** Иконка способа по его id. Способы, которых нет на рынке, сюда не доходят. */
+const icons: Record<string, string> = {
   'bank-card': cardIcon,
   paypal: paypalIcon,
+  sbp: sbpIcon,
+  card: cardIcon,
+  sberpay: sberpayIcon,
+  yoomoney: umoneyIcon,
 }
 
 /**
@@ -25,23 +29,14 @@ const usIcons: Record<string, string> = {
  * из Штатов не должен спотыкаться о СБП и SberPay и тратить на это вопросы
  * модератору. Оплата в тесте не проверяется — она обязана быть привычной.
  */
-const methods = computed<Method[]>(() => {
-  if (hasOwnPaymentMethods(country.value)) {
-    return usPaymentMethods.map((method) => ({
-      id: method.id,
-      name: t(method.labelKey),
-      icon: usIcons[method.id] ?? cardIcon,
-      marks: method.marks,
-    }))
-  }
-
-  return [
-    { id: 'sbp', name: t('payment.sbp'), icon: sbpIcon },
-    { id: 'card', name: t('payment.card'), icon: cardIcon },
-    { id: 'sberpay', name: 'SberPay', icon: sberpayIcon },
-    { id: 'yoomoney', name: t('payment.umoney'), icon: umoneyIcon },
-  ]
-})
+const methods = computed<Method[]>(() =>
+  paymentMethodsFor(country.value).map((method) => ({
+    id: method.id,
+    name: t(method.labelKey),
+    icon: icons[method.id] ?? cardIcon,
+    marks: method.marks,
+  })),
+)
 
 const text = computed(() => ({
   title: t('payment.title'),

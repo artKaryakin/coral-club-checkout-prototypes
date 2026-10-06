@@ -182,6 +182,7 @@ export default {
   'payment.sbp': 'Sofortüberweisung',
   'payment.card': 'Bankkarte',
   'payment.umoney': 'Banküberweisung',
+  'payment.sberpay': 'SberPay',
   'payment.creditCard': 'Kreditkarte',
   'payment.paypal': 'PayPal',
   'summary.title': 'Bestellübersicht',

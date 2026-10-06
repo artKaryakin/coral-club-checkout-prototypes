@@ -27,7 +27,25 @@ export const usPaymentMethods: PaymentMethodConfig[] = [
   { id: 'paypal', labelKey: 'payment.paypal' },
 ]
 
+/**
+ * Набор для рынков вне США: местные способы, какими их видит покупатель
+ * на сегодняшнем сайте. Прод так показывал и раньше, концепты — нет: у них
+ * оставался набор из макета (ЮMoney, карта, PayPal). Респондент из России
+ * видел в двух версиях подряд разные способы оплаты и спрашивал про них
+ * модератора, хотя оплата в тесте не проверяется вовсе.
+ */
+export const cisPaymentMethods: PaymentMethodConfig[] = [
+  { id: 'sbp', labelKey: 'payment.sbp' },
+  { id: 'card', labelKey: 'payment.card' },
+  { id: 'sberpay', labelKey: 'payment.sberpay' },
+  { id: 'yoomoney', labelKey: 'payment.umoney' },
+]
+
 /** Свой набор способов оплаты сейчас только у США. */
 export function hasOwnPaymentMethods(country: CountryCode): boolean {
   return country === 'us'
+}
+
+export function paymentMethodsFor(country: CountryCode): PaymentMethodConfig[] {
+  return hasOwnPaymentMethods(country) ? usPaymentMethods : cisPaymentMethods
 }

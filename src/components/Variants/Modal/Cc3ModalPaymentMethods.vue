@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+import cardIcon from '@/assets/payment-icons/credit-card.png'
 import paypalIcon from '@/assets/payment-icons/paypal.png'
-import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
+import sberpayIcon from '@/assets/payment-icons/sberpay.png'
+import sbpIcon from '@/assets/payment-icons/sbp.png'
+import umoneyIcon from '@/assets/payment-icons/umoney.png'
 import Cc3PaymentMarks from '@/components/Payment/Cc3PaymentMarks.vue'
 import { useStand } from '@/stand/composables/useStand'
-import { hasOwnPaymentMethods, usPaymentMethods } from '@/stand/config/payments'
+import { paymentMethodsFor } from '@/stand/config/payments'
 import type { PaymentMark } from '@/stand/config/payments'
 
 const { country, t } = useStand()
@@ -13,30 +16,33 @@ const { country, t } = useStand()
 type Method = {
   id: string
   name: string
+  icon: string
   marks?: PaymentMark[]
 }
 
-/**
- * Набор способов оплаты зависит от рынка. На рынках, где своего набора нет,
- * остаётся тот, что достался от макета; у США он свой — карта с кошельками
- * и PayPal. Оплата в тесте не проверяется, и респондент из Штатов не должен
- * тратить внимание на способы, которых у него не бывает.
- */
-const methods = computed<Method[]>(() => {
-  if (hasOwnPaymentMethods(country.value)) {
-    return usPaymentMethods.map((method) => ({
-      id: method.id,
-      name: t(method.labelKey),
-      marks: method.marks,
-    }))
-  }
+/** Иконка способа по его id — набор общий с прод-версией. */
+const icons: Record<string, string> = {
+  'bank-card': cardIcon,
+  paypal: paypalIcon,
+  sbp: sbpIcon,
+  card: cardIcon,
+  sberpay: sberpayIcon,
+  yoomoney: umoneyIcon,
+}
 
-  return [
-    { id: 'bank-transfer', name: t('payment.umoney') },
-    { id: 'bank-card', name: t('payment.card') },
-    { id: 'paypal', name: 'PayPal' },
-  ]
-})
+/**
+ * Набор способов оплаты зависит от рынка и общий с прод-версией: респондент
+ * проходит два-три чекаута подряд, и разные способы оплаты между ними он
+ * читает как разные магазины. Сама оплата в тесте не проверяется.
+ */
+const methods = computed<Method[]>(() =>
+  paymentMethodsFor(country.value).map((method) => ({
+    id: method.id,
+    name: t(method.labelKey),
+    icon: icons[method.id] ?? cardIcon,
+    marks: method.marks,
+  })),
+)
 
 const text = computed(() => ({
   title: t('payment.title'),
@@ -65,19 +71,7 @@ watch(methods, (list) => {
         :class="{ 'cc3-modal-payment__card--selected': selected === method.id }"
       >
         <span class="cc3-modal-payment__row">
-          <Cc3Icon
-            v-if="method.id === 'bank-transfer'"
-            name="bank"
-            :size="32"
-            class="cc3-modal-payment__icon cc3-modal-payment__icon--teal"
-          />
-          <Cc3Icon
-            v-else-if="method.id === 'bank-card'"
-            name="credit-card"
-            :size="32"
-            class="cc3-modal-payment__icon cc3-modal-payment__icon--pistachio"
-          />
-          <img v-else :src="paypalIcon" alt="" class="cc3-modal-payment__paypal" />
+          <img :src="method.icon" alt="" class="cc3-modal-payment__icon" />
 
           <span class="cc3-modal-payment__name">{{ method.name }}</span>
         </span>
@@ -157,19 +151,9 @@ watch(methods, (list) => {
     @include cc3-modal-radio-control;
   }
 
+  // Все способы теперь с картинкой-логотипом, а не с иконкой из набора:
+  // СБП и SberPay узнаются по своим знакам, нарисовать их иконкой нельзя.
   &__icon {
-    flex-shrink: 0;
-
-    &--teal {
-      color: var(--st-asemantic-foreground-color-teal-secondary);
-    }
-
-    &--pistachio {
-      color: var(--st-asemantic-foreground-color-pistachio-secondary);
-    }
-  }
-
-  &__paypal {
     flex-shrink: 0;
 
     width: 32px;

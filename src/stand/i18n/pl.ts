@@ -182,6 +182,7 @@ export default {
   'payment.sbp': 'Przelew natychmiastowy',
   'payment.card': 'Karta płatnicza',
   'payment.umoney': 'Przelew bankowy',
+  'payment.sberpay': 'SberPay',
   'payment.creditCard': 'Karta kredytowa',
   'payment.paypal': 'PayPal',
   'summary.title': 'Podsumowanie zamówienia',

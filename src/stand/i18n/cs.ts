@@ -182,6 +182,7 @@ export default {
   'payment.sbp': 'Okamžitý převod',
   'payment.card': 'Platební karta',
   'payment.umoney': 'Bankovní převod',
+  'payment.sberpay': 'SberPay',
   'payment.creditCard': 'Kreditní karta',
   'payment.paypal': 'PayPal',
   'summary.title': 'Souhrn objednávky',
