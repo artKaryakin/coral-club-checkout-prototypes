@@ -132,10 +132,10 @@ export default {
   'delivery.variants': 'Варианты доставки',
   'delivery.variant.courierFree': 'Курьер. 1–2 дня, бесплатно',
   'delivery.variant.courierCash': 'Курьер с оплатой наличными, 1–2 дня, бесплатно',
-  'delivery.variant.standard': 'Курьер, 1–2 дня, {price}',
-  'delivery.variant.standard.summary': '1–2 дня, {price}',
-  'delivery.variant.express': 'Экспресс, в день заказа, бесплатно',
-  'delivery.variant.express.summary': 'в день заказа, бесплатно',
+  'delivery.variant.standard': 'Курьер, 1–2 дня, бесплатно',
+  'delivery.variant.standard.summary': '1–2 дня, бесплатно',
+  'delivery.variant.express': 'Экспресс, в день заказа, {price}',
+  'delivery.variant.express.summary': 'в день заказа, {price}',
   'delivery.variant.expressNote': 'Доступно для заказов с 10:00 до 17:00',
 
   // Формулировки концептов. Отдельные ключи, потому что на рынке США

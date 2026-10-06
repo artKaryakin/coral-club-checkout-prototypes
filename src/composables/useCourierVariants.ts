@@ -2,6 +2,7 @@ import { computed } from 'vue'
 
 import { useCheckout } from './useCheckout'
 import { useStand } from '@/stand/composables/useStand'
+import { orderPrices } from '@/stand/config/order'
 import { formatPrice } from '@/utils/formatPrice'
 
 /**
@@ -22,21 +23,22 @@ export interface CourierVariant {
   /** То же без способа доставки — для карточки сводки, где он уже назван. */
   summary: string
   caption?: string
+  /** Стоимость — её же показывает строка «Доставка» в итогах заказа. */
+  price: number
 }
 
-/** Стоимость обычной доставки — демо-значение, форматируется в валюте страны. */
-const COURIER_PRICE = 149
-
 /**
- * Цены и сроки американского набора. Порядок как в тамошних чекаутах:
- * бесплатно и долго сверху, дороже и быстрее ниже. Сроки считаются от
- * сегодняшнего дня, а не зашиты датами: стенд живёт месяцами, а «Arrives by
- * Sep 25» в декабре респондент прочитает как поломку.
+ * Сроки американского набора. Цены берутся из конфига рынка, сроки считаются
+ * от сегодняшнего дня, а не зашиты датами: стенд живёт месяцами, а «Arrives
+ * by Sep 25» в декабре респондент прочитает как поломку.
+ *
+ * Порядок как в тамошних чекаутах: бесплатно и долго сверху, дороже и
+ * быстрее ниже.
  */
 const US_SHIPPING = [
-  { id: 'economy', price: 0, days: 8 },
-  { id: 'standard', price: 20, days: 5 },
-  { id: 'express', price: 30, days: 4 },
+  { id: 'economy', days: 8 },
+  { id: 'standard', days: 5 },
+  { id: 'express', days: 4 },
 ]
 
 export function useCourierVariants() {
@@ -55,13 +57,17 @@ export function useCourierVariants() {
     }).format(date)
   }
 
+  /** Цена платной доставки на этом рынке. */
+  const expressPrice = computed(() => orderPrices[country.value].express)
+
   const usVariants = computed<CourierVariant[]>(() =>
-    US_SHIPPING.map((item) => {
+    US_SHIPPING.map((item, index) => {
+      const price = orderPrices[country.value].shippingTiers?.[index] ?? 0
       const title =
-        item.price === 0
+        price === 0
           ? t('delivery.variant.us.free')
           : t('delivery.variant.us.paid', {
-              price: formatPrice(item.price, countryConfig.value.currency, countryConfig.value.intlLocale),
+              price: formatPrice(price, countryConfig.value.currency, countryConfig.value.intlLocale),
             })
 
       return {
@@ -69,23 +75,32 @@ export function useCourierVariants() {
         title,
         summary: title,
         caption: t('delivery.variant.us.eta', { date: arrivalDate(item.days) }),
+        price,
       }
     }),
   )
 
+  /**
+   * Обычный курьер бесплатен, платит только тот, кому нужно сегодня. Так
+   * устроено большинство чекаутов, на которых вырос покупатель, и так цена
+   * участвует в выборе: раньше платным был обычный курьер, а экспресс стоял
+   * бесплатным — выбор между ними не стоил респонденту ничего.
+   */
   const defaultVariants = computed<CourierVariant[]>(() => [
     {
       id: 'standard',
-      title: t('delivery.variant.standard', { price: formatMoneyRounded(COURIER_PRICE) }),
-      summary: t('delivery.variant.standard.summary', {
-        price: formatMoneyRounded(COURIER_PRICE),
-      }),
+      title: t('delivery.variant.standard'),
+      summary: t('delivery.variant.standard.summary'),
+      price: 0,
     },
     {
       id: 'express',
-      title: t('delivery.variant.express'),
-      summary: t('delivery.variant.express.summary'),
+      title: t('delivery.variant.express', { price: formatMoneyRounded(expressPrice.value) }),
+      summary: t('delivery.variant.express.summary', {
+        price: formatMoneyRounded(expressPrice.value),
+      }),
       caption: t('delivery.variant.expressNote'),
+      price: expressPrice.value,
     },
   ])
 
@@ -100,5 +115,10 @@ export function useCourierVariants() {
    */
   const defaultVariantId = computed(() => courierVariants.value[0]?.id ?? 'standard')
 
-  return { courierVariants, defaultVariantId }
+  /** Цена варианта по его id — для строки «Доставка» в итогах. */
+  function priceOf(id: string | undefined): number {
+    return courierVariants.value.find((variant) => variant.id === id)?.price ?? 0
+  }
+
+  return { courierVariants, defaultVariantId, priceOf }
 }

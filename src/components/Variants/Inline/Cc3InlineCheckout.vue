@@ -36,9 +36,9 @@ import type { DeliveryProfile } from '../Modal/deliveryProfile'
  * Отличие от модального концепта именно здесь. В модальном адрес и способ
  * по-прежнему выбираются в одном окне — это и есть предмет сравнения.
  */
-const { summary } = useCheckout()
+const { summary, setDeliveryPrice } = useCheckout()
 const { t } = useStand()
-const { courierVariants, defaultVariantId } = useCourierVariants()
+const { courierVariants, defaultVariantId, priceOf } = useCourierVariants()
 
 const text = computed(() => ({
   optionsTitle: t('delivery.variants'),
@@ -84,6 +84,18 @@ watch(courierVariants, (list) => {
     courierVariant.value = defaultVariantId.value
   }
 })
+
+/**
+ * Строка «Доставка» в итогах берёт цену отсюда. У пункта выдачи блока
+ * вариантов нет — там доставка бесплатна, и строка обнуляется.
+ */
+watch(
+  [courierVariant, isOptionsVisible, courierVariants],
+  () => {
+    setDeliveryPrice(isOptionsVisible.value ? priceOf(courierVariant.value) : 0)
+  },
+  { immediate: true },
+)
 
 </script>
 

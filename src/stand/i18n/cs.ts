@@ -132,10 +132,10 @@ export default {
   'delivery.variants': 'Možnosti doručení',
   'delivery.variant.courierFree': 'Kurýr. 1–2 dny, zdarma',
   'delivery.variant.courierCash': 'Kurýr s platbou v hotovosti, 1–2 dny, zdarma',
-  'delivery.variant.standard': 'Kurýr, 1–2 dny, {price}',
-  'delivery.variant.standard.summary': '1–2 dny, {price}',
-  'delivery.variant.express': 'Expres, tentýž den, zdarma',
-  'delivery.variant.express.summary': 'tentýž den, zdarma',
+  'delivery.variant.standard': 'Kurýr, 1–2 dny, zdarma',
+  'delivery.variant.standard.summary': '1–2 dny, zdarma',
+  'delivery.variant.express': 'Expres, týž den, {price}',
+  'delivery.variant.express.summary': 'týž den, {price}',
   'delivery.variant.expressNote': 'Dostupné pro objednávky od 10:00 do 17:00',
 
   // Формулировки концептов. Отдельные ключи, потому что на рынке США

@@ -12,8 +12,9 @@ import type { CountryCode, StandAddress, StandAddressFields } from './types'
  * добавление нового способа доставки — то, ради чего задание и придумано, —
  * не проверялся ни разу. Теперь пункт приходится добавлять.
  *
- * Платные и бесплатные курьерские адреса оставлены: без разброса цен
- * стоимость не участвует в выборе вообще и сравнивать нечего.
+ * Доставка курьером на всех рынках бесплатна — платным остался только
+ * экспресс, и выбирают его в блоке вариантов, а не в адресной книге.
+ * Поэтому у карточек книги цены нет.
  *
  * Форматы адресов, имена и телефоны — местные. Респондент должен читать
  * карточку как свою, иначе проверяется не интерфейс, а способность
@@ -68,7 +69,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
         intercom: '45К',
         comment: 'Код от подъезда 1234',
       }),
-      price: 1349,
+      price: 0,
     },
     {
       id: 'ru-courier-leningradsky',
@@ -84,7 +85,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
         entrance: '1',
         floor: '3',
       }),
-      price: 1349,
+      price: 0,
     },
     {
       id: 'ru-courier-kutuzovsky',
@@ -101,7 +102,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
         floor: '2',
         intercom: '3В',
       }),
-      price: 1349,
+      price: 0,
     },
     {
       id: 'ru-courier-profsoyuznaya',
@@ -136,7 +137,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
         floor: '7',
         intercom: '25',
       }),
-      price: 2500,
+      price: 0,
     },
     {
       id: 'kz-courier-dostyk',
@@ -152,7 +153,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
         entrance: '1',
         floor: '4',
       }),
-      price: 2500,
+      price: 0,
     },
     {
       id: 'kz-courier-zhandosova',
@@ -167,7 +168,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
         addressLabel: 'custom',
         floor: '2',
       }),
-      price: 2500,
+      price: 0,
     },
     {
       id: 'kz-courier-samal',
@@ -198,7 +199,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Berlin',
       addressLine: 'Kastanienallee 42, 10435 Berlin',
       address: fields('Kastanienallee 42', '3. OG', '10435', 'Berlin'),
-      price: 4.9,
+      price: 0,
     },
     {
       id: 'de-courier-friedrichstrasse',
@@ -210,7 +211,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Berlin',
       addressLine: 'Friedrichstraße 120, 10117 Berlin',
       address: fields('Friedrichstraße 120', '', '10117', 'Berlin'),
-      price: 4.9,
+      price: 0,
     },
     {
       id: 'de-courier-karl-marx-allee',
@@ -222,7 +223,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Berlin',
       addressLine: 'Karl-Marx-Allee 78, 10243 Berlin',
       address: fields('Karl-Marx-Allee 78', '12', '10243', 'Berlin'),
-      price: 4.9,
+      price: 0,
     },
     {
       id: 'de-courier-schoenhauser',
@@ -250,7 +251,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Warszawa',
       addressLine: 'ul. Marszałkowska 84/92 m. 15, 00-514 Warszawa',
       address: fields('ul. Marszałkowska 84/92', 'm. 15', '00-514', 'Warszawa'),
-      price: 19.9,
+      price: 0,
     },
     {
       id: 'pl-courier-pulawska',
@@ -262,7 +263,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Warszawa',
       addressLine: 'ul. Puławska 42 m. 8, 02-508 Warszawa',
       address: fields('ul. Puławska 42', 'm. 8', '02-508', 'Warszawa'),
-      price: 19.9,
+      price: 0,
     },
     {
       id: 'pl-courier-jerozolimskie',
@@ -274,7 +275,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Warszawa',
       addressLine: 'al. Jerozolimskie 123 m. 30, 02-017 Warszawa',
       address: fields('al. Jerozolimskie 123', 'm. 30', '02-017', 'Warszawa'),
-      price: 19.9,
+      price: 0,
     },
     {
       id: 'pl-courier-krucza',
@@ -302,7 +303,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Praha',
       addressLine: 'Vinohradská 112, 130 00 Praha 3',
       address: fields('Vinohradská 112', 'byt 9', '130 00', 'Praha'),
-      price: 99,
+      price: 0,
     },
     {
       id: 'cz-courier-korunni',
@@ -314,7 +315,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Praha',
       addressLine: 'Korunní 58, 120 00 Praha 2',
       address: fields('Korunní 58', '', '120 00', 'Praha'),
-      price: 99,
+      price: 0,
     },
     {
       id: 'cz-courier-sokolovska',
@@ -326,7 +327,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'Praha',
       addressLine: 'Sokolovská 200, 190 00 Praha 9',
       address: fields('Sokolovská 200', 'byt 4', '190 00', 'Praha'),
-      price: 99,
+      price: 0,
     },
     {
       id: 'cz-courier-karlovo',
@@ -354,7 +355,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'New York',
       addressLine: '350 5th Ave, Apt 21B, New York, NY 10118',
       address: fields('350 5th Ave', 'Apt 21B', '10118', 'New York', { region: 'NY' }),
-      price: 6.99,
+      price: 0,
     },
     {
       id: 'us-courier-astor-place',
@@ -366,7 +367,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'New York',
       addressLine: '1 Astor Pl, Apt 5C, New York, NY 10003',
       address: fields('1 Astor Pl', 'Apt 5C', '10003', 'New York', { region: 'NY' }),
-      price: 6.99,
+      price: 0,
     },
     {
       id: 'us-courier-west-57th',
@@ -378,7 +379,7 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       city: 'New York',
       addressLine: '200 W 57th St, Apt 12A, New York, NY 10019',
       address: fields('200 W 57th St', 'Apt 12A', '10019', 'New York', { region: 'NY' }),
-      price: 6.99,
+      price: 0,
     },
     {
       id: 'us-courier-west-34th',
