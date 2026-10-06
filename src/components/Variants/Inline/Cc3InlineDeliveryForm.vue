@@ -115,7 +115,7 @@ seedValues()
 watch(country, seedValues)
 
 function onSuggestionSelect(suggestion: AddressSuggestion) {
-  values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value)
+  values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value, country.value)
 }
 
 const recipientDisplayName = computed(() =>

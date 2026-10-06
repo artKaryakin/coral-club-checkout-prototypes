@@ -338,7 +338,7 @@ const courierMarkers = computed(() => [{ id: 'address', ...courierCenter.value }
 let reverseController: AbortController | undefined
 
 function fillFromSuggestion(suggestion: AddressSuggestion) {
-  values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value)
+  values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value, country.value)
 }
 
 /** Выбор подсказки — адрес в поля, метка на карту. */

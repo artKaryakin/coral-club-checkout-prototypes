@@ -15,6 +15,7 @@
 import type { FieldGroup, FieldKey } from '../config/types'
 import { applySuggestion } from '../suggest/applySuggestion'
 import type { AddressSuggestion } from '../suggest/types'
+import { useStand } from '../composables/useStand'
 import { useStandFields } from '../composables/useStandFields'
 import Cc3StandField from './Cc3StandField.vue'
 
@@ -34,6 +35,7 @@ const props = defineProps<{ group: FieldGroup }>()
 const values = defineModel<Partial<Record<FieldKey, string>>>({ required: true })
 
 const { fields } = useStandFields(props.group)
+const { country } = useStand()
 
 function onUpdate(key: FieldKey, value: string) {
   values.value = { ...values.value, [key]: value }
@@ -45,7 +47,7 @@ function onUpdate(key: FieldKey, value: string) {
  * это должно одинаково.
  */
 function onSelect(sourceKey: FieldKey, suggestion: AddressSuggestion) {
-  values.value = applySuggestion(values.value, sourceKey, suggestion, fields.value)
+  values.value = applySuggestion(values.value, sourceKey, suggestion, fields.value, country.value)
 }
 </script>
 

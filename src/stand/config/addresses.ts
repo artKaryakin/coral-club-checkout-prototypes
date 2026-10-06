@@ -28,6 +28,11 @@ import type { CountryCode, StandAddress, StandAddressFields } from './types'
  * Заполнены ровно те, что есть в форме этой страны: в России — подъезд,
  * этаж и домофон, в США — штат. Лишние остаются пустыми и в форму
  * не попадают.
+ *
+ * Дом в России вынесен отдельным полем (см. countries.ts), поэтому там он
+ * приходит в extra, а в строке улицы его нет: иначе при редактировании
+ * сохранённого адреса одно и то же число стоит на экране дважды. На
+ * остальных рынках отдельного поля нет, и дом живёт внутри строки.
  */
 function fields(
   street: string,
@@ -38,6 +43,7 @@ function fields(
 ): StandAddressFields {
   return {
     addressLabel: 'home',
+    house: '',
     street,
     apartment,
     entrance: '',
@@ -63,7 +69,8 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+ru@example.com',
       city: 'Москва',
       addressLine: 'проспект Берёзовой Рощи, 12, Москва, 125252',
-      address: fields('Москва, проспект Берёзовой Рощи, 12', '45', '125252', 'Москва', {
+      address: fields('Москва, проспект Берёзовой Рощи', '45', '125252', 'Москва', {
+        house: '12',
         entrance: '2',
         floor: '5',
         intercom: '45К',
@@ -80,7 +87,8 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+ru@example.com',
       city: 'Москва',
       addressLine: 'Ленинградский проспект, 80, Москва, 125315',
-      address: fields('Москва, Ленинградский проспект, 80', '12', '125315', 'Москва', {
+      address: fields('Москва, Ленинградский проспект', '12', '125315', 'Москва', {
+        house: '80',
         addressLabel: 'work',
         entrance: '1',
         floor: '3',
@@ -96,7 +104,8 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+ru@example.com',
       city: 'Москва',
       addressLine: 'Кутузовский проспект, 24, Москва, 121165',
-      address: fields('Москва, Кутузовский проспект, 24', '3', '121165', 'Москва', {
+      address: fields('Москва, Кутузовский проспект', '3', '121165', 'Москва', {
+        house: '24',
         addressLabel: 'custom',
         entrance: '4',
         floor: '2',
@@ -113,7 +122,8 @@ export const addressBook: Record<CountryCode, StandAddress[]> = {
       email: 'qa.auto.checkout+ru@example.com',
       city: 'Москва',
       addressLine: 'Профсоюзная улица, 104, Москва, 117321',
-      address: fields('Москва, Профсоюзная улица, 104', '77', '117321', 'Москва', {
+      address: fields('Москва, Профсоюзная улица', '77', '117321', 'Москва', {
+        house: '104',
         entrance: '1',
         floor: '9',
       }),
