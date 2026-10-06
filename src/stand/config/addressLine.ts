@@ -14,6 +14,9 @@ import type { CountryCode, FieldKey } from './types'
  * в Европе перед городом, в США после кода штата. Чужой формат собственного
  * адреса читается как ошибка ввода.
  *
+ * Дом идёт сразу за улицей: там, где он вынесен отдельным полем, в самой
+ * строке улицы его больше нет.
+ *
  * Части, которых в форме этой страны нет или которые человек не заполнил,
  * выпадают. Часть, которая уже встречается в строке улицы, тоже выпадает:
  * подсказка адреса кладёт в поле улицы полную строку с городом, и повторять
@@ -24,11 +27,16 @@ export function composeAddressLine(
   values: Partial<Record<FieldKey, string>>,
 ): string {
   const street = values.street?.trim() ?? ''
+  const house = values.house?.trim() ?? ''
   const city = values.city?.trim() ?? ''
   const region = values.region?.trim() ?? ''
   const postal = values.postal?.trim() ?? ''
 
   const isNew = (part: string) => part !== '' && !street.toLowerCase().includes(part.toLowerCase())
+
+  // Дом вынесен отдельным полем там, где он есть в форме, — в строке улицы
+  // его нет, и в карточку он возвращается здесь.
+  const head = [street, house].filter(Boolean).join(', ')
 
   const tail: string[] = []
 
@@ -47,7 +55,7 @@ export function composeAddressLine(
     if (isNew(postal)) tail.push(postal)
   }
 
-  return [street, ...tail].filter(Boolean).join(', ')
+  return [head, ...tail].filter(Boolean).join(', ')
 }
 
 /**
