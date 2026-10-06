@@ -337,8 +337,24 @@ const courierMarkers = computed(() => [{ id: 'address', ...courierCenter.value }
 
 let reverseController: AbortController | undefined
 
+/**
+ * Последняя выбранная подсказка. Нужна на переходе к форме адреса: там
+ * появляется поле «Дом», и строку адреса надо пересобрать без номера —
+ * но только если человек не правил её руками после выбора.
+ */
+const lastSuggestion = ref<AddressSuggestion>()
+
 function fillFromSuggestion(suggestion: AddressSuggestion) {
-  values.value = applySuggestion(values.value, 'street', suggestion, addressFields.value, country.value)
+  lastSuggestion.value = suggestion
+
+  values.value = applySuggestion(
+    values.value,
+    'street',
+    suggestion,
+    addressFields.value,
+    country.value,
+    step.value === 'address-form',
+  )
 }
 
 /** Выбор подсказки — адрес в поля, метка на карту. */
@@ -376,6 +392,23 @@ const isDeleteConfirmOpen = ref(false)
 
 function continueFromSearch() {
   step.value = method.value === 'courier' ? 'address-form' : 'pickup-detail'
+
+  // На шаге поиска строка адреса — единственное место, где адрес виден
+  // целиком, и дом остаётся в ней. На форме у дома появляется своё поле,
+  // и держать номер в двух местах незачем. Строку, которую человек правил
+  // руками после выбора подсказки, не трогаем.
+  const suggestion = lastSuggestion.value
+
+  if (step.value === 'address-form' && suggestion && values.value.street === suggestion.label) {
+    values.value = applySuggestion(
+      values.value,
+      'street',
+      suggestion,
+      addressFields.value,
+      country.value,
+      true,
+    )
+  }
 }
 
 // Кнопка «На карте» у заголовка — единственный способ вернуться с формы
@@ -397,6 +430,10 @@ const confirmedProfile = computed<DeliveryProfile>(() => {
       id,
       method: 'courier',
       typeLabel: t('concept.delivery.method.label'),
+      // Значения полей нужны карточке и повторному открытию формы: из них
+      // собирается строка «кв. 53, подъезд 3, домофон …, этаж 4», и из них же
+      // форма заполняется, когда адрес открывают на правку.
+      fields: values.value,
       name: recipientDisplayName.value,
       addressLine: composeAddressLine(country.value, values.value),
       priceLabel: variant?.title ?? '',

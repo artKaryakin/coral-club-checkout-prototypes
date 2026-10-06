@@ -29,13 +29,14 @@ function matchOption(field: StandField, value: string): string | undefined {
  * непустыми значениями: подсказка может не знать индекса, и затирать им
  * то, что человек уже ввёл руками, нельзя.
  *
- * Дом. Там, где он вынесен отдельным полем (сейчас это Россия), в строку
- * адреса он больше не попадает: иначе одно и то же число стоит на экране
- * дважды, и человек, поправивший одно из них, оставляет формы спорящими
- * между собой. Строка адреса остаётся улицей, дом живёт в своём поле.
+ * Дом. Он уходит из строки адреса только тогда, когда поле «Дом» видно на
+ * том же экране: иначе одно и то же число стоит дважды, и человек,
+ * поправивший одно из них, оставляет поля спорящими между собой.
  *
- * Там, где отдельного поля нет, дом остаётся внутри строки — его просто
- * некуда вынести.
+ * Если поля дома на экране нет — шаг карты и поиска в модальном концепте,
+ * рынки без отдельного поля, — дом остаётся внутри строки. Там она
+ * единственное место, где адрес виден целиком, и без номера читается как
+ * недовведённая.
  */
 
 /** Рынки, где адрес читают от города к дому. */
@@ -59,15 +60,19 @@ export function applySuggestion(
   suggestion: AddressSuggestion,
   fields: StandField[],
   country: CountryCode,
+  /**
+   * Видно ли поле «Дом» на том же экране. По умолчанию — да, если оно есть
+   * в наборе полей страны: формы, где поля идут одним списком, так и
+   * устроены. Экран с одной строкой поиска передаёт false.
+   */
+  isHouseFieldVisible?: boolean,
 ): FieldValues {
   const byKey = new Map(fields.map((field) => [field.key, field]))
-  const hasHouseField = byKey.has('house')
+  const splitHouse = (isHouseFieldVisible ?? byKey.has('house')) && byKey.has('house')
 
   const filled: FieldValues = {
     [sourceKey]:
-      hasHouseField && suggestion.house
-        ? labelWithoutHouse(suggestion, country)
-        : suggestion.label,
+      splitHouse && suggestion.house ? labelWithoutHouse(suggestion, country) : suggestion.label,
   }
   const plain: [FieldKey, string][] = [
     ['house', suggestion.house],
