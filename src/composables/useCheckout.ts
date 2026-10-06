@@ -7,6 +7,7 @@ import ultimateMaxImg from '@/assets/products/ultimate-max.png'
 import { formatDecimal, formatPrice, formatPriceRounded } from '@/utils/formatPrice'
 
 import { addressBook } from '@/stand/config/addresses'
+import { orderPrices } from '@/stand/config/order'
 import { pickupPoints as standPickupPoints } from '@/stand/config/pickupPoints'
 import type { PickupProviderCode, StandAddressFields } from '@/stand/config/types'
 import { useStand } from '@/stand/composables/useStand'
@@ -163,11 +164,10 @@ export type OrderProduct = {
 // Названия товаров подобраны под 4 реальных фото, которые прислали для
 // самери/дровера — так у каждой позиции есть настоящая картинка, а не
 // смесь фото и цветных кружков.
-const orderProducts: OrderProduct[] = [
+const orderProducts: Omit<OrderProduct, 'price'>[] = [
   {
     id: 'b-luron',
     name: 'B-Luron',
-    price: 1200,
     quantity: 2,
     thumbImage: bLuronImg,
     thumbInitials: 'BL',
@@ -176,7 +176,6 @@ const orderProducts: OrderProduct[] = [
   {
     id: 'coral-detox-plus',
     name: 'Coral Detox Plus',
-    price: 4899,
     quantity: 1,
     thumbImage: coralDetoxPlusImg,
     thumbInitials: 'CD',
@@ -185,7 +184,6 @@ const orderProducts: OrderProduct[] = [
   {
     id: 'd-spray',
     name: 'D-Spray',
-    price: 1200,
     quantity: 1,
     thumbImage: dSprayImg,
     thumbInitials: 'DS',
@@ -194,7 +192,6 @@ const orderProducts: OrderProduct[] = [
   {
     id: 'ultimate-max',
     name: 'Ultimate Max',
-    price: 1200,
     quantity: 2,
     thumbImage: ultimateMaxImg,
     thumbInitials: 'UM',
@@ -202,19 +199,20 @@ const orderProducts: OrderProduct[] = [
   },
 ]
 
-const order = {
-  itemsCount: orderProducts.reduce((sum, item) => sum + item.quantity, 0),
-  itemsTotal: orderProducts.reduce((sum, item) => sum + item.price * item.quantity, 0),
-  points: '48,00',
-  delivery: 200,
-  get total() {
-    return this.itemsTotal + this.delivery
-  },
-}
+const orderItemsCount = orderProducts.reduce((sum, item) => sum + item.quantity, 0)
+const orderPoints = '48,00'
+
+/**
+ * Стоимость доставки в итогах. Раньше здесь лежало фиксированное число, и
+ * в сводке стояло «Доставка 200 ₽» независимо от того, что человек выбрал
+ * выше, — при бесплатном курьере это читается как ошибка расчёта. Теперь
+ * значение ставит тот блок, где доставку выбирают.
+ */
+const deliveryPrice = ref(0)
 
 export type WalletMode = 'idle' | 'custom' | 'applied'
 
-const walletBalance = 73579.1
+
 
 function emptyRecipient(): Recipient {
   return { lastName: '', firstName: '', middleName: '', phone: '', email: '' }
@@ -416,14 +414,14 @@ export function useCheckout() {
 
   // Сколько максимум можно списать с Coral Wallet: не больше баланса
   // и не больше суммы, которую вообще нужно оплатить за заказ.
-  const walletMaxUsable = computed(() => Math.max(0, Math.min(walletBalance, order.total)))
+  const walletMaxUsable = computed(() => Math.max(0, Math.min(walletBalance.value, order.value.total)))
 
   // Может ли баланс в принципе закрыть весь заказ — определяет формулировку
   // в состоянии «скидка ещё не применена» («скидка 100%» против «скидка до X»).
-  const isWalletFullyCovering = computed(() => walletMaxUsable.value >= order.total)
+  const isWalletFullyCovering = computed(() => walletMaxUsable.value >= order.value.total)
 
   const walletRemainingToPay = computed(() =>
-    Math.max(0, order.total - walletAppliedAmount.value),
+    Math.max(0, order.value.total - walletAppliedAmount.value),
   )
 
   // Покрывает ли весь заказ именно применённая сумма — не то же самое,
@@ -432,6 +430,26 @@ export function useCheckout() {
     () => walletAppliedAmount.value > 0 && walletRemainingToPay.value <= 0,
   )
 
+  /** Цены текущего рынка: товары, баланс кошелька, экспресс-доставка. */
+  const prices = computed(() => orderPrices[country.value])
+
+  const walletBalance = computed(() => prices.value.wallet)
+
+  const order = computed(() => {
+    const itemsTotal = orderProducts.reduce(
+      (sum, item) => sum + (prices.value.products[item.id] ?? 0) * item.quantity,
+      0,
+    )
+
+    return {
+      itemsCount: orderItemsCount,
+      itemsTotal,
+      points: orderPoints,
+      delivery: deliveryPrice.value,
+      total: itemsTotal + deliveryPrice.value,
+    }
+  })
+
   const money = (value: number) =>
     formatPrice(value, countryConfig.value.currency, countryConfig.value.intlLocale)
 
@@ -439,26 +457,30 @@ export function useCheckout() {
     formatPriceRounded(value, countryConfig.value.currency, countryConfig.value.intlLocale)
 
   const summary = computed(() => ({
-    itemsCount: order.itemsCount,
-    itemsTotalFormat: money(order.itemsTotal),
-    itemsTotalFormatRounded: moneyRounded(order.itemsTotal),
-    points: order.points,
+    itemsCount: order.value.itemsCount,
+    itemsTotalFormat: money(order.value.itemsTotal),
+    itemsTotalFormatRounded: moneyRounded(order.value.itemsTotal),
+    points: order.value.points,
     walletUsedFormat:
       walletAppliedAmount.value > 0 ? formatDecimal(walletAppliedAmount.value, countryConfig.value.intlLocale) : undefined,
     walletUsedFormatRounded:
       walletAppliedAmount.value > 0 ? moneyRounded(walletAppliedAmount.value) : undefined,
-    deliveryFormat: money(order.delivery),
-    deliveryFormatRounded: moneyRounded(order.delivery),
-    totalFormat: money(Math.max(0, order.total - walletAppliedAmount.value)),
-    totalFormatRounded: moneyRounded(Math.max(0, order.total - walletAppliedAmount.value)),
+    // Ноль пишем словом: «0 ₽» в строке доставки читается как незаполненное
+    // поле, а не как «доставка бесплатна».
+    deliveryFormat: order.value.delivery > 0 ? money(order.value.delivery) : t('delivery.free'),
+    deliveryFormatRounded:
+      order.value.delivery > 0 ? moneyRounded(order.value.delivery) : t('delivery.free'),
+    totalFormat: money(Math.max(0, order.value.total - walletAppliedAmount.value)),
+    totalFormatRounded: moneyRounded(Math.max(0, order.value.total - walletAppliedAmount.value)),
     pickupCode: isPickup.value ? selectedPickupPoint.value?.code : undefined,
   }))
 
   const orderProductsFormat = computed(() =>
-    orderProducts.map((product) => ({
-      ...product,
-      priceFormat: money(product.price),
-    })),
+    orderProducts.map((product) => {
+      const price = prices.value.products[product.id] ?? 0
+
+      return { ...product, price, priceFormat: money(price) }
+    }),
   )
 
   // Первые 3 товара — для превью-ряда в заголовке сводки, остальное — «+N».
@@ -468,7 +490,7 @@ export function useCheckout() {
   )
 
   const walletDisplayBalanceFormat = computed(() =>
-    moneyRounded(walletBalance - walletAppliedAmount.value),
+    moneyRounded(walletBalance.value - walletAppliedAmount.value),
   )
 
   const walletMaxUsableFormat = computed(() => moneyRounded(walletMaxUsable.value))
@@ -574,9 +596,19 @@ export function useCheckout() {
     }
   }
 
+  /**
+   * Стоимость выбранной доставки — её ставит блок вариантов. Пункт выдачи
+   * и бесплатный курьер обнуляют строку в итогах, платный экспресс её
+   * возвращает.
+   */
+  function setDeliveryPrice(value: number) {
+    deliveryPrice.value = value
+  }
+
   return {
     deliveryMethod,
     isPickup,
+    setDeliveryPrice,
 
     mapCenter,
     deliveryMethodLabels,

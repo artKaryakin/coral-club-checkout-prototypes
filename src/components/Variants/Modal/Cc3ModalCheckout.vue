@@ -29,9 +29,9 @@ import Cc3InlineDeliverySlots from '../Inline/Cc3InlineDeliverySlots.vue'
  * если цены разъедутся между версиями, сравнивать их станет нечестно.
  * Отличие концептов должно оставаться ровно одно — окно против страницы.
  */
-const { summary } = useCheckout()
+const { summary, setDeliveryPrice } = useCheckout()
 const { t } = useStand()
-const { courierVariants, defaultVariantId } = useCourierVariants()
+const { courierVariants, defaultVariantId, priceOf } = useCourierVariants()
 
 const text = computed(() => ({
   optionsTitle: t('delivery.variants'),
@@ -79,6 +79,18 @@ function onSelected(profile: DeliveryProfile | undefined) {
  * принадлежат самому пункту и видны в его карточке.
  */
 const isOptionsVisible = computed(() => selectedEntry.value?.method === 'courier')
+
+/**
+ * Строка «Доставка» в итогах берёт цену отсюда. У пункта выдачи блока
+ * вариантов нет — там доставка бесплатна, и строка обнуляется.
+ */
+watch(
+  [courierVariant, isOptionsVisible, courierVariants],
+  () => {
+    setDeliveryPrice(isOptionsVisible.value ? priceOf(courierVariant.value) : 0)
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
