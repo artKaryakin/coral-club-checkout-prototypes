@@ -152,13 +152,13 @@ export default {
   'concept.common.findAddress': 'Find address',
   'concept.common.findAddress@us': 'Start typing address',
   'concept.delivery.method.label': 'Courier',
-  'concept.delivery.method.label@us': 'Shipping',
+  'concept.delivery.method.label@us': 'Ship to',
   'concept.delivery.pickup.action': 'Pickup',
   'concept.delivery.pickup.action@us': 'Pick up',
 
   // Американский набор вариантов доставки: бесплатно и долго сверху,
   // дороже и быстрее ниже, срок — датой прибытия.
-  'delivery.variants@us': 'Select your shipping speed',
+  'delivery.variants@us': 'Select your shipping options',
   'delivery.variant.us.free': 'Free Shipping',
   'delivery.variant.us.paid': '{price} Shipping',
   'delivery.variant.us.eta': 'Arrives by {date}',
@@ -187,7 +187,6 @@ export default {
   'payment.paypal': 'PayPal',
   'summary.title': 'Order summary',
   'summary.items': 'Items ({count})',
-  'summary.more': '{count} more',
   'summary.delivery': 'Shipping',
   'summary.pickupPoint': 'Pickup point ({code})',
   'summary.itemsPoints': '{count} products, {points} points',
@@ -215,8 +214,7 @@ export default {
   'submit.button': 'Proceed to payment',
   'submit.legal': 'By clicking “Proceed to payment” you agree to the Coral Club terms of service. Detailed delivery terms are available on the page',
   'submit.legalLink': 'delivery and payment',
-  'addressBook.title': 'Delivery profiles',
-  'addressBook.all': 'All addresses',
+  'addressBook.title': 'Shipping addresses',
   'addressBook.empty': 'Nothing found for “{query}”.',
   'footer.copyright': '1999 - 2024 © Coral Club. All rights reserved. Official website of Coral Club',
 

@@ -11,7 +11,7 @@ import { useStand } from '@/stand/composables/useStand'
 const { t } = useStand()
 
 const text = computed(() => ({
-  title: t('addressBook.all'),
+  title: t('addressBook.title'),
   close: t('common.close'),
   searchPlaceholder: t('common.search'),
   empty: t('addressBook.empty', { query: search.value }),

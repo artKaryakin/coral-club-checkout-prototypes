@@ -187,7 +187,6 @@ export default {
   'payment.paypal': 'PayPal',
   'summary.title': 'Souhrn objednávky',
   'summary.items': 'Zboží ({count})',
-  'summary.more': 'dalších {count}',
   'summary.delivery': 'Doprava',
   'summary.pickupPoint': 'Výdejní místo ({code})',
   'summary.itemsPoints': '{count} produktů, {points} bodů',
@@ -216,7 +215,6 @@ export default {
   'submit.legal': 'Kliknutím na „Přejít k platbě“ souhlasíte s podmínkami služby Coral Club. Podrobné podmínky doručení najdete na stránce',
   'submit.legalLink': 'doručení a platby',
   'addressBook.title': 'Adresář',
-  'addressBook.all': 'Všechny adresy',
   'addressBook.empty': 'Pro „{query}“ nebylo nic nalezeno.',
   'footer.copyright': '1999–2024 © Coral Club. Všechna práva vyhrazena. Oficiální web Coral Club',
 

@@ -3,7 +3,6 @@ import { computed, ref, watch } from 'vue'
 import bLuronImg from '@/assets/products/b-luron.png'
 import coralDetoxPlusImg from '@/assets/products/coral-detox-plus.png'
 import dSprayImg from '@/assets/products/d-spray.png'
-import ultimateMaxImg from '@/assets/products/ultimate-max.png'
 import { formatDecimal, formatPrice, formatPriceRounded } from '@/utils/formatPrice'
 
 import { addressBook } from '@/stand/config/addresses'
@@ -161,14 +160,22 @@ export type OrderProduct = {
 }
 
 // Состав заказа — заглушка, в реальном проекте приходит с бэкенда.
-// Названия товаров подобраны под 4 реальных фото, которые прислали для
-// самери/дровера — так у каждой позиции есть настоящая картинка, а не
+// Названия товаров подобраны под реальные фото, которые прислали для
+// сводки и дровера, — так у каждой позиции есть настоящая картинка, а не
 // смесь фото и цветных кружков.
+//
+// Позиций ровно три, по одной штуке каждой: столько помещается в ряд
+// превью сводки. Четвёртая пряталась за «+ 1 more», раскрыть которое в
+// концептах было нечем — кнопка со стрелкой там ничего не открывала.
+//
+// Количество у всех по одному не ради красоты: в превью концептов у
+// картинок нет счётчика, и «4 товара» под тремя картинками читалось как
+// потерянная позиция.
 const orderProducts: Omit<OrderProduct, 'price'>[] = [
   {
     id: 'b-luron',
     name: 'B-Luron',
-    quantity: 2,
+    quantity: 1,
     thumbImage: bLuronImg,
     thumbInitials: 'BL',
     thumbColor: '#c9a15a',
@@ -188,14 +195,6 @@ const orderProducts: Omit<OrderProduct, 'price'>[] = [
     thumbImage: dSprayImg,
     thumbInitials: 'DS',
     thumbColor: '#d9a441',
-  },
-  {
-    id: 'ultimate-max',
-    name: 'Ultimate Max',
-    quantity: 2,
-    thumbImage: ultimateMaxImg,
-    thumbInitials: 'UM',
-    thumbColor: '#e07a2e',
   },
 ]
 

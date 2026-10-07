@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
 import { useStand } from '@/stand/composables/useStand'
 
@@ -8,7 +7,6 @@ const { t } = useStand()
 
 const text = computed(() => ({
   title: t('summary.title'),
-  more: t('summary.more', { count: orderProductsMoreCount.value }),
   subtotal: t('summary.items', { count: summary.value.itemsCount }),
   shipping: t('summary.delivery'),
   total: t('summary.total'),
@@ -21,14 +19,19 @@ const text = computed(() => ({
 }))
 
 
-const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = useCheckout()
+const { summary, orderProductsPreview, promoCode } = useCheckout()
 </script>
 
 <template>
   <section class="cc3-modal-order-summary">
     <h2 class="cc3-modal-order-summary__title">{{ text.title }}</h2>
 
-    <button type="button" class="cc3-modal-order-summary__preview">
+    <!--
+      Раньше превью было кнопкой со стрелкой «раскрыть список товаров», но
+      обработчика у неё не было: человек жал и ничего не происходило. Состав
+      заказа теперь виден целиком — три позиции, — и раскрывать нечего.
+    -->
+    <div class="cc3-modal-order-summary__preview">
       <span class="cc3-modal-order-summary__thumbs">
         <span
           v-for="product in orderProductsPreview"
@@ -42,14 +45,8 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
             class="cc3-modal-order-summary__thumb-img"
           />
         </span>
-
-        <span v-if="orderProductsMoreCount > 0" class="cc3-modal-order-summary__more">
-          + {{ text.more }}
-        </span>
       </span>
-
-      <Cc3Icon name="chevron-down" :size="24" class="cc3-modal-order-summary__chevron" />
-    </button>
+    </div>
 
     <p class="cc3-modal-order-summary__count">
       {{ text.itemsPoints }}
@@ -109,14 +106,9 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
   &__preview {
     display: flex;
     align-items: center;
-    justify-content: space-between;
 
     padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-2xl);
     width: 100%;
-
-    background: none;
-    border: none;
-    cursor: pointer;
   }
 
   &__thumbs {
@@ -143,19 +135,6 @@ const { summary, orderProductsPreview, orderProductsMoreCount, promoCode } = use
 
     border-radius: var(--st-global-radius-x);
     object-fit: cover;
-  }
-
-  &__more {
-    @include font('label-md');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    white-space: nowrap;
-  }
-
-  &__chevron {
-    flex-shrink: 0;
-
-    color: var(--st-content-foreground-color-neutral-primary);
   }
 
   &__count {

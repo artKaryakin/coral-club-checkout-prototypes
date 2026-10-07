@@ -187,7 +187,6 @@ export default {
   'payment.paypal': 'PayPal',
   'summary.title': 'Podsumowanie zamówienia',
   'summary.items': 'Produkty ({count})',
-  'summary.more': 'jeszcze {count}',
   'summary.delivery': 'Dostawa',
   'summary.pickupPoint': 'Punkt odbioru ({code})',
   'summary.itemsPoints': '{count} produktów, {points} punktów',
@@ -216,7 +215,6 @@ export default {
   'submit.legal': 'Klikając „Przejdź do płatności”, akceptujesz warunki korzystania z serwisu Coral Club. Szczegółowe warunki dostawy znajdziesz na stronie',
   'submit.legalLink': 'dostawy i płatności',
   'addressBook.title': 'Książka adresowa',
-  'addressBook.all': 'Wszystkie adresy',
   'addressBook.empty': 'Nic nie znaleziono dla „{query}”.',
   'footer.copyright': '1999–2024 © Coral Club. Wszelkie prawa zastrzeżone. Oficjalna strona Coral Club',
 

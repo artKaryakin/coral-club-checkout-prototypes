@@ -69,16 +69,21 @@ export function composeAddressLine(
  * которых в форме этой страны нет или которые человек не заполнил, выпадают;
  * пустая строка не рисуется вовсе.
  *
- * Подпись к номеру квартиры добавляется только в СНГ, где поле так и
- * называется «Квартира» и человек вводит в него одно число. В США и Европе
- * поле описательное («Wohnung, Etage usw.», «Apartment, suite, etc.»), и
- * человек вводит туда готовую формулировку — «Apt 21B», «3. OG», «byt 9».
- * Подпись к ней дала бы «byt byt 9».
+ * Подпись к номеру квартиры зависит не от страны, а от того, что человек
+ * ввёл. В СНГ поле так и называется «Квартира», и в него вводят одно число —
+ * «45» без подписи в карточке не прочитать. В США и Европе поле описательное
+ * («Apartment, suite, etc.», «Wohnung, Etage usw.»), и туда вводят готовую
+ * формулировку: «Apt 21B», «3. OG», «byt 9» — подпись к ней дала бы
+ * «byt byt 9».
+ *
+ * Но и там человек может ввести просто номер: в немецкой адресной книге
+ * лежит «12», и в карточке оно стояло голым числом без всякого объяснения.
+ * Поэтому правило по значению: номер без букв получает подпись, готовая
+ * формулировка остаётся как есть.
  */
-const APARTMENT_LABEL_COUNTRIES: CountryCode[] = ['ru', 'kz']
+const BARE_NUMBER = /^\d+[\d\s./-]*$/
 
 export function composeAddressExtras(
-  country: CountryCode,
   values: Partial<Record<FieldKey, string>> | undefined,
   translate: (key: string, params?: Record<string, string>) => string,
 ): string {
@@ -95,10 +100,9 @@ export function composeAddressExtras(
       return
     }
 
-    const isBareApartment =
-      key === 'apartment' && !APARTMENT_LABEL_COUNTRIES.includes(country)
+    const isSelfLabelled = key === 'apartment' && !BARE_NUMBER.test(value)
 
-    parts.push(isBareApartment ? value : translate(labelKey, { value }))
+    parts.push(isSelfLabelled ? value : translate(labelKey, { value }))
   }
 
   push('apartment', 'address.part.apartment')
