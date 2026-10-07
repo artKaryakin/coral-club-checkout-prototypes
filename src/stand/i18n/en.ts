@@ -158,7 +158,7 @@ export default {
 
   // Американский набор вариантов доставки: бесплатно и долго сверху,
   // дороже и быстрее ниже, срок — датой прибытия.
-  'delivery.variants@us': 'Select your shipping options',
+  'delivery.variants@us': 'Select your shipping speed',
   'delivery.variant.us.free': 'Free Shipping',
   'delivery.variant.us.paid': '{price} Shipping',
   'delivery.variant.us.eta': 'Arrives by {date}',
