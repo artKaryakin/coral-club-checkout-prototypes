@@ -1,94 +1,43 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-import { useCheckout } from '@/composables/useCheckout'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+
+import { useSummarySticky } from '@/composables/useSummarySticky'
 import { useStand } from '@/stand/composables/useStand'
 
+import Cc3ModalOrderSummaryBody from './Cc3ModalOrderSummaryBody.vue'
+
+/**
+ * Блок сводки заказа в конце страницы.
+ *
+ * Пока его не видно, сумму несёт прилипшая шапка сверху. Как только блок
+ * входит в экран, шапка отлипает и закрывается: две одинаковые сводки с
+ * двумя «Итого» на одном экране — это вопрос «а какая настоящая» прямо
+ * внутри замера.
+ */
 const { t } = useStand()
+const { observeBottomSummary } = useSummarySticky()
 
 const text = computed(() => ({
   title: t('summary.title'),
-  subtotal: t('summary.items', { count: summary.value.itemsCount }),
-  shipping: t('summary.delivery'),
-  total: t('summary.total'),
-  itemsPoints: t('summary.itemsPoints', {
-    count: summary.value.itemsCount,
-    points: summary.value.points,
-  }),
-  promoPlaceholder: t('summary.promoPlaceholder'),
-  apply: t('common.apply'),
 }))
 
+const sectionRef = ref<HTMLElement>()
+let stopObserving: (() => void) | undefined
 
-const { summary, orderProductsPreview, promoCode } = useCheckout()
+onMounted(() => {
+  if (sectionRef.value) {
+    stopObserving = observeBottomSummary(sectionRef.value)
+  }
+})
+
+onBeforeUnmount(() => stopObserving?.())
 </script>
 
 <template>
-  <section class="cc3-modal-order-summary">
+  <section ref="sectionRef" class="cc3-modal-order-summary">
     <h2 class="cc3-modal-order-summary__title">{{ text.title }}</h2>
 
-    <!--
-      Раньше превью было кнопкой со стрелкой «раскрыть список товаров», но
-      обработчика у неё не было: человек жал и ничего не происходило. Состав
-      заказа теперь виден целиком — три позиции, — и раскрывать нечего.
-    -->
-    <div class="cc3-modal-order-summary__preview">
-      <span class="cc3-modal-order-summary__thumbs">
-        <span
-          v-for="product in orderProductsPreview"
-          :key="product.id"
-          class="cc3-modal-order-summary__thumb"
-        >
-          <img
-            v-if="product.thumbImage"
-            :src="product.thumbImage"
-            :alt="product.name"
-            class="cc3-modal-order-summary__thumb-img"
-          />
-        </span>
-      </span>
-    </div>
-
-    <p class="cc3-modal-order-summary__count">
-      {{ text.itemsPoints }}
-    </p>
-
-    <dl class="cc3-modal-order-summary__rows">
-      <div class="cc3-modal-order-summary__row">
-        <dt>{{ text.subtotal }}</dt>
-        <dd>{{ summary.itemsTotalFormatRounded }}</dd>
-      </div>
-
-      <div class="cc3-modal-order-summary__row">
-        <dt>{{ text.shipping }}</dt>
-        <dd>{{ summary.deliveryFormatRounded }}</dd>
-      </div>
-
-      <div
-        v-if="summary.walletUsedFormatRounded"
-        class="cc3-modal-order-summary__row cc3-modal-order-summary__row--positive"
-      >
-        <dt>Coral Wallet</dt>
-        <dd>-{{ summary.walletUsedFormatRounded }}</dd>
-      </div>
-
-      <div class="cc3-modal-order-summary__row cc3-modal-order-summary__row--total">
-        <dt>{{ text.total }}</dt>
-        <dd>{{ summary.totalFormatRounded }}</dd>
-      </div>
-    </dl>
-
-    <div class="cc3-modal-order-summary__promo">
-      <input
-        v-model="promoCode"
-        type="text"
-        :placeholder="text.promoPlaceholder"
-        class="cc3-modal-order-summary__promo-input"
-      />
-
-      <button type="button" class="cc3-modal-order-summary__promo-apply" :disabled="!promoCode">
-        {{ text.apply }}
-      </button>
-    </div>
+    <Cc3ModalOrderSummaryBody />
   </section>
 </template>
 
@@ -101,139 +50,6 @@ const { summary, orderProductsPreview, promoCode } = useCheckout()
     @include font('heading-xxs');
 
     color: var(--st-content-foreground-color-neutral-primary);
-  }
-
-  &__preview {
-    display: flex;
-    align-items: center;
-
-    padding: var(--st-global-distance-space-inset-sm) var(--st-global-distance-space-inset-2xl);
-    width: 100%;
-  }
-
-  &__thumbs {
-    display: flex;
-    align-items: center;
-    gap: var(--st-global-distance-space-inset-2xl);
-  }
-
-  &__thumb {
-    display: flex;
-    flex-shrink: 0;
-
-    width: 64px;
-    height: 64px;
-
-    background-color: #f6f6f6;
-    border: 1px solid var(--st-content-border-color-neutral-implicit);
-    border-radius: var(--st-global-radius-x);
-  }
-
-  &__thumb-img {
-    width: 100%;
-    height: 100%;
-
-    border-radius: var(--st-global-radius-x);
-    object-fit: cover;
-  }
-
-  &__count {
-    margin: 0;
-    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
-
-    @include font('body-md');
-
-    color: var(--st-content-foreground-color-neutral-secondary);
-  }
-
-  &__rows {
-    display: flex;
-    flex-direction: column;
-    gap: var(--st-global-distance-space-inset-2xl);
-
-    margin: 0;
-    padding: var(--st-global-distance-space-inset-xl) var(--st-global-distance-space-inset-2xl);
-  }
-
-  &__row {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-
-    dt,
-    dd {
-      margin: 0;
-
-      @include font('body-md');
-
-      color: var(--st-content-foreground-color-neutral-primary);
-    }
-  }
-
-  &__row--positive {
-    dt,
-    dd {
-      color: var(--st-content-foreground-color-positive-secondary);
-      font-weight: 700;
-    }
-  }
-
-  &__row--total {
-    dt,
-    dd {
-      @include font('heading-xxs');
-    }
-  }
-
-  &__promo {
-    display: flex;
-    gap: var(--st-global-distance-space-inset-md);
-
-    padding: 0 var(--st-global-distance-space-inset-2xl) var(--st-global-distance-space-inset-2xl);
-  }
-
-  &__promo-input {
-    flex: 1;
-    min-width: 0;
-
-    padding: var(--st-global-distance-space-inset-lg) var(--st-global-distance-space-inset-xl);
-
-    font-family: inherit;
-
-    @include font('body-sm');
-
-    color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-interaction-background-color-ghost-normal);
-    border: 2px solid var(--st-interaction-border-color-neutral-normal);
-    border-radius: var(--st-global-radius-sm);
-
-    &::placeholder {
-      color: var(--st-content-foreground-color-neutral-tetriary);
-    }
-
-    &:focus {
-      border-color: var(--st-action-background-color-positive-normal);
-      outline: none;
-    }
-  }
-
-  &__promo-apply {
-    padding: var(--st-global-distance-space-inset-lg);
-
-    font-family: inherit;
-
-    @include font('label-sm');
-
-    color: var(--st-action-foreground-color-neutral-normal);
-    background: none;
-    border: 1px solid var(--st-action-foreground-color-neutral-normal);
-    border-radius: var(--st-global-radius-sm);
-    cursor: pointer;
-
-    &:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
   }
 }
 </style>
