@@ -187,7 +187,6 @@ export default {
   'payment.paypal': 'PayPal',
   'summary.title': 'Состав заказа',
   'summary.items': 'Товары ({count})',
-  'summary.more': 'ещё {count}',
   'summary.delivery': 'Доставка',
   'summary.pickupPoint': 'Пункт выдачи ({code})',
   'summary.itemsPoints': '{count} товаров, {points} баллов',
@@ -216,7 +215,6 @@ export default {
   'submit.legal': 'Нажимая «Перейти к оплате», вы соглашаетесь с условиями использования сервиса Coral Club. С подробными условиями доставки можно ознакомиться на странице',
   'submit.legalLink': 'доставки и оплаты',
   'addressBook.title': 'Адресная книга',
-  'addressBook.all': 'Все адреса',
   'addressBook.empty': 'По запросу «{query}» ничего не найдено.',
   'footer.copyright': '1999–2024 © Coral Club. Все права защищены. Официальный сайт Coral Club',
 

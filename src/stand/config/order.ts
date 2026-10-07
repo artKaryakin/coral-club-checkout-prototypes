@@ -35,37 +35,37 @@ export interface CountryOrderPrices {
 
 export const orderPrices: Record<CountryCode, CountryOrderPrices> = {
   ru: {
-    products: { 'b-luron': 1200, 'coral-detox-plus': 3900, 'd-spray': 1000, 'ultimate-max': 1400 },
+    products: { 'b-luron': 2200, 'coral-detox-plus': 5900, 'd-spray': 2000 },
     wallet: 2000,
     express: 500,
   },
 
   kz: {
-    products: { 'b-luron': 6000, 'coral-detox-plus': 19500, 'd-spray': 5000, 'ultimate-max': 7000 },
+    products: { 'b-luron': 11000, 'coral-detox-plus': 29500, 'd-spray': 10000 },
     wallet: 10000,
     express: 2500,
   },
 
   de: {
-    products: { 'b-luron': 12, 'coral-detox-plus': 39, 'd-spray': 10, 'ultimate-max': 14 },
+    products: { 'b-luron': 22, 'coral-detox-plus': 59, 'd-spray': 20 },
     wallet: 20,
     express: 4.9,
   },
 
   pl: {
-    products: { 'b-luron': 48, 'coral-detox-plus': 156, 'd-spray': 40, 'ultimate-max': 56 },
+    products: { 'b-luron': 88, 'coral-detox-plus': 236, 'd-spray': 80 },
     wallet: 80,
     express: 19.9,
   },
 
   cz: {
-    products: { 'b-luron': 280, 'coral-detox-plus': 900, 'd-spray': 230, 'ultimate-max': 320 },
+    products: { 'b-luron': 500, 'coral-detox-plus': 1350, 'd-spray': 480 },
     wallet: 460,
     express: 120,
   },
 
   us: {
-    products: { 'b-luron': 12, 'coral-detox-plus': 39, 'd-spray': 10, 'ultimate-max': 14 },
+    products: { 'b-luron': 22, 'coral-detox-plus': 59, 'd-spray': 20 },
     wallet: 20,
     express: 9,
     shippingTiers: [0, 5, 9],
