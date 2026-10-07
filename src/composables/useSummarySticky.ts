@@ -9,11 +9,20 @@ import { computed, ref } from 'vue'
  * котором остановился. Поэтому шапка сводки прилипает к верху экрана и
  * несёт сумму с собой, а по нажатию раскрывается в полную сводку.
  *
- * Отлипает она ровно тогда, когда в экран входит сам блок сводки: дальше
- * сумма видна и так, а две одинаковые панели с двумя «Итого» на одном
- * экране — это вопрос «а какая из них настоящая» прямо внутри замера.
- * По той же причине при входе блока панель закрывается, а не остаётся
- * висеть поверх него.
+ * Отлипает она, когда блок сводки внизу страницы доехал до неё самой:
+ * верхний край блока поравнялся с нижним краем полосы. Там блок и
+ * перехватывает сумму.
+ *
+ * Сначала правило было другим — «как только блок сводки показался на
+ * экране», — и на коротких страницах полоса не прилипала вовсе: у
+ * модального концепта тело чекаута умещается почти целиком, и сводка видна
+ * снизу сразу. Полоса отпускалась на первом же движении.
+ *
+ * Положение считается по прокрутке, а не наблюдателем пересечений:
+ * наблюдатель сообщает только моменты пересечения границ, и на короткой
+ * странице, где метка попадает в экран сразу, нужный момент он пропускал.
+ * Чтение getBoundingClientRect раз в кадр для одного элемента ничего не
+ * стоит и ведёт себя одинаково везде.
  *
  * Состояние на уровне модуля, как у замера прохождения: шапка и блок стоят
  * в разных ветках дерева компонентов и через props друг друга не видят.
@@ -22,54 +31,82 @@ import { computed, ref } from 'vue'
 /** Раскрыта ли панель под прилипшей шапкой. */
 const isExpanded = ref(false)
 
-/** Виден ли на экране сам блок сводки в конце страницы. */
-const isBottomVisible = ref(false)
+/** Блок сводки дошёл до полосы — дальше сумму показывает он. */
+const isBottomReached = ref(false)
+
+/** Высота полосы: по ней проходит линия передачи. */
+const barHeight = ref(52)
 
 export function useSummarySticky() {
   function toggle() {
     isExpanded.value = !isExpanded.value
   }
 
-  /**
-   * Наблюдение за блоком сводки. Возвращает функцию отписки — её вызывает
-   * сам блок при размонтировании, иначе наблюдатель переживёт смену версии
-   * чекаута и шапка останется отлипшей на новой странице.
-   */
-  function observeBottomSummary(element: HTMLElement): () => void {
-    if (typeof IntersectionObserver === 'undefined') {
-      return () => {}
+  /** Полоса сообщает свою высоту — линия передачи проходит по её низу. */
+  function setBarHeight(value: number) {
+    if (value > 0) {
+      barHeight.value = value
     }
+  }
 
-    const observer = new IntersectionObserver((entries) => {
-      const isVisible = entries.some((entry) => entry.isIntersecting)
+  /**
+   * Следим за меткой в начале блока сводки. Возвращает функцию отписки: её
+   * вызывает сам блок при размонтировании, иначе слушатели переживут смену
+   * версии чекаута.
+   */
+  function trackSummaryAnchor(element: HTMLElement): () => void {
+    let frame = 0
 
-      isBottomVisible.value = isVisible
+    function measure() {
+      frame = 0
 
-      if (isVisible) {
+      const reached = element.getBoundingClientRect().top <= barHeight.value
+
+      isBottomReached.value = reached
+
+      if (reached) {
         isExpanded.value = false
       }
-    })
+    }
 
-    observer.observe(element)
+    // Пересчёт раз в кадр: событий прокрутки приходит больше, чем экран
+    // успевает перерисовать.
+    function schedule() {
+      if (frame === 0) {
+        frame = window.requestAnimationFrame(measure)
+      }
+    }
+
+    measure()
+
+    window.addEventListener('scroll', schedule, { passive: true })
+    window.addEventListener('resize', schedule)
 
     return () => {
-      observer.disconnect()
-      isBottomVisible.value = false
+      window.removeEventListener('scroll', schedule)
+      window.removeEventListener('resize', schedule)
+
+      if (frame !== 0) {
+        window.cancelAnimationFrame(frame)
+      }
+
+      isBottomReached.value = false
     }
   }
 
   /** Версия чекаута закрылась — состояние не должно протечь в следующую. */
   function resetSticky() {
     isExpanded.value = false
-    isBottomVisible.value = false
+    isBottomReached.value = false
   }
 
   return {
     isExpanded: computed(() => isExpanded.value),
-    /** Шапка прилипает, пока блок сводки не показался на экране. */
-    isSticky: computed(() => !isBottomVisible.value),
+    /** Полоса прилипшая, пока блок сводки до неё не доехал. */
+    isSticky: computed(() => !isBottomReached.value),
     toggle,
-    observeBottomSummary,
+    setBarHeight,
+    trackSummaryAnchor,
     resetSticky,
   }
 }

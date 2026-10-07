@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from 'vue'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
 
 import Cc3Icon from '@/components/Icon/Cc3Icon.vue'
 import { useCheckout } from '@/composables/useCheckout'
@@ -20,11 +20,18 @@ import Cc3ModalOrderSummaryBody from './Cc3ModalOrderSummaryBody.vue'
  */
 const { t } = useStand()
 const { summary } = useCheckout()
-const { isExpanded, isSticky, toggle, resetSticky } = useSummarySticky()
+const { isExpanded, isSticky, toggle, setBarHeight, resetSticky } = useSummarySticky()
 
 const text = computed(() => ({
   title: t('summary.title'),
 }))
+
+const headRef = ref<HTMLElement>()
+
+// Линия, на которой полоса отдаёт сумму блоку сводки, проходит по её
+// нижнему краю. Высоту берём с живого элемента, а не числом: подписи
+// переводятся, и в немецком полоса выше.
+onMounted(() => setBarHeight(headRef.value?.offsetHeight ?? 0))
 
 onBeforeUnmount(resetSticky)
 </script>
@@ -34,7 +41,7 @@ onBeforeUnmount(resetSticky)
     class="cc3-modal-summary-bar"
     :class="{ 'cc3-modal-summary-bar--sticky': isSticky }"
   >
-    <button type="button" class="cc3-modal-summary-bar__head" @click="toggle">
+    <button ref="headRef" type="button" class="cc3-modal-summary-bar__head" @click="toggle">
       <span class="cc3-modal-summary-bar__label">
         {{ text.title }}
         <Cc3Icon
