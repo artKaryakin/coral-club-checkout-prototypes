@@ -3,6 +3,7 @@ import type { CountryCode, LocaleCode, StandProfile } from '../config/types'
 import type { UserType } from '../config/users'
 import { standLogAttempts, standLogUrl } from '../config/logging'
 import { testProfile } from '../config/profiles'
+import { resetSuggestCooldown } from '../suggest/cooldown'
 import type { StandVariant } from './useStand'
 
 /**
@@ -128,6 +129,11 @@ export function useStandRun() {
     startedAt.value = Date.now()
     finishedRun.value = undefined
     sendState.value = 'idle'
+
+    // Новая версия — новая попытка достучаться до сервиса подсказок. Отказ,
+    // пойманный в прошлом прогоне, не должен встречать респондента
+    // запасным списком с первой же буквы.
+    resetSuggestCooldown()
   }
 
   function resetRun() {

@@ -1,5 +1,6 @@
 import { countries } from '../config/countries'
 import type { CountryCode, CountryConfig } from '../config/types'
+import { isSuggestCoolingDown, startSuggestCooldown } from './cooldown'
 import { photonProvider } from './photon'
 import type { AddressSuggestion, SuggestPoint, SuggestProvider } from './types'
 
@@ -26,21 +27,45 @@ export function resolveProvider(country: CountryCode): SuggestProvider {
   return providers[countries[country].provider] ?? fallbackProvider
 }
 
+/** Сколько ждём адрес по точке, прежде чем считать, что ответа не будет. */
+const REVERSE_TIMEOUT_MS = 5000
+
 /**
  * Адрес по точке на карте.
  *
  * Ошибку не подменяем заглушкой: пользователь ткнул в конкретное место, и
  * показать ему вымышленный адрес хуже, чем не показать никакого — метка
  * останется там, куда он ткнул, а адрес он допишет сам.
+ *
+ * Свой срок ожидания здесь по той же причине, что и у подсказок: молчащий
+ * сервис оставлял карту в вечном ожидании адреса. И отказ засчитывается в
+ * общую паузу — касания карты ходят к тому же серверу, что и ввод.
  */
 export async function reverseAddress(
   point: SuggestPoint,
   country: CountryCode,
   signal: AbortSignal,
 ): Promise<AddressSuggestion | undefined> {
-  try {
-    return await resolveProvider(country).reverse(point, country, signal)
-  } catch {
+  if (isSuggestCoolingDown()) {
     return undefined
+  }
+
+  const expiry = new AbortController()
+  const timer = setTimeout(() => expiry.abort(), REVERSE_TIMEOUT_MS)
+  const stop = () => expiry.abort()
+
+  signal.addEventListener('abort', stop)
+
+  try {
+    return await resolveProvider(country).reverse(point, country, expiry.signal)
+  } catch {
+    if (!signal.aborted) {
+      startSuggestCooldown()
+    }
+
+    return undefined
+  } finally {
+    clearTimeout(timer)
+    signal.removeEventListener('abort', stop)
   }
 }
