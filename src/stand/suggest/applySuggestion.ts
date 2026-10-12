@@ -42,8 +42,18 @@ function matchOption(field: StandField, value: string): string | undefined {
 /** Рынки, где адрес читают от города к дому. */
 const cityFirst: CountryCode[] = ['ru', 'kz']
 
-/** Строка адреса без номера дома — собирается из тех же частей подсказки. */
+/**
+ * Строка адреса без номера дома.
+ *
+ * Провайдер мог собрать её сам — тогда берём его: у него свои типы частей
+ * («г Москва, ул Москворечье»), и пересобранная нами строка отличалась бы
+ * от той, которую человек только что выбрал из списка.
+ */
 function labelWithoutHouse(suggestion: AddressSuggestion, country: CountryCode): string {
+  if (suggestion.lineWithoutHouse) {
+    return suggestion.lineWithoutHouse
+  }
+
   const parts = cityFirst.includes(country)
     ? [suggestion.city, suggestion.street]
     : [suggestion.street, suggestion.city]

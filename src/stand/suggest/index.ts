@@ -1,6 +1,7 @@
 import { countries } from '../config/countries'
 import type { CountryCode, CountryConfig } from '../config/types'
 import { isSuggestCoolingDown, startSuggestCooldown } from './cooldown'
+import { dadataProvider, dadataToken } from './dadata'
 import { photonProvider } from './photon'
 import type { AddressSuggestion, SuggestPoint, SuggestProvider } from './types'
 
@@ -18,6 +19,10 @@ export type { FieldValues } from './applySuggestion'
  */
 const providers: Partial<Record<CountryConfig['provider'], SuggestProvider>> = {
   photon: photonProvider,
+  // Без ключа «Дадата» не регистрируется, и Россия уходит на запасного
+  // провайдера. Так сборка без переменной окружения не падает и не
+  // показывает пустые подсказки — она просто работает хуже.
+  ...(dadataToken ? { dadata: dadataProvider } : {}),
 }
 
 /** Провайдер, которым подменяются ещё не подключённые. */

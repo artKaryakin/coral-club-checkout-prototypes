@@ -1,5 +1,6 @@
 import { onScopeDispose, ref } from 'vue'
 import { resolveProvider } from '../suggest'
+import { rememberSuggest, suggestCache } from '../suggest/cache'
 import { isSuggestCoolingDown, startSuggestCooldown } from '../suggest/cooldown'
 import type { AddressSuggestion, SuggestStatus } from '../suggest/types'
 import { useStand } from './useStand'
@@ -8,12 +9,13 @@ import { useStand } from './useStand'
 const MIN_QUERY = 3
 
 /**
- * Пауза после последнего нажатия клавиши.
+ * Пауза после последнего нажатия клавиши, если провайдер не просит другую.
  *
  * Было 300 мс — три запроса в секунду с одного поля. Публичные клиенты
  * Photon ходят к демо-серверу не чаще раза в секунду, и за сессию разница
  * набегает в сотни запросов. 500 мс по ощущению те же «сразу», а нагрузка
- * вдвое меньше.
+ * вдвое меньше. «Дадата» просит свои 300 — у неё лимит суточный, а не
+ * посекундный, и там дорог объём запроса, а не их частота.
  */
 const DEBOUNCE_MS = 500
 
@@ -87,6 +89,20 @@ export function useAddressSuggest() {
       return
     }
 
+    const key = `${country.value}|${query.toLowerCase()}`
+    const cached = suggestCache.get(key)
+
+    // Тот же запрос в том же прогоне — ответ уже есть. Человек стирает
+    // последнюю букву и возвращает её, правит дом, возвращается к полю
+    // из формы: за прогон один и тот же текст уходит к сервису по
+    // нескольку раз.
+    if (cached) {
+      items.value = cached
+      status.value = cached.length > 0 ? 'ready' : 'empty'
+
+      return
+    }
+
     const current = new AbortController()
 
     controller = current
@@ -114,6 +130,8 @@ export function useAddressSuggest() {
         return
       }
 
+      rememberSuggest(key, result)
+
       items.value = result
       status.value = result.length > 0 ? 'ready' : 'empty'
     } catch {
@@ -138,9 +156,12 @@ export function useAddressSuggest() {
       return
     }
 
-    timer = setTimeout(() => {
-      void request(query.trim())
-    }, DEBOUNCE_MS)
+    timer = setTimeout(
+      () => {
+        void request(query.trim())
+      },
+      resolveProvider(country.value).debounceMs ?? DEBOUNCE_MS,
+    )
   }
 
   onScopeDispose(cancel)
