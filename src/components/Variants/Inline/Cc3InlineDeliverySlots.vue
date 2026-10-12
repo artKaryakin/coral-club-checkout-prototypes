@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
+import { deliverySlotsFor, hasDeliverySlots } from '@/stand/config/deliverySlots'
 import { useStand } from '@/stand/composables/useStand'
 
 /**
@@ -15,26 +16,48 @@ import { useStand } from '@/stand/composables/useStand'
  * способу доставки, а не адресу: у экспресса в день заказа и у обычного
  * курьера это разные интервалы. Пока способ не выбран, выбирать дату не от
  * чего — и именно это раньше сбивало, слоты стояли выше вариантов.
+ *
+ * Сам набор приходит из ядра стенда: даты считаются от дня прогона, а не
+ * стоят строками в словаре. Здесь только отрисовка и выбор.
  */
-type Chip = { label: string; value: string }
+const props = defineProps<{
+  /** Выбранный способ доставки: у экспресса свои даты и окна. */
+  variantId?: string
+}>()
 
-const dateSlots = ['day1', 'day2', 'day3']
-const timeSlots = ['time1', 'time2']
+const { country, countryConfig, t } = useStand()
 
-const { country, t } = useStand()
+const hasSlots = computed(() => hasDeliverySlots(country.value))
 
-const hasSlots = computed(() => country.value === 'ru')
-
-const dateChips = computed<Chip[]>(() =>
-  dateSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
+const slots = computed(() =>
+  deliverySlotsFor(props.variantId, countryConfig.value.intlLocale, t),
 )
 
-const timeChips = computed<Chip[]>(() =>
-  timeSlots.map((value) => ({ value, label: t(`delivery.slot.${value}`) })),
-)
+const dateChips = computed(() => slots.value.dates)
+const timeChips = computed(() => slots.value.times)
 
-const selectedDate = ref(dateSlots[0])
-const selectedTime = ref(timeSlots[0])
+const selectedDate = ref('')
+const selectedTime = ref('')
+
+/**
+ * Смена способа доставки меняет и набор: выбранное «Завтра» у экспресса в
+ * день заказа не существует, и ряд остался бы без выбранной чипсы. Первый
+ * слот выбран заранее — это ближайшая доставка, то есть то, чего человек
+ * чаще всего и хочет.
+ */
+watch(
+  slots,
+  (value) => {
+    if (!value.dates.some((chip) => chip.value === selectedDate.value)) {
+      selectedDate.value = value.dates[0]?.value ?? ''
+    }
+
+    if (!value.times.some((chip) => chip.value === selectedTime.value)) {
+      selectedTime.value = value.times[0]?.value ?? ''
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>

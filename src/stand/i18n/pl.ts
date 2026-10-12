@@ -82,11 +82,11 @@ export default {
   'common.zoomOut': 'Oddal',
   'common.findAddress': 'Znajdź adres',
   'delivery.variants.hint': 'Podaj adres — pokażemy dostępne sposoby dostawy',
-  'delivery.slot.day1': 'Jutro',
-  'delivery.slot.day2': '28 sie, pt',
-  'delivery.slot.day3': '29 sie, sb',
-  'delivery.slot.time1': '12:00 — 23:00',
-  'delivery.slot.time2': '13:00 — 00:00',
+  // Подписи дат собираются из даты прогона: раньше тут стояли
+  // «28 авг, пт» строками, и к октябрю стенд предлагал доставку
+  // в прошлом. Сами даты и окна времени — в config/deliverySlots.ts.
+  'delivery.slot.today': 'Dziś',
+  'delivery.slot.tomorrow': 'Jutro',
   'common.map': 'Mapa',
   'common.list': 'Lista',
   'checkout.title': 'Zamówienie',

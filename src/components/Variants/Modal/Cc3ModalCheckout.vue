@@ -110,7 +110,7 @@ watch(
           name="modal-courier-variant"
         />
 
-        <Cc3InlineDeliverySlots />
+        <Cc3InlineDeliverySlots :variant-id="courierVariant" />
       </section>
 
       <Cc3ModalPaymentMethods />
