@@ -1,7 +1,11 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
-import { deliverySlotsFor, hasDeliverySlots } from '@/stand/config/deliverySlots'
+import {
+  deliveryDatesFor,
+  deliveryTimesFor,
+  hasDeliverySlots,
+} from '@/stand/config/deliverySlots'
 import { useStand } from '@/stand/composables/useStand'
 
 /**
@@ -13,9 +17,9 @@ import { useStand } from '@/stand/composables/useStand'
  * повторять это условие.
  *
  * Стоит под вариантами доставки, а не в карточке адреса. Слот принадлежит
- * способу доставки, а не адресу: у экспресса в день заказа и у обычного
- * курьера это разные интервалы. Пока способ не выбран, выбирать дату не от
- * чего — и именно это раньше сбивало, слоты стояли выше вариантов.
+ * способу доставки, а не адресу: у экспресса и у обычного курьера это
+ * разные интервалы. Пока способ не выбран, выбирать дату не от чего — и
+ * именно это раньше сбивало, слоты стояли выше вариантов.
  *
  * Сам набор приходит из ядра стенда: даты считаются от дня прогона, а не
  * стоят строками в словаре. Здесь только отрисовка и выбор.
@@ -29,31 +33,51 @@ const { country, countryConfig, t } = useStand()
 
 const hasSlots = computed(() => hasDeliverySlots(country.value))
 
-const slots = computed(() =>
-  deliverySlotsFor(props.variantId, countryConfig.value.intlLocale, t),
-)
-
-const dateChips = computed(() => slots.value.dates)
-const timeChips = computed(() => slots.value.times)
-
 const selectedDate = ref('')
 const selectedTime = ref('')
 
+const dateChips = computed(() =>
+  deliveryDatesFor(props.variantId, countryConfig.value.intlLocale, t),
+)
+
+// Окна зависят от выбранной даты, а не только от способа: у экспресса на
+// сегодня отпадают ближайшие часы, на завтра набор полный.
+const timeChips = computed(() => deliveryTimesFor(props.variantId, selectedDate.value))
+
 /**
- * Смена способа доставки меняет и набор: выбранное «Завтра» у экспресса в
- * день заказа не существует, и ряд остался бы без выбранной чипсы. Первый
- * слот выбран заранее — это ближайшая доставка, то есть то, чего человек
- * чаще всего и хочет.
+ * Сменили способ — выбор возвращается к ближайшей дате.
+ *
+ * Не «оставить, если ещё подходит»: у курьера и экспресса ряды теперь
+ * пересекаются по «Завтра», и переключившийся на экспресс человек
+ * оставался бы с завтрашней датой, хотя весь смысл экспресса — сегодня.
  */
 watch(
-  slots,
-  (value) => {
-    if (!value.dates.some((chip) => chip.value === selectedDate.value)) {
-      selectedDate.value = value.dates[0]?.value ?? ''
-    }
+  () => props.variantId,
+  () => {
+    selectedDate.value = dateChips.value[0]?.value ?? ''
+  },
+  { immediate: true },
+)
 
-    if (!value.times.some((chip) => chip.value === selectedTime.value)) {
-      selectedTime.value = value.times[0]?.value ?? ''
+/**
+ * А вот даты меняются и сами — к вечеру, с переходом суток. Здесь выбор
+ * трогаем, только если выбранного больше нет в ряду.
+ */
+watch(dateChips, (chips) => {
+  if (!chips.some((chip) => chip.value === selectedDate.value)) {
+    selectedDate.value = chips[0]?.value ?? ''
+  }
+})
+
+/**
+ * Окно — первое доступное: ближайшее к выбранной дате. Пересобирается при
+ * смене даты, потому что у экспресса на сегодня набор короче.
+ */
+watch(
+  timeChips,
+  (chips) => {
+    if (!chips.some((chip) => chip.value === selectedTime.value)) {
+      selectedTime.value = chips[0]?.value ?? ''
     }
   },
   { immediate: true },

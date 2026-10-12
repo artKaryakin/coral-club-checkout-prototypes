@@ -24,11 +24,6 @@ export interface DeliverySlotChip {
   label: string
 }
 
-export interface DeliverySlots {
-  dates: DeliverySlotChip[]
-  times: DeliverySlotChip[]
-}
-
 type Translate = (key: string, params?: Record<string, string>) => string
 
 /**
@@ -42,15 +37,30 @@ const STANDARD_WINDOWS: [number, number][] = [
   [18, 22],
 ]
 
-/** Окна экспресса: остаток того же дня, короче обычных. */
+/**
+ * Окна экспресса: короче курьерских, по три часа, и их четыре — быстрая
+ * доставка тем и отличается, что человек выбирает время точнее.
+ */
 const EXPRESS_WINDOWS: [number, number][] = [
+  [11, 14],
   [14, 17],
   [17, 20],
   [20, 23],
 ]
 
 /** На сколько дней вперёд можно назначить обычного курьера. */
-const STANDARD_DAYS = 5
+const STANDARD_DAYS = 3
+
+/**
+ * Экспресс — сегодня и завтра.
+ *
+ * Только сегодня было нечестно по собственной подписи варианта: «доступно
+ * для заказов с 10:00 до 17:00». После этого часа служба сегодня уже не
+ * привезёт, и единственной датой оставался день, в который доставки не
+ * будет. Плюс к вечеру из окон оставалось одно — ряд из одной кнопки, где
+ * нечего выбирать.
+ */
+const EXPRESS_DAYS = 2
 
 /**
  * Запас до начала окна. Окно, которое начинается через двадцать минут,
@@ -132,24 +142,39 @@ function shift(days: number): Date {
  * курьер — с завтрашнего дня на неделю вперёд: «1–2 дня» это срок, за
  * который заказ доедет, а не запрет назначить доставку на пятницу.
  */
-export function deliverySlotsFor(
+export function deliveryDatesFor(
   variantId: string | undefined,
   locale: string,
   translate: Translate,
-): DeliverySlots {
+): DeliverySlotChip[] {
   if (variantId === 'express') {
-    return {
-      dates: [dateChip(shift(0), 0, locale, translate)],
-      times: windowChips(EXPRESS_WINDOWS, new Date()),
-    }
+    return Array.from({ length: EXPRESS_DAYS }, (_, index) =>
+      dateChip(shift(index), index, locale, translate),
+    )
   }
 
-  return {
-    dates: Array.from({ length: STANDARD_DAYS }, (_, index) =>
-      dateChip(shift(index + 1), index + 1, locale, translate),
-    ),
-    times: windowChips(STANDARD_WINDOWS),
+  return Array.from({ length: STANDARD_DAYS }, (_, index) =>
+    dateChip(shift(index + 1), index + 1, locale, translate),
+  )
+}
+
+/**
+ * Окна под выбранную дату.
+ *
+ * Время зависит от даты, а не только от способа: у экспресса на сегодня
+ * отпадают окна, до начала которых меньше двух часов, а на завтра набор
+ * полный. Без этой связи вечерний прогон показывал одно окно и на сегодня,
+ * и на завтра.
+ */
+export function deliveryTimesFor(
+  variantId: string | undefined,
+  dateValue: string,
+): DeliverySlotChip[] {
+  if (variantId !== 'express') {
+    return windowChips(STANDARD_WINDOWS)
   }
+
+  return windowChips(EXPRESS_WINDOWS, dateValue === 'd0' ? new Date() : undefined)
 }
 
 /** Рынки, где дату и время выбирают. */
