@@ -224,21 +224,21 @@ export default {
   // подписи и примеры ввода — местные для каждого рынка
   'field.autofilled.hint': 'Filled from the suggestion, you can edit it',
   'suggest.loading': 'Searching…',
-  'suggest.empty': 'Nothing found — enter the address manually',
-  'suggest.error': 'Suggestion service is unavailable, showing examples',
+  // Одна подпись на оба исхода: сервис ничего не нашёл и сервис не
+  // ответил. Для человека разницы нет — ему важно, что дальше можно
+  // просто ввести адрес руками.
+  'suggest.empty': 'No results. You can enter the address manually',
 
   'field.addressLabel.label': 'Address name',
   'field.addressLabel.home': 'Home',
   'field.addressLabel.work': 'Work',
   'field.addressLabel.custom': 'Custom',
   'field.street.label': 'Find address',
-  'field.street.placeholder': 'Street address',
-  'field.street.placeholder@ru': 'Москва, ул. Москворечье, 43',
-  'field.street.placeholder@kz': 'Алматы, ул. Абая, 150',
-  'field.street.placeholder@de': 'Kastanienallee 42',
-  'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
-  'field.street.placeholder@cz': 'Vinohradská 112',
-  'field.street.placeholder@us': '350 5th Ave',
+  // Инструкция, а не пример адреса: готовый адрес в плейсхолдере
+  // читается как уже заполненное поле. Переопределений по странам
+  // здесь больше нет — они и были теми самыми примерами.
+  'field.street.placeholder': 'Enter street and house number',
+  'field.street.placeholder@us': 'Enter street address',
   'field.street.label@us': 'Start typing address',
   'field.house.label': 'House number',
   'field.house.placeholder': '43',

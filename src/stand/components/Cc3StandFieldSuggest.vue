@@ -46,10 +46,12 @@ const emit = defineEmits<{
 
 const { t } = useStand()
 
+// «Сервис ничего не нашёл» и «сервис не ответил» — для человека один и тот
+// же тупик, и выход из него один: ввести адрес руками. Разными подписями мы
+// предлагали бы ему разбираться, что сломалось, вместо того чтобы продолжить.
 const note = computed(() => {
   if (props.status === 'loading') return t('suggest.loading')
-  if (props.status === 'empty') return t('suggest.empty')
-  if (props.status === 'error') return t('suggest.error')
+  if (props.status === 'empty' || props.status === 'error') return t('suggest.empty')
 
   return ''
 })
@@ -97,10 +99,21 @@ const note = computed(() => {
     }
   }
 
+  // Подпись лежит на той же подложке, что и список. Раньше она появлялась
+  // только вместе с подсказками и вставала на их фон; теперь при отказе
+  // сервиса список пуст, и без своей подложки прозрачная строка легла
+  // поверх полей формы.
   &__note {
     margin: var(--st-global-distance-space-inset-xs) 0 0;
 
+    padding: var(--st-global-distance-space-inset-md);
+
     color: var(--st-content-foreground-color-neutral-tetriary);
+    background-color: var(--st-content-background-color-neutral-primary);
+    border-color: var(--st-action-border-color-neutral-subtle-normal);
+    border-style: solid;
+    border-width: 1px;
+    border-radius: var(--st-global-radius-md);
   }
 }
 </style>

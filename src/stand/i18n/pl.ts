@@ -222,21 +222,21 @@ export default {
   // подписи и примеры ввода — местные для каждого рынка
   'field.autofilled.hint': 'Uzupełni się z podpowiedzi, można poprawić',
   'suggest.loading': 'Szukamy…',
-  'suggest.empty': 'Nic nie znaleziono — wpisz adres ręcznie',
-  'suggest.error': 'Usługa podpowiedzi niedostępna, pokazujemy przykłady',
+  // Одна подпись на оба исхода: сервис ничего не нашёл и сервис не
+  // ответил. Для человека разницы нет — ему важно, что дальше можно
+  // просто ввести адрес руками.
+  'suggest.empty': 'Brak wyników. Możesz wpisać adres ręcznie',
 
   'field.addressLabel.label': 'Nazwa adresu',
   'field.addressLabel.home': 'Dom',
   'field.addressLabel.work': 'Praca',
   'field.addressLabel.custom': 'Własna nazwa',
   'field.street.label': 'Znajdź adres',
-  'field.street.placeholder': 'Ulica i numer domu',
-  'field.street.placeholder@ru': 'Москва, ул. Москворечье, 43',
-  'field.street.placeholder@kz': 'Алматы, ул. Абая, 150',
-  'field.street.placeholder@de': 'Kastanienallee 42',
-  'field.street.placeholder@pl': 'ul. Marszałkowska 84/92',
-  'field.street.placeholder@cz': 'Vinohradská 112',
-  'field.street.placeholder@us': '350 5th Ave',
+  // Инструкция, а не пример адреса: готовый адрес в плейсхолдере
+  // читается как уже заполненное поле. Переопределений по странам
+  // здесь больше нет — они и были теми самыми примерами.
+  'field.street.placeholder': 'Podaj ulicę i numer domu',
+  'field.street.placeholder@us': 'Enter street address',
   'field.street.label@us': 'Start typing address',
   'field.house.label': 'Numer domu',
   'field.house.placeholder': '43',

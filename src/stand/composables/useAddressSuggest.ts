@@ -1,7 +1,6 @@
 import { onScopeDispose, ref } from 'vue'
 import { resolveProvider } from '../suggest'
 import { isSuggestCoolingDown, startSuggestCooldown } from '../suggest/cooldown'
-import { mockSuggest } from '../suggest/mock'
 import type { AddressSuggestion, SuggestStatus } from '../suggest/types'
 import { useStand } from './useStand'
 
@@ -38,8 +37,9 @@ const TIMEOUT_MS = 5000
  *  - отмена предыдущего запроса, иначе медленный ответ на «Мос» перебивает
  *    список, собранный по «Москворечье»;
  *  - свой срок ожидания, иначе молчащий сервис держит поле в «ищем» вечно;
- *  - живой список при отказе сервиса — публичный Photon без гарантий, и
- *    падать посреди интервью он не должен.
+ *  - честный ответ при отказе сервиса — публичный Photon без гарантий, и
+ *    посреди интервью человек должен узнать, что адрес можно ввести руками,
+ *    а не гадать, почему список пуст.
  */
 export function useAddressSuggest() {
   const { country } = useStand()
@@ -63,9 +63,18 @@ export function useAddressSuggest() {
     status.value = 'idle'
   }
 
-  /** Отказ сервиса: показываем запасной список и говорим, что он запасной. */
-  function fallback(query: string) {
-    items.value = mockSuggest(query, country.value)
+  /**
+   * Сервис не ответил. Раньше здесь подставлялся запасной список из трёх
+   * выдуманных адресов, и это было хуже пустоты: респондент видел под своим
+   * вводом «Москва, ул. Москворечье, 43», выбирал его и уезжал на чужой
+   * адрес. В замере это уже не его сценарий.
+   *
+   * Теперь список пуст, а под полем сказано, что адрес можно ввести руками.
+   * Так и есть: ни одно поле формы не заблокировано, а кнопка «Продолжить»
+   * на шаге поиска не требует выбранной подсказки.
+   */
+  function fallback() {
+    items.value = []
     status.value = 'error'
   }
 
@@ -73,7 +82,7 @@ export function useAddressSuggest() {
     // Сервис отказал только что — ждать от него ответа незачем, а каждый
     // новый запрос к нему только продлевает отказ.
     if (isSuggestCoolingDown()) {
-      fallback(query)
+      fallback()
 
       return
     }
@@ -113,7 +122,7 @@ export function useAddressSuggest() {
       }
 
       startSuggestCooldown()
-      fallback(query)
+      fallback()
     } finally {
       clearTimeout(expiry)
     }

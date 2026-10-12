@@ -151,10 +151,19 @@ const hint = computed(() => {
 
 const options = computed(() => props.field.options ?? [])
 
-// Плейсхолдер-пример (формат адреса, ФИО, email) сбивает — похож на уже
-// введённое значение. Оставляем его только у телефона: это маска ввода,
-// а не образец, и без неё непонятно, в каком формате набирать номер.
-const placeholder = computed(() => (props.field.type === 'phone' ? props.field.placeholder : ''))
+// Плейсхолдер-пример (готовый адрес, ФИО, email) сбивает — похож на уже
+// введённое значение. Плейсхолдер-инструкция не сбивает: «Введите улицу и
+// номер дома» никто не прочитает как заполненное поле.
+//
+// Поэтому показываем его у телефона (там это маска ввода, и без неё
+// непонятно, в каком формате набирать номер) и у строки адреса — она
+// открывает форму, и по одной подписи «Найти адрес» непонятно, с чего
+// начинать: с города, с улицы или с индекса.
+const PLACEHOLDER_TYPES = ['phone', 'autocomplete']
+
+const placeholder = computed(() =>
+  PLACEHOLDER_TYPES.includes(props.field.type) ? props.field.placeholder : '',
+)
 
 const inputType = computed(() => {
   if (props.field.type === 'phone') return 'tel'
