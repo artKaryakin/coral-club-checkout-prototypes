@@ -257,6 +257,17 @@ function onPointerMove(event: PointerEvent) {
 }
 
 function onPointerUp(event: PointerEvent) {
+  // Отпускание без нажатия на самой карте — не тычок по ней.
+  //
+  // Так приходит pointerup, начавшийся на окне поверх карты: окно
+  // закрылось по нажатию, и отпускание прилетело уже сюда. Карта читала
+  // это как выбор точки, уводила метку и запрашивала адрес по координатам
+  // — в модалке адреса выбранная подсказка из-за этого подменялась на
+  // соседний дом в паре километров.
+  if (!activePointers.has(event.pointerId)) {
+    return
+  }
+
   const wasPinching = activePointers.size >= 2
 
   activePointers.delete(event.pointerId)

@@ -30,7 +30,9 @@ const GEOLOCATE_ENDPOINT = 'https://suggestions.dadata.ru/suggestions/api/4_1/rs
 export const dadataToken: string = import.meta.env.VITE_DADATA_TOKEN ?? ''
 
 /** Сколько показываем. Меньше запрошенного сервис не отдаёт, больше незачем. */
-const LIMIT = 5
+// Восемь: поиск адреса переехал в отдельное окно, и место под списком
+// есть. Пять строк отсекали нужный дом там, где на улице много корпусов.
+const LIMIT = 8
 
 /**
  * Москва — город российского рынка стенда. Буст, а не ограничение: человек

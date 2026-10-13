@@ -71,6 +71,11 @@ const note = computed(() => {
   &__list {
     margin: 0;
     padding: 0;
+
+    // Восемь подсказок на коротком экране не помещаются: список
+    // прокручивается внутри себя, а не уезжает за край. По горизонтали
+    // по-прежнему hidden — им скругление обрезает углы крайних строк.
+    max-height: 40dvh;
     width: 100%;
 
     list-style: none;
@@ -79,7 +84,7 @@ const note = computed(() => {
     border-style: solid;
     border-width: 1px;
     border-radius: var(--st-global-radius-md);
-    overflow: hidden;
+    overflow: hidden auto;
   }
 
   &__option {

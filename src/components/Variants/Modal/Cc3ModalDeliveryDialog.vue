@@ -438,12 +438,7 @@ function closeSearch() {
 function onSearchPick(suggestion: AddressSuggestion) {
   onSuggestionSelect(suggestion)
 
-  // Закрываем не сразу, а следующим кадром. Подсказка выбирается по
-  // mousedown (click приходит уже после blur, и выбор терялся бы), а
-  // mouseup прилетает следом — и если окно к этому моменту закрыто, он
-  // попадает в карту под ним. Карта читает это как тычок, двигает метку и
-  // перетирает только что выбранный адрес обратным геокодированием.
-  requestAnimationFrame(closeSearch)
+  closeSearch()
 }
 
 /** Что показывает строка адреса под картой. */
@@ -1097,9 +1092,9 @@ function onOverlayKeydown(event: KeyboardEvent) {
     width: 36px;
     height: 36px;
 
-    color: var(--st-content-foreground-color-neutral-primary);
-    background-color: var(--st-content-background-color-default-solid-normal);
-    border: 1px solid var(--st-content-border-color-neutral-primary);
+    color: var(--st-action-foreground-color-onprimary-normal);
+    background-color: var(--st-action-background-color-positive-normal);
+    border: none;
     border-radius: var(--st-global-radius-md);
     box-shadow: 0 2px 8px 0 rgb(4 51 103 / 12%);
     cursor: pointer;
