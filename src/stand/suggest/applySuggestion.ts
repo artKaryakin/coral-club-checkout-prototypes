@@ -29,9 +29,9 @@ function matchOption(field: StandField, value: string): string | undefined {
  * непустыми значениями: подсказка может не знать индекса, и затирать им
  * то, что человек уже ввёл руками, нельзя.
  *
- * Дом. Он уходит из строки адреса только тогда, когда поле «Дом» видно на
- * том же экране: иначе одно и то же число стоит дважды, и человек,
- * поправивший одно из них, оставляет поля спорящими между собой.
+ * Дом и квартира. Они уходят из строки адреса только тогда, когда поле
+ * «Дом» видно на том же экране: иначе одно и то же число стоит дважды, и
+ * человек, поправивший одно из них, оставляет поля спорящими между собой.
  *
  * Если поля дома на экране нет — шаг карты и поиска в модальном концепте,
  * рынки без отдельного поля, — дом остаётся внутри строки. Там она
@@ -82,10 +82,16 @@ export function applySuggestion(
 
   const filled: FieldValues = {
     [sourceKey]:
-      splitHouse && suggestion.house ? labelWithoutHouse(suggestion, country) : suggestion.label,
+      splitHouse && (suggestion.house || suggestion.apartment)
+        ? labelWithoutHouse(suggestion, country)
+        : suggestion.label,
   }
   const plain: [FieldKey, string][] = [
     ['house', suggestion.house],
+    // Квартира приходит из подсказки, только если человек сам вписал её в
+    // строку адреса. Пустую не подставляем — иначе затёрли бы введённую
+    // руками.
+    ['apartment', suggestion.apartment ?? ''],
     ['postal', suggestion.postal],
     ['city', suggestion.city],
   ]

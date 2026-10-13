@@ -14,6 +14,12 @@ export interface AddressSuggestion {
   label: string
   street: string
   house: string
+  /**
+   * Квартира, если человек ввёл её прямо в строку адреса, а провайдер
+   * сумел её разобрать. Так вводят на Озоне и в Яндексе, и отдельное поле
+   * формы должно получить её из подсказки, а не ждать повторного ввода.
+   */
+  apartment?: string
   postal: string
   city: string
   region: string

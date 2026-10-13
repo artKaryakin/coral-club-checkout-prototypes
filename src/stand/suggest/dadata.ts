@@ -50,6 +50,7 @@ interface DadataAddress {
   settlement?: string | null
   street_with_type?: string | null
   house?: string | null
+  flat?: string | null
   geo_lat?: string | null
   geo_lon?: string | null
   fias_id?: string | null
@@ -104,20 +105,33 @@ function localityOf(data: DadataAddress): string {
  * товариществ и посёлков её нет вовсе, а «тер. СНТ Москворечье» живёт
  * только в готовой строке — собранная потеряла бы его целиком.
  *
- * Отрезаем только если последняя часть действительно про дом: в ней
- * обязан встретиться его номер. «г Москва, ул Тверская, д 1 стр 2» →
+ * Отрезаем только если последняя часть действительно про номер: в ней
+ * обязан встретиться он сам. «г Москва, ул Тверская, д 1 стр 2» →
  * «г Москва, ул Тверская», а строка без дома остаётся как есть.
+ *
+ * Частей может быть две: человек вводит адрес одной строкой вместе с
+ * квартирой — «Москворечье 43 45», — и «Дадата» отвечает «…, д 43, кв 45».
+ * Сначала уходит квартира, следом дом; каждая в своё поле формы.
  */
-function lineWithoutHouse(value: string, house: string): string {
+function trimTail(value: string, number: string): string {
+  if (!number) {
+    return value
+  }
+
   const parts = value.split(', ')
   const last = parts[parts.length - 1] ?? ''
 
-  return parts.length > 1 && last.includes(house) ? parts.slice(0, -1).join(', ') : value
+  return parts.length > 1 && last.includes(number) ? parts.slice(0, -1).join(', ') : value
+}
+
+function lineWithoutNumbers(value: string, house: string, flat: string): string {
+  return trimTail(trimTail(value, flat), house)
 }
 
 function toSuggestion(item: DadataSuggestion, index: number): AddressSuggestion {
   const data = item.data ?? {}
   const house = data.house?.trim() ?? ''
+  const flat = data.flat?.trim() ?? ''
   const label = item.value?.trim() ?? ''
 
   return {
@@ -132,7 +146,10 @@ function toSuggestion(item: DadataSuggestion, index: number): AddressSuggestion 
     region: data.region_with_type?.trim() ?? '',
     lat: data.geo_lat ? Number(data.geo_lat) : undefined,
     lng: data.geo_lon ? Number(data.geo_lon) : undefined,
-    lineWithoutHouse: house ? lineWithoutHouse(label, house) : undefined,
+    // Квартиру «Дадата» отдаёт отдельным полем, если человек ввёл её в
+    // строку. Она уходит в поле «Квартира», а не остаётся в адресе.
+    apartment: flat,
+    lineWithoutHouse: house || flat ? lineWithoutNumbers(label, house, flat) : undefined,
   }
 }
 
@@ -144,7 +161,7 @@ export const dadataProvider: SuggestProvider = {
    * щедрая — 30 в секунду с адреса. Ограничение другое: 10 000 запросов в
    * сутки на бесплатном тарифе, суммарно по всем видам подсказок. Поэтому
    * экономим не частотой, а объёмом: пауза после ввода короче, чем у
-   * Photon, но запрашиваем ровно пять результатов и только адреса до дома.
+   * Photon, но запрашиваем ровно пять результатов.
    */
   debounceMs: 300,
 
@@ -158,11 +175,15 @@ export const dadataProvider: SuggestProvider = {
         // настоящий дом, где бы он ни жил.
         locations: [{ country: 'Россия' }],
         locations_boost: [{ kladr_id: MOSCOW_KLADR }],
-        // Только улицы и дома. Без этих границ первые буквы отдают регионы
-        // и города — «г Москва», «Московская обл», — которые в чекауте
-        // выбрать нельзя: по ним не доставляют.
+        // Нижняя граница — улица. Без неё первые буквы отдают регионы и
+        // города («г Москва», «Московская обл»), которые в чекауте выбрать
+        // нельзя: по ним не доставляют.
+        //
+        // Верхней границы нет сознательно. Стояла «не глубже дома», и
+        // запрос с квартирой — «Москворечье 43 45», как вводят на Озоне и
+        // в Яндексе, — не находил ничего. Хуже того, «Тверская 1 кв 5»
+        // находил турбазу в Тверской области: не пусто, а чужой адрес.
         from_bound: { value: 'street' },
-        to_bound: { value: 'house' },
       },
       signal,
     )
