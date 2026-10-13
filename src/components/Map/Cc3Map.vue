@@ -55,6 +55,14 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<{
   select: [point: MapPoint]
+  /**
+   * Карту подвинули жестом — пришла её новая середина.
+   *
+   * Нужно там, где метка стоит неподвижно в центре экрана, а двигают под
+   * ней саму карту: так адрес выбирают в Озоне и Яндексе. Кто этого
+   * события не слушает, ничего не замечает.
+   */
+  move: [point: MapPoint]
 }>()
 
 const TILE_SIZE = 256
@@ -289,6 +297,12 @@ function onPointerUp(event: PointerEvent) {
   pinchDistance = 0
 
   if (wasPinching || isMoved || !root.value) {
+    // Карту вели пальцем — это не выбор точки тычком, но середина
+    // сменилась, и тому, кто держит метку в центре, нужно знать новую.
+    if (isMoved) {
+      emit('move', { ...center.value })
+    }
+
     return
   }
 

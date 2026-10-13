@@ -13,7 +13,7 @@ type Props = {
    */
   icon?: 'delivery-truck'
 
-  variant?: 'cdek' | 'office' | 'fivepost' | 'address'
+  variant?: 'cdek' | 'office' | 'fivepost' | 'address' | 'positive'
 
   selected?: boolean
 }
@@ -94,6 +94,18 @@ withDefaults(defineProps<Props>(), {
 
     .cc3-map-pin__tail {
       border-top-color: var(--st-content-foreground-color-primary-primary);
+    }
+  }
+
+  // Фирменный зелёный. Отдельный вариант, а не замена address: тем же
+  // пином прод рисует адрес доставки, и его цвет мы не трогаем.
+  &--positive {
+    .cc3-map-pin__body {
+      background-color: var(--st-action-background-color-positive-normal);
+    }
+
+    .cc3-map-pin__tail {
+      border-top-color: var(--st-action-background-color-positive-normal);
     }
   }
 
