@@ -185,7 +185,7 @@ export interface CountryConfig {
    * бесплатный слой photon (OSM); остальные коды подставляют её же, пока
    * не появится ключ. Смена провайдера для страны — правка одной строки.
    */
-  provider: 'dadata' | 'loqate' | 'google' | 'twogis' | 'photon'
+  provider: 'dadata' | 'geoapify' | 'loqate' | 'google' | 'twogis' | 'photon'
   address: FieldConfig[]
   recipient: FieldConfig[]
   /** Варианты для полей типа select (регионы, штаты). */

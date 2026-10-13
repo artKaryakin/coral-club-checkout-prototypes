@@ -80,11 +80,28 @@ export function applySuggestion(
   const byKey = new Map(fields.map((field) => [field.key, field]))
   const splitHouse = (isHouseFieldVisible ?? byKey.has('house')) && byKey.has('house')
 
-  const filled: FieldValues = {
-    [sourceKey]:
-      splitHouse && (suggestion.house || suggestion.apartment)
+  /**
+   * Город, индекс и регион раскладываются по своим полям — значит внутри
+   * строки адреса им делать нечего.
+   *
+   * До этого в строку уходила полная подсказка, и карточка схлопывалась в
+   * одну строку: «350 5th Avenue, New York, NY 10001, Apt 66» вместо
+   * «350 5th Avenue, Apt 66 / New York, NY 10001». Город и индекс стояли и
+   * в строке, и в своих полях, а сборщик карточки честно выбрасывал
+   * повторы — и вторую строку собирать было не из чего.
+   *
+   * На шаге карты своих полей нет, и туда по-прежнему идёт полная строка:
+   * там она единственное место, где адрес виден целиком.
+   */
+  const street =
+    byKey.has('city') && suggestion.streetLine
+      ? suggestion.streetLine
+      : splitHouse && (suggestion.house || suggestion.apartment)
         ? labelWithoutHouse(suggestion, country)
-        : suggestion.label,
+        : suggestion.label
+
+  const filled: FieldValues = {
+    [sourceKey]: street,
   }
   const plain: [FieldKey, string][] = [
     ['house', suggestion.house],

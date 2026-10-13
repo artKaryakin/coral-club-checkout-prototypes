@@ -2,6 +2,7 @@ import { countries } from '../config/countries'
 import type { CountryCode, CountryConfig } from '../config/types'
 import { isSuggestCoolingDown, startSuggestCooldown } from './cooldown'
 import { dadataProvider, dadataToken } from './dadata'
+import { geoapifyProvider, geoapifyToken } from './geoapify'
 import { photonProvider } from './photon'
 import type { AddressSuggestion, SuggestPoint, SuggestProvider } from './types'
 
@@ -23,6 +24,7 @@ const providers: Partial<Record<CountryConfig['provider'], SuggestProvider>> = {
   // провайдера. Так сборка без переменной окружения не падает и не
   // показывает пустые подсказки — она просто работает хуже.
   ...(dadataToken ? { dadata: dadataProvider } : {}),
+  ...(geoapifyToken ? { geoapify: geoapifyProvider } : {}),
 }
 
 /** Провайдер, которым подменяются ещё не подключённые. */

@@ -12,6 +12,14 @@ interface ImportMetaEnv {
    * «Стандартизации» и в браузер не попадает никогда.
    */
   readonly VITE_DADATA_TOKEN?: string
+
+  /**
+   * API-ключ Geoapify для подсказок адресов на остальных рынках.
+   *
+   * Берётся оттуда же, откуда ключ «Дадаты»: .env.local локально, секрет
+   * репозитория при сборке. Без ключа рынки работают на Photon.
+   */
+  readonly VITE_GEOAPIFY_TOKEN?: string
 }
 
 interface ImportMeta {

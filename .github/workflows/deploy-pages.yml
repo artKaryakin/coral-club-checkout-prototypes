@@ -33,6 +33,7 @@ jobs:
       - run: npm run build
         env:
           VITE_DADATA_TOKEN: ${{ secrets.DADATA_TOKEN }}
+          VITE_GEOAPIFY_TOKEN: ${{ secrets.GEOAPIFY_TOKEN }}
 
       - uses: actions/upload-pages-artifact@v3
         with:
