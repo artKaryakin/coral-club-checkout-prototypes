@@ -80,6 +80,12 @@ export default {
   'common.back': 'Back',
   'common.zoomIn': 'Zoom in',
   'common.zoomOut': 'Zoom out',
+  // Экран карты: строка внизу показывает выбранный адрес и открывает
+  // поиск, поиск живёт отдельным окном поверх карты.
+  'address.map.title': 'Delivery address',
+  'address.search.title': 'Address search',
+  'address.map.empty': 'Choose an address',
+  'address.search.open': 'Find address',
   'common.findAddress': 'Find address',
   'delivery.variants.hint': 'Enter your address to see available delivery options',
   // Подписи дат собираются из даты прогона: раньше тут стояли

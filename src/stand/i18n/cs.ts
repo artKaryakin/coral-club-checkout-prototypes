@@ -80,6 +80,12 @@ export default {
   'common.back': 'Zpět',
   'common.zoomIn': 'Přiblížit',
   'common.zoomOut': 'Oddálit',
+  // Экран карты: строка внизу показывает выбранный адрес и открывает
+  // поиск, поиск живёт отдельным окном поверх карты.
+  'address.map.title': 'Doručovací adresa',
+  'address.search.title': 'Vyhledání adresy',
+  'address.map.empty': 'Zadejte adresu',
+  'address.search.open': 'Najít adresu',
   'common.findAddress': 'Najít adresu',
   'delivery.variants.hint': 'Zadejte adresu — ukážeme dostupné způsoby doručení',
   // Подписи дат собираются из даты прогона: раньше тут стояли

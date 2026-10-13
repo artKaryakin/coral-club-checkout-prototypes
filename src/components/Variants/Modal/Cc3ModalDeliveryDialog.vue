@@ -79,6 +79,10 @@ const text = computed(() => ({
   save: t('common.save'),
   remove: t('common.delete'),
   filterAll: t('common.all'),
+  mapAddressTitle: t('address.map.title'),
+  mapAddressEmpty: t('address.map.empty'),
+  searchTitle: t('address.search.title'),
+  searchOpen: t('address.search.open'),
 }))
 
 function initialStep(): Step {
@@ -335,6 +339,47 @@ const courierCenter = computed<MapPoint>(() => addressPoint.value ?? mapCenter.v
 
 const courierMarkers = computed(() => [{ id: 'address', ...courierCenter.value }])
 
+/**
+ * Высота карты — всё, что осталось от экрана.
+ *
+ * Число, а не высота в стилях: Cc3Map считает по ней сетку тайлов, и у
+ * растянутой стилями карты низ остался бы пустым. Контейнер меряется
+ * наблюдателем размера, карта лежит в нём абсолютно — иначе её высота
+ * влияла бы на высоту контейнера, а та снова на неё.
+ */
+const MAP_FALLBACK_HEIGHT = 380
+
+const mapBoxRef = ref<HTMLElement>()
+const mapHeight = ref(MAP_FALLBACK_HEIGHT)
+
+let mapObserver: ResizeObserver | undefined
+
+function watchMapBox(element: HTMLElement | undefined) {
+  mapObserver?.disconnect()
+  mapObserver = undefined
+
+  if (!element) {
+    return
+  }
+
+  const measure = () => {
+    const height = Math.round(element.getBoundingClientRect().height)
+
+    if (height > 0) {
+      mapHeight.value = height
+    }
+  }
+
+  measure()
+
+  mapObserver = new ResizeObserver(measure)
+  mapObserver.observe(element)
+}
+
+// Контейнер появляется и исчезает вместе с шагом поиска и вкладкой курьера,
+// поэтому следим за самой ссылкой, а не ставим наблюдатель один раз.
+watch(mapBoxRef, (element) => watchMapBox(element), { immediate: true })
+
 let reverseController: AbortController | undefined
 
 /**
@@ -365,6 +410,44 @@ function onSuggestionSelect(suggestion: AddressSuggestion) {
     addressPoint.value = { lat: suggestion.lat, lng: suggestion.lng }
   }
 }
+
+/**
+ * Поиск адреса — отдельное окно поверх карты.
+ *
+ * Строка поиска стояла прямо на экране карты, и список подсказок падал на
+ * кнопку «Продолжить». Разносим: на карте внизу — выбранный адрес, по
+ * нажатию на него (и по лупе на карте) открывается окно поиска, где
+ * список разворачивается в пустой экран под полем. Выбрал подсказку —
+ * окно закрылось, метка переехала на найденный адрес.
+ */
+const isSearchOpen = ref(false)
+const searchInputRef = ref<HTMLElement>()
+
+function openSearch() {
+  isSearchOpen.value = true
+
+  void nextTick(() => {
+    searchInputRef.value?.querySelector('input')?.focus()
+  })
+}
+
+function closeSearch() {
+  isSearchOpen.value = false
+}
+
+function onSearchPick(suggestion: AddressSuggestion) {
+  onSuggestionSelect(suggestion)
+
+  // Закрываем не сразу, а следующим кадром. Подсказка выбирается по
+  // mousedown (click приходит уже после blur, и выбор терялся бы), а
+  // mouseup прилетает следом — и если окно к этому моменту закрыто, он
+  // попадает в карту под ним. Карта читает это как тычок, двигает метку и
+  // перетирает только что выбранный адрес обратным геокодированием.
+  requestAnimationFrame(closeSearch)
+}
+
+/** Что показывает строка адреса под картой. */
+const mapAddressLine = computed(() => addressSearch.value.trim())
 
 /**
  * Тычок в карту — обратное геокодирование. Метка встаёт сразу, адрес
@@ -472,6 +555,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.body.style.overflow = bodyOverflow
+  watchMapBox(undefined)
 })
 
 function deleteProfile() {
@@ -483,9 +567,30 @@ function deleteProfile() {
 }
 
 function onOverlayKeydown(event: KeyboardEvent) {
-  if (event.key === 'Escape') {
-    emit('close')
+  // Ввод в окне поиска — «готово»: возвращаемся к карте с тем, что набрано.
+  // Нужен тем, кому сервис ничего не подсказал: адрес они вводят руками, и
+  // выйти из окна иначе можно было только крестиком, который читается как
+  // отмена. Если ввод уже забрала подсказка (она гасит событие), окно
+  // закроется само.
+  if (event.key === 'Enter' && isSearchOpen.value && !event.defaultPrevented) {
+    closeSearch()
+
+    return
   }
+
+  if (event.key !== 'Escape') {
+    return
+  }
+
+  // Открытый поиск закрывается первым: Escape в нём означает «вернуться к
+  // карте», а не «бросить адрес целиком».
+  if (isSearchOpen.value) {
+    closeSearch()
+
+    return
+  }
+
+  emit('close')
 }
 </script>
 
@@ -530,30 +635,49 @@ function onOverlayKeydown(event: KeyboardEvent) {
 
         <div class="cc3-modal-delivery-dialog__body">
           <template v-if="step === 'search'">
-            <div v-if="method === 'courier'" class="cc3-modal-delivery-dialog__map">
+            <div v-if="method === 'courier'" ref="mapBoxRef" class="cc3-modal-delivery-dialog__map">
               <Cc3Map
                 :center="courierCenter"
                 :zoom="14"
                 :markers="courierMarkers"
-                :height="380"
+                :height="mapHeight"
                 @select="onMapSelect"
               >
                 <template #marker>
                   <Cc3MapPin variant="address" icon="delivery-truck" />
                 </template>
               </Cc3Map>
+
+              <button
+                type="button"
+                class="cc3-modal-delivery-dialog__map-search"
+                :aria-label="text.searchOpen"
+                @click="openSearch"
+              >
+                <Cc3Icon name="search-md" :size="20" />
+              </button>
             </div>
 
             <template v-if="method === 'courier'">
-              <div class="cc3-modal-delivery-dialog__field">
-                <Cc3StandField
-                  v-if="searchField"
-                  v-model="addressSearch"
-                  :field="searchField"
-                  @select="onSuggestionSelect"
-                />
-              </div>
+              <div class="cc3-modal-delivery-dialog__address-bar">
+                <p class="cc3-modal-delivery-dialog__address-title">
+                  {{ text.mapAddressTitle }}
+                </p>
 
+                <button
+                  type="button"
+                  class="cc3-modal-delivery-dialog__address-value"
+                  :class="{
+                    'cc3-modal-delivery-dialog__address-value--empty': !mapAddressLine,
+                  }"
+                  @click="openSearch"
+                >
+                  <Cc3Icon name="search-md" :size="20" />
+                  <span class="cc3-modal-delivery-dialog__address-text">
+                    {{ mapAddressLine || text.mapAddressEmpty }}
+                  </span>
+                </button>
+              </div>
             </template>
 
             <template v-else>
@@ -738,6 +862,35 @@ function onOverlayKeydown(event: KeyboardEvent) {
           </template>
         </div>
 
+        <!--
+          Окно поиска поверх карты. Карта под ним остаётся смонтированной:
+          иначе при каждом открытии поиска она перезагружала бы тайлы и
+          теряла масштаб.
+        -->
+        <div v-if="isSearchOpen" class="cc3-modal-delivery-dialog__search">
+          <div class="cc3-modal-delivery-dialog__search-head">
+            <h2 class="cc3-modal-delivery-dialog__search-title">{{ text.searchTitle }}</h2>
+
+            <button
+              type="button"
+              class="cc3-modal-delivery-dialog__close"
+              :aria-label="text.close"
+              @click="closeSearch"
+            >
+              <Cc3Icon name="x-md" :size="24" />
+            </button>
+          </div>
+
+          <div ref="searchInputRef" class="cc3-modal-delivery-dialog__search-field">
+            <Cc3StandField
+              v-if="searchField"
+              v-model="addressSearch"
+              :field="searchField"
+              @select="onSearchPick"
+            />
+          </div>
+        </div>
+
         <div class="cc3-modal-delivery-dialog__footer">
           <button
             v-if="step === 'search'"
@@ -899,19 +1052,152 @@ function onOverlayKeydown(event: KeyboardEvent) {
     }
   }
 
+  // Карта забирает весь остаток экрана: под ней остаются только строка
+  // адреса и кнопка. min-height — чтобы на совсем низком экране карта не
+  // схлопнулась в полоску; там модалка просто начнёт прокручиваться.
   &__map {
+    position: relative;
+    flex: 1;
+    min-height: 180px;
+
     overflow: hidden;
 
     margin: 0 calc(var(--st-global-distance-space-inset-2xl) * -1)
       var(--st-global-distance-space-inset-xl);
 
+    // Абсолютно: своя высота карты не должна влиять на высоту контейнера,
+    // иначе одно меряет другое по кругу.
+    //
     // Cc3Map — общий компонент (используется и в проде), по умолчанию
     // рисует карточку с рамкой и скруглением. В этой модалке карта — на
     // весь экран без отступов, поэтому убираем их только здесь.
     .cc3-map {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0;
+
       border: none;
       border-radius: 0;
     }
+  }
+
+  // Лупа на карте — второй вход в поиск, кроме строки адреса под картой.
+  // Стоит над кнопками масштаба: те прижаты к нижнему правому углу, и
+  // 68px — их высота (две кнопки по 28 и зазор) плюс собственный отступ.
+  &__map-search {
+    position: absolute;
+    right: var(--st-global-distance-space-stack-md);
+    bottom: 68px;
+    z-index: 1;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 36px;
+    height: 36px;
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-content-background-color-default-solid-normal);
+    border: 1px solid var(--st-content-border-color-neutral-primary);
+    border-radius: var(--st-global-radius-md);
+    box-shadow: 0 2px 8px 0 rgb(4 51 103 / 12%);
+    cursor: pointer;
+  }
+
+  // Строка выбранного адреса под картой. Это не поле ввода: печатать здесь
+  // нечего, нажатие открывает окно поиска. Поэтому button, а не input —
+  // иначе на телефоне поднялась бы клавиатура, а вводить некуда.
+  &__address-bar {
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-md);
+  }
+
+  &__address-title {
+    margin: 0;
+
+    @include font('heading-xxs');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__address-value {
+    display: flex;
+    align-items: center;
+    gap: var(--st-global-distance-space-inset-md);
+
+    padding: var(--st-global-distance-space-inset-lg) var(--st-global-distance-space-inset-xl);
+    width: 100%;
+
+    font-family: inherit;
+    text-align: start;
+
+    @include font('body-md');
+
+    color: var(--st-content-foreground-color-neutral-primary);
+    background-color: var(--st-interaction-background-color-ghost-normal);
+    border: 1px solid var(--st-interaction-border-color-neutral-normal);
+    border-radius: var(--st-global-radius-md);
+    cursor: pointer;
+
+    &--empty {
+      color: var(--st-content-foreground-color-neutral-tetriary);
+    }
+  }
+
+  &__address-text {
+    overflow: hidden;
+
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  // Окно поиска: перекрывает карту целиком, а не встраивается в неё.
+  // Список подсказок разворачивается в пустой экран под полем — ровно то,
+  // чего не хватало, когда строка поиска стояла внизу карты.
+  &__search {
+    position: absolute;
+    inset: 0;
+    z-index: 10;
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--st-global-distance-space-inset-xl);
+
+    padding: 0 var(--st-global-distance-space-inset-2xl)
+      var(--st-global-distance-space-inset-2xl);
+
+    background-color: var(--st-content-background-color-default-solid-normal);
+  }
+
+  &__search-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--st-global-distance-space-inset-xl);
+
+    padding: var(--st-global-distance-space-inset-2xl) 0
+      var(--st-global-distance-space-inset-xl);
+  }
+
+  // По центру, как заголовок шага формы: крестик справа, заголовок в
+  // середине — та же шапка, что у остальных экранов модалки.
+  &__search-title {
+    flex: 1;
+    margin: 0;
+
+    @include font('label-md');
+    text-align: center;
+
+    color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__search-field {
+    // Список подсказок — перекрытие, и ему нужен контекст наложения выше
+    // поля, иначе он уходит под соседей.
+    position: relative;
+    z-index: 1;
   }
 
   // Самовывоз: переключатель Карта/Список лежит поверх карты (см. фигму),
