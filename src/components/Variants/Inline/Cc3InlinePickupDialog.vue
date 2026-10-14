@@ -10,8 +10,8 @@ import Cc3StandField from '@/stand/components/Cc3StandField.vue'
 import { useStand } from '@/stand/composables/useStand'
 import { useStandFields } from '@/stand/composables/useStandFields'
 import { useStandProfile } from '@/stand/composables/useStandProfile'
+import { pickupCardLines } from '@/stand/config/pickupCard'
 import type { FieldKey } from '@/stand/config/types'
-import { formatPriceRounded } from '@/utils/formatPrice'
 
 import Cc3ModalConfirmDialog from '../Modal/Cc3ModalConfirmDialog.vue'
 import type { DeliveryProfile } from '../Modal/deliveryProfile'
@@ -37,8 +37,14 @@ const emit = defineEmits<{
   delete: [id: string]
 }>()
 
-const { pickupPointsFormat, pickupProviders, togglePickupProvider, mapCenter, pickupProviderLabels } =
-  useCheckout()
+const {
+  pickupPointsFormat,
+  pickupProviders,
+  togglePickupProvider,
+  mapCenter,
+  pickupProviderLabels,
+  formatMoneyRounded,
+} = useCheckout()
 const { t, country } = useStand()
 const { recipientValues: profileRecipient } = useStandProfile()
 
@@ -132,9 +138,25 @@ watch([filteredPickupPoints, country], () => {
 })
 
 
-const activePickupPointPriceFormatRounded = computed(() =>
-  activePickupPoint.value ? formatPriceRounded(activePickupPoint.value.price) : '',
-)
+/**
+ * Цена выдачи в карточке.
+ *
+ * Ноль — это «Бесплатно», а не «0 ₽»: в списке пунктов проверка была, в
+ * карточке ноль печатался суммой.
+ *
+ * Сумма — через formatMoneyRounded из useCheckout: он знает валюту рынка.
+ * Здесь стоял formatPriceRounded без аргументов, то есть всегда рубли, и
+ * платный пункт в Нью-Йорке за $3.99 подписывался «4 ₽».
+ */
+const activePickupPointPriceLabel = computed(() => {
+  const point = activePickupPoint.value
+
+  if (!point) {
+    return ''
+  }
+
+  return point.price > 0 ? formatMoneyRounded(point.price) : t('delivery.free')
+})
 
 // Короткая подпись внутри метки на карте — названия служб, не переводятся.
 const pickupProviderPinLabel: Record<PickupProvider, string> = {
@@ -162,7 +184,8 @@ type PickupDetailView = {
   title: string
   address: string
   priceLabel: string
-  note?: string
+  storage?: string
+  directions?: string
   phone?: string
 }
 
@@ -185,11 +208,14 @@ const pickupDetailView = computed<PickupDetailView | undefined>(() => {
     return undefined
   }
 
+  const lines = pickupCardLines(activePickupPoint.value.provider, t)
+
   return {
     title: pickupProviderLabels.value[activePickupPoint.value.provider],
     address: activePickupPoint.value.address,
-    priceLabel: `${t('delivery.eta')}, ${activePickupPointPriceFormatRounded.value}`,
-    note: activePickupPoint.value.note,
+    priceLabel: `${lines.eta} · ${activePickupPointPriceLabel.value}`,
+    storage: lines.storage,
+    directions: lines.directions,
     phone: activePickupPoint.value.phone,
   }
 })
@@ -418,6 +444,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
             {{ pickupDetailView.address }}
             <br />
             <strong>{{ pickupDetailView.priceLabel }}</strong>
+            <span
+              v-if="pickupDetailView.storage"
+              class="cc3-inline-pickup-dialog__detail-storage"
+            >
+              {{ pickupDetailView.storage }}
+            </span>
           </p>
 
           <div class="cc3-inline-pickup-dialog__detail-block">
@@ -429,9 +461,9 @@ function onOverlayKeydown(event: KeyboardEvent) {
             </p>
           </div>
 
-          <div v-if="pickupDetailView.note" class="cc3-inline-pickup-dialog__detail-block">
+          <div v-if="pickupDetailView.directions" class="cc3-inline-pickup-dialog__detail-block">
             <p class="cc3-inline-pickup-dialog__detail-title">{{ text.directions }}</p>
-            <p class="cc3-inline-pickup-dialog__detail-text">{{ pickupDetailView.note }}</p>
+            <p class="cc3-inline-pickup-dialog__detail-text">{{ pickupDetailView.directions }}</p>
           </div>
 
           <div v-if="pickupDetailView.phone" class="cc3-inline-pickup-dialog__detail-block">
@@ -784,6 +816,14 @@ function onOverlayKeydown(event: KeyboardEvent) {
     @include font('body-md');
 
     color: var(--st-content-foreground-color-neutral-primary);
+  }
+
+  &__detail-storage {
+    display: block;
+
+    @include font('body-sm');
+
+    color: var(--st-content-foreground-color-neutral-secondary);
   }
 
   &__detail-block {
