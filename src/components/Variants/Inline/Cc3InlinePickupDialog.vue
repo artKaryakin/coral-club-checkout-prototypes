@@ -142,6 +142,51 @@ watch([filteredPickupPoints, country], () => {
 })
 
 
+/**
+ * Высота карты на вкладке «Карта».
+ *
+ * В этой версии под картой стоит один выбранный пункт, а не весь список —
+ * и под ним оставалось пустое место до кнопки. Карта забирает его себе:
+ * чем она больше, тем меньше нужно возить её пальцем, чтобы увидеть
+ * соседние пункты.
+ *
+ * Высота числом, а не стилем: Cc3Map считает по ней сетку тайлов, через
+ * CSS она ему неизвестна. Поэтому меряем контейнер и отдаём число — тот
+ * же приём, что на шаге поиска в модальном концепте.
+ */
+const MAP_FALLBACK_HEIGHT = 380
+
+const mapBoxRef = ref<HTMLElement>()
+const mapHeight = ref(MAP_FALLBACK_HEIGHT)
+
+let mapObserver: ResizeObserver | undefined
+
+function watchMapBox(element: HTMLElement | undefined) {
+  mapObserver?.disconnect()
+  mapObserver = undefined
+
+  if (!element) {
+    return
+  }
+
+  const measure = () => {
+    const height = Math.round(element.getBoundingClientRect().height)
+
+    if (height > 0) {
+      mapHeight.value = height
+    }
+  }
+
+  measure()
+
+  mapObserver = new ResizeObserver(measure)
+  mapObserver.observe(element)
+}
+
+// Контейнер появляется и исчезает вместе с вкладкой «Карта», поэтому
+// следим за самой ссылкой, а не ставим наблюдатель один раз.
+watch(mapBoxRef, (element) => watchMapBox(element), { immediate: true })
+
 /** Срок в превью выбранного пункта под картой — тот же, что в списке. */
 const activePickupPointEta = computed(() =>
   activePickupPoint.value ? pickupCardLines(activePickupPoint.value.provider, t).eta : '',
@@ -323,6 +368,7 @@ onMounted(() => {
 
 onBeforeUnmount(() => {
   document.body.style.overflow = bodyOverflow
+  mapObserver?.disconnect()
 })
 
 function onOverlayKeydown(event: KeyboardEvent) {
@@ -388,8 +434,8 @@ function onOverlayKeydown(event: KeyboardEvent) {
           </div>
 
           <template v-if="view === 'map'">
-            <div class="cc3-inline-pickup-dialog__map">
-              <Cc3Map :center="mapCenter" :zoom="9" :markers="pickupMapMarkers" :height="380">
+            <div ref="mapBoxRef" class="cc3-inline-pickup-dialog__map">
+              <Cc3Map :center="mapCenter" :zoom="9" :markers="pickupMapMarkers" :height="mapHeight">
                 <template #marker="{ marker }">
                   <Cc3MapPin
                     :label="marker.pinLabel"
@@ -645,12 +691,27 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   &__map {
+    // Карта забирает всё свободное место вкладки: под ней только поиск и
+    // один выбранный пункт, и до правки между ними и кнопкой оставалась
+    // пустота. min-height — чтобы на коротком экране карта не схлопнулась
+    // в полоску.
+    position: relative;
+    flex: 1;
+    min-height: 200px;
+
     overflow: hidden;
 
     margin: 0 calc(var(--st-global-distance-space-inset-2xl) * -1)
       var(--st-global-distance-space-inset-xl);
 
+    // Абсолютно: своя высота карты не должна влиять на высоту контейнера,
+    // иначе одно меряет другое по кругу и карта застывает на стартовых
+    // 380px, а карточка выбранного пункта уезжает под кнопку.
     .cc3-map {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline: 0;
+
       border: none;
       border-radius: 0;
     }
@@ -703,6 +764,12 @@ function onOverlayKeydown(event: KeyboardEvent) {
   }
 
   &__point-meta {
+    // Размер не был задан, и строка наследовала 16px — она выходила крупнее
+    // адреса над ней, хотя важнее всех в карточке как раз адрес. Пока в
+    // строке стояло «Открыто до 20:00», это не бросалось в глаза; со сроком
+    // доставки строка стала длиннее и начала переноситься.
+    @include font('body-sm');
+
     color: var(--st-content-foreground-color-neutral-tetriary);
   }
 

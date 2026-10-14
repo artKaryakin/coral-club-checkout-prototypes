@@ -185,7 +185,7 @@ export default {
   'pickup.directions.office': 'Wejście od ulicy, punkt wydania na parterze',
   'pickup.directions.point': 'Szyld przewoźnika przy wejściu, wydanie na parterze',
   'pickup.card.eta': 'Dostawa {eta}',
-  'pickup.card.office': 'Zamówienie można odebrać zaraz po złożeniu',
+  'pickup.card.office': 'Odbiór zaraz po złożeniu',
   'pickup.card.storage': 'Przechowywanie 7 dni',
   'pickup.mapHint': 'Kliknij znacznik, aby wybrać punkt odbioru. Mapę można przesuwać i przybliżać.',
   'pickup.empty': 'Nie znaleziono punktów dla tych filtrów.',

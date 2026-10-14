@@ -185,7 +185,7 @@ export default {
   'pickup.directions.office': 'Vchod z ulice, výdejní pult v přízemí',
   'pickup.directions.point': 'Cedule přepravce u vchodu, výdej v přízemí',
   'pickup.card.eta': 'Doručení {eta}',
-  'pickup.card.office': 'Objednávku si můžete vyzvednout hned po odeslání',
+  'pickup.card.office': 'Vyzvednutí hned po odeslání',
   'pickup.card.storage': 'Uložení 7 dní',
   'pickup.mapHint': 'Klepnutím na značku vyberte výdejní místo. Mapu lze posouvat a přibližovat.',
   'pickup.empty': 'Pro zadané podmínky nebyla nalezena žádná místa.',
