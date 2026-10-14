@@ -71,7 +71,6 @@ const text = computed(() => ({
   findAddress: t('concept.common.findAddress'),
   map: t('common.map'),
   list: t('common.list'),
-  openUntil: t('pickup.openUntil'),
   pickupEmpty: t('pickup.empty'),
   addressSection: t('address.title'),
   addressPlaceholder: t('field.street.placeholder'),
@@ -138,17 +137,22 @@ function onProviderFilterClick(id: PickupProvider | 'all') {
 const filteredPickupPoints = computed(() => {
   const query = pointSearch.value.trim().toLowerCase()
 
-  return pickupPointsFormat.value.filter((point) => {
-    const matchesProvider =
-      pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
+  return pickupPointsFormat.value
+    .filter((point) => {
+      const matchesProvider =
+        pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
 
-    const matchesQuery =
-      query.length === 0 ||
-      point.name.toLowerCase().includes(query) ||
-      point.address.toLowerCase().includes(query)
+      const matchesQuery =
+        query.length === 0 ||
+        point.name.toLowerCase().includes(query) ||
+        point.address.toLowerCase().includes(query)
 
-    return matchesProvider && matchesQuery
-  })
+      return matchesProvider && matchesQuery
+    })
+    // В строке списка стояли часы работы — «Открыто до 20:00». Пункты
+    // выбирают не по ним: все работают до восьми, и строка была одинаковой у
+    // всех. Срок доставки — то, чем они и правда отличаются от курьера.
+    .map((point) => ({ ...point, etaLabel: pickupCardLines(point.provider, t).eta }))
 })
 
 const selectedPickupPointId = ref(pickupPointsFormat.value[0]?.id)
@@ -250,7 +254,8 @@ const pickupDetailView = computed<PickupDetailView | undefined>(() => {
 
 // Короткая подпись внутри метки на карте — названия служб, не переводятся.
 const pickupProviderPinLabel: Record<PickupProvider, string> = {
-  office: 'CC',
+  // Фирменный значок офиса — кружок с буквой, см. вариант coral у метки.
+  office: 'C',
   cdek: 'CDEK',
   fivepost: '5Post',
   kazpost: 'KZPost',
@@ -267,7 +272,7 @@ const pickupMapMarkers = computed(() =>
     lng: point.lng,
     // Свой вид метки нарисован только для офиса; остальные службы
     // показываются общим видом перевозчика.
-    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
+    pinVariant: point.provider === 'office' ? ('coral' as const) : ('cdek' as const),
     pinLabel: pickupProviderPinLabel[point.provider],
   })),
 )
@@ -828,7 +833,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                     <span class="cc3-modal-delivery-dialog__point-name">{{ point.name }}</span>
                     <span class="cc3-modal-delivery-dialog__point-address">{{ point.address }}</span>
                     <span class="cc3-modal-delivery-dialog__point-meta">
-                      {{ text.openUntil }} · {{ point.priceFormat }}
+                      {{ point.etaLabel }} · {{ point.priceFormat }}
                     </span>
                   </button>
                 </div>

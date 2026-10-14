@@ -24,9 +24,9 @@ export interface PickupCardLines {
   eta: string
 
   /**
-   * Сколько заказ ждёт получателя. Только у пунктов службы: в офис человек
-   * приходит к себе, и срок там другой — пока не подтвердим какой, строки
-   * нет совсем (лучше без неё, чем с чужими семью днями).
+   * Сколько заказ ждёт получателя. Только у офиса компании: у пунктов
+   * служб срок хранения свой у каждой, и обещать за них мы его не можем,
+   * а в офисе он наш собственный.
    */
   storage?: string
 
@@ -43,6 +43,7 @@ export function pickupCardLines(
   if (provider === 'office') {
     return {
       eta: translate('pickup.card.office'),
+      storage: translate('pickup.card.storage'),
       directions: translate('pickup.directions.office'),
     }
   }
@@ -51,7 +52,6 @@ export function pickupCardLines(
     // Число дней — из того же ключа, что у прод-версии: срок самовывоза
     // меняется в одном месте, а не в каждой подписи отдельно.
     eta: translate('pickup.card.eta', { eta: translate('delivery.pickup.eta') }),
-    storage: translate('pickup.card.storage'),
     directions: translate('pickup.directions.point'),
   }
 }

@@ -53,7 +53,6 @@ const text = computed(() => ({
   viewOnMap: t('delivery.viewOnMap'),
   map: t('common.map'),
   list: t('common.list'),
-  openUntil: t('pickup.openUntil'),
   pickupEmpty: t('pickup.empty'),
   hours: t('pickup.hours'),
   hoursWeekday: t('pickup.hours.weekday'),
@@ -98,17 +97,22 @@ function onProviderFilterClick(id: PickupProvider | 'all') {
 const filteredPickupPoints = computed(() => {
   const query = pointSearch.value.trim().toLowerCase()
 
-  return pickupPointsFormat.value.filter((point) => {
-    const matchesProvider =
-      pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
+  return pickupPointsFormat.value
+    .filter((point) => {
+      const matchesProvider =
+        pickupProviders.value.length === 0 || pickupProviders.value.includes(point.provider)
 
-    const matchesQuery =
-      query.length === 0 ||
-      point.name.toLowerCase().includes(query) ||
-      point.address.toLowerCase().includes(query)
+      const matchesQuery =
+        query.length === 0 ||
+        point.name.toLowerCase().includes(query) ||
+        point.address.toLowerCase().includes(query)
 
-    return matchesProvider && matchesQuery
-  })
+      return matchesProvider && matchesQuery
+    })
+    // В строке списка стояли часы работы — «Открыто до 20:00». Пункты
+    // выбирают не по ним: все работают до восьми, и строка была одинаковой у
+    // всех. Срок доставки — то, чем они и правда отличаются от курьера.
+    .map((point) => ({ ...point, etaLabel: pickupCardLines(point.provider, t).eta }))
 })
 
 const selectedPickupPointId = ref(
@@ -138,6 +142,11 @@ watch([filteredPickupPoints, country], () => {
 })
 
 
+/** Срок в превью выбранного пункта под картой — тот же, что в списке. */
+const activePickupPointEta = computed(() =>
+  activePickupPoint.value ? pickupCardLines(activePickupPoint.value.provider, t).eta : '',
+)
+
 /**
  * Цена выдачи в карточке.
  *
@@ -160,7 +169,8 @@ const activePickupPointPriceLabel = computed(() => {
 
 // Короткая подпись внутри метки на карте — названия служб, не переводятся.
 const pickupProviderPinLabel: Record<PickupProvider, string> = {
-  office: 'CC',
+  // Фирменный значок офиса — кружок с буквой, см. вариант coral у метки.
+  office: 'C',
   cdek: 'CDEK',
   fivepost: '5Post',
   kazpost: 'KZPost',
@@ -175,7 +185,7 @@ const pickupMapMarkers = computed(() =>
     id: point.id,
     lat: point.lat,
     lng: point.lng,
-    pinVariant: point.provider === 'office' ? ('office' as const) : ('cdek' as const),
+    pinVariant: point.provider === 'office' ? ('coral' as const) : ('cdek' as const),
     pinLabel: pickupProviderPinLabel[point.provider],
   })),
 )
@@ -402,7 +412,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
               </span>
               <span class="cc3-inline-pickup-dialog__point-address">{{ activePickupPoint.address }}</span>
               <span class="cc3-inline-pickup-dialog__point-meta">
-                {{ text.openUntil }} · {{ activePickupPoint.priceFormat }}
+                {{ activePickupPointEta }} · {{ activePickupPoint.priceFormat }}
               </span>
             </div>
           </template>
@@ -422,7 +432,7 @@ function onOverlayKeydown(event: KeyboardEvent) {
                 <span class="cc3-inline-pickup-dialog__point-name">{{ point.name }}</span>
                 <span class="cc3-inline-pickup-dialog__point-address">{{ point.address }}</span>
                 <span class="cc3-inline-pickup-dialog__point-meta">
-                  {{ text.openUntil }} · {{ point.priceFormat }}
+                  {{ point.etaLabel }} · {{ point.priceFormat }}
                 </span>
               </button>
             </div>

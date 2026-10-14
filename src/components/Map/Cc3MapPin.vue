@@ -13,7 +13,7 @@ type Props = {
    */
   icon?: 'delivery-truck'
 
-  variant?: 'cdek' | 'office' | 'fivepost' | 'address' | 'positive'
+  variant?: 'cdek' | 'office' | 'fivepost' | 'address' | 'positive' | 'coral'
 
   selected?: boolean
 }
@@ -106,6 +106,28 @@ withDefaults(defineProps<Props>(), {
 
     .cc3-map-pin__tail {
       border-top-color: var(--st-action-background-color-positive-normal);
+    }
+  }
+
+  // Значок офиса компании: кружок с фирменной буквой, без хвоста и без
+  // белой обводки — такой значок прислал Артём. Цвет взят из присланного
+  // изображения, токена ДС с ним нет (как и у зелёного СДЭК выше).
+  // Вариант отдельный: пином `office` офисы рисует и прод-версия.
+  &--coral {
+    .cc3-map-pin__body {
+      padding: 0;
+      width: 32px;
+      height: 32px;
+
+      @include font('label-md');
+
+      background-color: #78c8e5;
+      border: none;
+      border-radius: 50%;
+    }
+
+    .cc3-map-pin__tail {
+      display: none;
     }
   }
 

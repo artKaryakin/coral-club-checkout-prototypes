@@ -188,7 +188,7 @@ export default {
   'pickup.directions.point': 'Look for the carrier sign at the entrance, pickup on the ground floor',
   'pickup.card.eta': 'Delivery in {eta}',
   'pickup.card.office': 'You can collect the order right after checkout',
-  'pickup.card.storage': 'Held for 7 days after arrival',
+  'pickup.card.storage': 'Stored for 7 days',
   'pickup.mapHint': 'Click a marker to choose a pickup point. The map can be moved and zoomed.',
   'pickup.empty': 'No pickup points match the filters.',
   'payment.title': 'Payment methods',

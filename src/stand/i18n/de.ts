@@ -186,7 +186,7 @@ export default {
   'pickup.directions.point': 'Schild des Dienstleisters am Eingang, Abholung im Erdgeschoss',
   'pickup.card.eta': 'Lieferzeit {eta}',
   'pickup.card.office': 'Die Bestellung kann direkt nach dem Kauf abgeholt werden',
-  'pickup.card.storage': 'Wird 7 Tage nach Ankunft aufbewahrt',
+  'pickup.card.storage': 'Aufbewahrung 7 Tage',
   'pickup.mapHint': 'Klicken Sie auf eine Markierung, um eine Abholstelle zu wählen. Die Karte lässt sich bewegen und zoomen.',
   'pickup.empty': 'Keine Abholstellen für diese Filter gefunden.',
   'payment.title': 'Zahlungsarten',
